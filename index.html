@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pointage">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Le Pointage</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --bg3:#1f2630; --line:#2a3341;
+    --txt:#e8edf4; --dim:#8a97a8; --acc:#ffb020; --ok:#2ecc71; --bad:#ff5c6c; --blue:#5b9cff;
+    --r:15px; --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:linear-gradient(180deg,#131a24,#0d1117 40%);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+  #app{max-width:520px;margin:0 auto;padding:14px 14px calc(30px + env(safe-area-inset-bottom))}
+  header{padding:12px 4px 6px}
+  .logo{font-size:26px;font-weight:900;font-style:italic;letter-spacing:.5px}
+  .logo span{color:var(--acc)}
+  .date{color:var(--dim);font-size:13px;margin-top:2px;text-transform:capitalize}
+  .summary{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:12px 0;display:flex;gap:14px;align-items:center}
+  .ring{position:relative;width:56px;height:56px;flex:0 0 auto}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;font-family:var(--mono)}
+  .sumtxt b{font-size:15px}
+  .sumtxt .s{color:var(--dim);font-size:12.5px;margin-top:2px}
+  .run{background:linear-gradient(135deg,#1d2a1a,#16210f);border:1px solid #2e5a2e;border-radius:var(--r);
+    padding:12px 14px;margin:12px 0;display:flex;align-items:center;gap:12px}
+  .run .t{flex:1}.run .t b{font-size:15px}.run .t small{display:block;color:var(--dim);font-size:12px}
+  .run .clock{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--ok)}
+  .run button{background:var(--bad);border:none;color:#fff;font-weight:800;border-radius:11px;padding:11px 16px;font-size:14px;cursor:pointer}
+  .row{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;transition:border-color .15s}
+  .row.done{border-color:#2e5a3a;background:linear-gradient(135deg,#12211a,#141b22)}
+  .rtop{display:flex;align-items:center;gap:12px}
+  .emoji{font-size:24px;flex:0 0 auto;width:30px;text-align:center}
+  .nm{flex:1;min-width:0}
+  .nm b{font-size:16px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nm .meta{color:var(--dim);font-size:12px;font-family:var(--mono);margin-top:2px}
+  .chk{width:34px;height:34px;flex:0 0 auto;border-radius:10px;border:2px solid var(--line);background:var(--bg3);
+    display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;transition:.12s}
+  .chk.on{background:var(--ok);border-color:var(--ok);color:#04140a}
+  .chk:active{transform:scale(.9)}
+  .ractions{display:flex;gap:7px;margin-top:11px}
+  .ractions button{flex:1;background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:10px;
+    padding:9px 4px;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+  .ractions button:active{background:#252d38}
+  .ractions button.timer.on{background:#2a1a12;border-color:var(--acc);color:var(--acc)}
+  .fabrow{display:flex;gap:9px;margin-top:14px}
+  .fabrow button{flex:1;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:12px;
+    padding:13px;font-size:13.5px;font-weight:700;cursor:pointer}
+  .fabrow button:active{background:var(--bg3)}
+  .hint{color:var(--dim);font-size:12px;text-align:center;margin-top:16px;line-height:1.6}
+  /* overlay edit */
+  #ov{position:fixed;inset:0;background:rgba(6,9,13,.72);backdrop-filter:blur(3px);z-index:50;display:none;align-items:flex-end}
+  #ov.on{display:flex}
+  .sheet{background:var(--bg2);border-top:1px solid var(--line);border-radius:20px 20px 0 0;width:100%;max-width:520px;
+    margin:0 auto;padding:18px 16px calc(24px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
+  .sheet h3{font-size:17px;margin-bottom:12px}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font-size:12px;color:var(--dim);margin-bottom:5px}
+  .fld input{width:100%;background:var(--bg3);border:1px solid var(--line);border-radius:11px;color:var(--txt);
+    padding:12px;font-size:15px;font-family:inherit}
+  .fld input:focus{outline:none;border-color:var(--acc)}
+  .btn{display:block;width:100%;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;
+    background:var(--acc);color:#221200;margin-top:8px}
+  .btn.ghost{background:var(--bg3);color:var(--txt);border:1px solid var(--line)}
+  .btn.danger{background:none;color:var(--bad);border:1px solid #55232c}
+  .editrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .editrow .e{font-size:20px;width:28px;text-align:center}
+  .editrow .en{flex:1;font-weight:600}
+  .editrow button{background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:9px;width:34px;height:34px;font-size:15px;cursor:pointer}
+  .heat{display:flex;gap:3px;margin-top:3px}
+  .heat i{width:9px;height:9px;border-radius:2px;background:var(--bg3);border:1px solid var(--line)}
+  .heat i.on{background:var(--ok);border-color:var(--ok)}
+  #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:#e8edf4;color:#0d1117;padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;opacity:0;
+    transition:.25s;pointer-events:none;z-index:60;max-width:90%}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="ov"><div class="sheet" id="sheet"></div></div>
+<div id="toast"></div>
+<script>
+const KEY="pointage_v1";
+const DEFAULT_APPS=[
+  {id:"shred",   name:"SHRED",       emoji:"🎸", url:"https://niclaeysthomas-ctrl.github.io/shred/"},
+  {id:"piano",   name:"Piano Dojo",  emoji:"🎹", url:"https://niclaeysthomas-ctrl.github.io/piano-dojo/"},
+  {id:"sideman", name:"SIDEMAN",     emoji:"🎼", url:"https://niclaeysthomas-ctrl.github.io/sideman/"},
+  {id:"n990",    name:"990",         emoji:"🇬🇧", url:"https://niclaeysthomas-ctrl.github.io/990/"},
+  {id:"cumbre",  name:"CUMBRE",      emoji:"🇪🇸", url:"https://niclaeysthomas-ctrl.github.io/cumbre/"},
+  {id:"miftah",  name:"MIFTAH",      emoji:"🇲🇦", url:"https://niclaeysthomas-ctrl.github.io/miftah/"},
+  {id:"closing", name:"LE CLOSING",  emoji:"💼", url:"https://niclaeysthomas-ctrl.github.io/closing/"},
+  {id:"topspin", name:"TOPSPIN",     emoji:"🏓", url:"https://niclaeysthomas-ctrl.github.io/topspin/"},
+  {id:"bestia",  name:"BESTIAIRE",   emoji:"🦁", url:"https://niclaeysthomas-ctrl.github.io/bestiaire/"},
+  {id:"lesas",   name:"LE SAS",      emoji:"🎯", url:"https://niclaeysthomas-ctrl.github.io/lesas/"}
+];
+function today(){ return new Date().toISOString().slice(0,10); }
+function dayShift(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function load(){
+  let s; try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s||!s.apps){ s={day:today(), apps:DEFAULT_APPS.slice(), st:{}, run:null}; }
+  s.apps.forEach(a=>{ if(!s.st[a.id]) s.st[a.id]={days:[],min:{}}; });
+  return s;
+}
+let S=load();
+function save(){ localStorage.setItem(KEY,JSON.stringify(S)); }
+function stOf(id){ if(!S.st[id]) S.st[id]={days:[],min:{}}; return S.st[id]; }
+
+/* --- calculs --- */
+function doneToday(id){ return stOf(id).days.includes(today()); }
+function todayMin(id){ return Math.round(stOf(id).min[today()]||0); }
+function totalMin(id){ const m=stOf(id).min; return Math.round(Object.values(m).reduce((a,b)=>a+b,0)); }
+function checks(id){ return stOf(id).days.length; }
+function streak(id){
+  const days=new Set(stOf(id).days);
+  let anchor = days.has(today()) ? today() : (days.has(dayShift(today(),-1)) ? dayShift(today(),-1) : null);
+  if(!anchor) return 0;
+  let n=0, d=anchor;
+  while(days.has(d)){ n++; d=dayShift(d,-1); }
+  return n;
+}
+function fmtMin(m){ if(m<60) return m+" min"; const h=Math.floor(m/60); return h+"h"+String(m%60).padStart(2,"0"); }
+
+/* --- actions --- */
+function toggle(id){
+  const st=stOf(id), t=today();
+  const i=st.days.indexOf(t);
+  if(i>=0){ st.days.splice(i,1); } else { st.days.push(t); st.days.sort(); }
+  save(); render();
+}
+function addMin(id,n){
+  const st=stOf(id), t=today();
+  st.min[t]=(st.min[t]||0)+n;
+  if(st.min[t]<0) st.min[t]=0;
+  if(n>0 && !st.days.includes(t)){ st.days.push(t); st.days.sort(); } // du temps loggé = fait
+  save(); render();
+}
+function startTimer(id){
+  if(S.run){ stopTimer(); }
+  S.run={id, t0:Date.now()}; save(); render();
+}
+function stopTimer(){
+  if(!S.run) return;
+  const mins=(Date.now()-S.run.t0)/60000;
+  const id=S.run.id; S.run=null;
+  if(mins>=0.1) addMin(id, Math.round(mins*10)/10);
+  else { save(); render(); }
+  toast("⏱️ "+fmtMin(Math.max(1,Math.round(mins)))+" ajoutées");
+}
+function openById(id){
+  const a=S.apps.find(x=>x.id===id);
+  if(a&&a.url){ window.open(a.url,"_blank","noopener"); }
+  else if(a){ editApp(id); }
+}
+
+/* --- rendu --- */
+let tick=null;
+function render(){
+  const t=today();
+  const total=S.apps.length;
+  const done=S.apps.filter(a=>doneToday(a.id)).length;
+  const totMin=S.apps.reduce((s,a)=>s+todayMin(a.id),0);
+  const pct=total?done/total:0;
+  const dateStr=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  const C=2*Math.PI*24;
+
+  let runHtml="";
+  if(S.run){
+    const a=S.apps.find(x=>x.id===S.run.id);
+    runHtml=`<div class="run">
+      <div class="clock" id="clk">00:00</div>
+      <div class="t"><b>${a?a.emoji+" "+esc(a.name):"Chrono"}</b><small>en cours…</small></div>
+      <button onclick="stopTimer()">⏹ Stop</button></div>`;
+  }
+
+  document.getElementById("app").innerHTML=`
+    <header>
+      <div class="logo">LE <span>POINTAGE</span></div>
+      <div class="date">${dateStr}</div>
+    </header>
+    <div class="summary">
+      <div class="ring">
+        <svg width="56" height="56"><circle cx="28" cy="28" r="24" fill="none" stroke="#2a3341" stroke-width="6"/>
+        <circle cx="28" cy="28" r="24" fill="none" stroke="${done===total&&total?'#2ecc71':'#ffb020'}" stroke-width="6"
+          stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct)}"/></svg>
+        <div class="n">${done}/${total}</div>
+      </div>
+      <div class="sumtxt">
+        <b>${done===total&&total?"Tout est fait. Chapeau. 🔥":done?"En route — "+done+" sur "+total+".":"Rien de coché aujourd'hui."}</b>
+        <div class="s">⏱️ ${fmtMin(totMin)} aujourd'hui · au total ${S.apps.reduce((s,a)=>s+checks(a.id),0)} coches</div>
+      </div>
+    </div>
+    ${runHtml}
+    ${S.apps.map(a=>{
+      const on=doneToday(a.id), running=S.run&&S.run.id===a.id;
+      const str=streak(a.id);
+      const last7=Array.from({length:7},(_,k)=>stOf(a.id).days.includes(dayShift(t,-(6-k))));
+      return `<div class="row ${on?"done":""}">
+        <div class="rtop">
+          <div class="emoji" onclick="openById('${a.id}')">${a.emoji}</div>
+          <div class="nm" onclick="openById('${a.id}')">
+            <b>${esc(a.name)}</b>
+            <div class="meta">${str>0?"🔥"+str+"j · ":""}✓${checks(a.id)} · ⏱${fmtMin(totalMin(a.id))}${todayMin(a.id)?" · +"+todayMin(a.id)+"min":""}</div>
+          </div>
+          <div class="chk ${on?"on":""}" onclick="toggle('${a.id}')">${on?"✓":""}</div>
+        </div>
+        <div class="ractions">
+          <button class="timer ${running?"on":""}" onclick="${running?"stopTimer()":`startTimer('${a.id}')`}">${running?"⏹ Stop":"▶ Chrono"}</button>
+          <button onclick="addMin('${a.id}',5)">＋5 min</button>
+          ${a.url?`<button onclick="openById('${a.id}')">↗ Ouvrir</button>`:`<button onclick="editApp('${a.id}')">✎ Lien</button>`}
+        </div>
+        <div class="heat">${last7.map(d=>`<i class="${d?"on":""}"></i>`).join("")}</div>
+      </div>`;
+    }).join("")}
+    <div class="fabrow">
+      <button onclick="editApp('')">＋ Ajouter</button>
+      <button onclick="openManage()">✎ Modifier</button>
+      <button onclick="openStats()">📊 Bilan</button>
+    </div>
+    <div class="hint">Coche ce que tu as fait aujourd'hui. Les cases se remettent à zéro chaque jour ;<br>les coches et le temps, eux, s'accumulent pour toujours.</div>
+  `;
+  clearInterval(tick);
+  if(S.run){ tick=setInterval(updClock,1000); updClock(); }
+}
+function updClock(){
+  if(!S.run){ clearInterval(tick); return; }
+  const s=Math.floor((Date.now()-S.run.t0)/1000);
+  const el=document.getElementById("clk");
+  if(el) el.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+}
+function esc(x){ return String(x==null?"":x).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c])); }
+function appJson(a){ return "JSON.parse('"+JSON.stringify({url:a.url||""}).replace(/'/g,"\\'")+"')"; }
+
+/* --- reset quotidien --- */
+function rollDay(){
+  const t=today();
+  if(S.day!==t){ S.day=t; save(); }   // days[]/min sont datés → rien à purger, tout est automatique
+}
+
+/* --- édition d'une app --- */
+function editApp(id){
+  const a=id?S.apps.find(x=>x.id===id):{name:"",emoji:"⭐",url:""};
+  sheet(`
+    <h3>${id?"Modifier":"Ajouter une app"}</h3>
+    <div class="fld"><label>Emoji</label><input id="fE" value="${esc(a.emoji)}" maxlength="4"></div>
+    <div class="fld"><label>Nom</label><input id="fN" value="${esc(a.name)}" placeholder="Ex : SHRED"></div>
+    <div class="fld"><label>Lien (optionnel)</label><input id="fU" value="${esc(a.url)}" placeholder="https://…" inputmode="url"></div>
+    <button class="btn" onclick="saveApp('${id}')">Enregistrer</button>
+    ${id?`<button class="btn danger" onclick="delApp('${id}')">Supprimer cette app</button>`:""}
+    <button class="btn ghost" onclick="closeOv()">Annuler</button>
+  `);
+}
+function saveApp(id){
+  const name=document.getElementById("fN").value.trim();
+  const emoji=document.getElementById("fE").value.trim()||"⭐";
+  const url=document.getElementById("fU").value.trim();
+  if(!name) return toast("Donne-lui un nom.");
+  if(id){ const a=S.apps.find(x=>x.id===id); a.name=name; a.emoji=emoji; a.url=url; }
+  else{ const nid="x"+Date.now().toString(36); S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}}; }
+  save(); closeOv(); render();
+}
+function delApp(id){
+  if(!confirm("Supprimer cette app et son historique ?")) return;
+  S.apps=S.apps.filter(x=>x.id!==id); delete S.st[id];
+  if(S.run&&S.run.id===id) S.run=null;
+  save(); closeOv(); render();
+}
+function openManage(){
+  sheet(`
+    <h3>Modifier la liste</h3>
+    ${S.apps.map((a,i)=>`<div class="editrow">
+      <div class="e">${a.emoji}</div><div class="en">${esc(a.name)}</div>
+      <button onclick="move('${a.id}',-1)" ${i===0?"disabled style=opacity:.3":""}>↑</button>
+      <button onclick="move('${a.id}',1)" ${i===S.apps.length-1?"disabled style=opacity:.3":""}>↓</button>
+      <button onclick="closeOv();editApp('${a.id}')">✎</button>
+    </div>`).join("")}
+    <button class="btn ghost" onclick="closeOv()">Fermer</button>
+  `);
+}
+function move(id,dir){
+  const i=S.apps.findIndex(x=>x.id===id), j=i+dir;
+  if(j<0||j>=S.apps.length) return;
+  [S.apps[i],S.apps[j]]=[S.apps[j],S.apps[i]];
+  save(); openManage();
+}
+function openStats(){
+  const rows=S.apps.slice().sort((a,b)=>totalMin(b.id)-totalMin(a.id)).map(a=>`
+    <div class="editrow">
+      <div class="e">${a.emoji}</div>
+      <div class="en">${esc(a.name)}<div style="color:var(--dim);font-size:12px;font-family:var(--mono);font-weight:400">
+        ✓ ${checks(a.id)} fois · 🔥 ${streak(a.id)}j · ⏱ ${fmtMin(totalMin(a.id))}</div></div>
+    </div>`).join("");
+  const totC=S.apps.reduce((s,a)=>s+checks(a.id),0), totT=S.apps.reduce((s,a)=>s+totalMin(a.id),0);
+  sheet(`
+    <h3>📊 Bilan de toujours</h3>
+    <div class="fld" style="color:var(--dim);font-size:13px">${totC} coches au total · ${fmtMin(totT)} de pratique cumulée.</div>
+    ${rows}
+    <button class="btn ghost" onclick="closeOv()">Fermer</button>
+    <button class="btn danger" onclick="wipe()">Tout réinitialiser</button>
+  `);
+}
+function wipe(){ if(confirm("Effacer TOUT l'historique (coches et temps) ? Irréversible.")){ localStorage.removeItem(KEY); S=load(); closeOv(); render(); } }
+
+/* --- overlay & toast --- */
+function sheet(html){ document.getElementById("sheet").innerHTML=html; document.getElementById("ov").classList.add("on"); }
+function closeOv(){ document.getElementById("ov").classList.remove("on"); }
+document.getElementById("ov").addEventListener("click",e=>{ if(e.target.id==="ov") closeOv(); });
+let toastT;
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2200); }
+
+/* --- init --- */
+rollDay();
+render();
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); } });
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
+</script>
+</body>
+</html>
