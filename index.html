@@ -113,7 +113,9 @@
   .ractions button{flex:1;background:transparent;border:1px solid var(--line2);color:var(--muted);border-radius:11px;
     padding:9px 4px;font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s}
   .ractions button:active{background:var(--card2)}
-  .ractions button.timer.on{background:var(--brass-soft);border-color:var(--brass);color:var(--brass)}
+  .ractions button.timer.fin{background:var(--jade-soft);border-color:var(--jade);color:var(--jade);font-weight:750}
+  .chk.live{border-color:var(--jade);border-style:dashed;animation:breathe 1.8s ease-in-out infinite}
+  @keyframes breathe{0%,100%{box-shadow:0 0 0 0 var(--jade-soft)}50%{box-shadow:0 0 0 5px var(--jade-soft)}}
   .heat{display:flex;gap:4px;margin-top:12px;align-items:center}
   .heat i{width:100%;max-width:22px;height:6px;border-radius:3px;background:var(--card2);border:1px solid var(--line)}
   .heat i.on{background:var(--jade);border-color:var(--jade);opacity:.9}
@@ -211,22 +213,18 @@ function toggle(id){
   if(i>=0){ st.days.splice(i,1); } else { st.days.push(t); st.days.sort(); }
   save(); render();
 }
-function addMin(id,n){
-  const st=stOf(id), t=today();
-  st.min[t]=(st.min[t]||0)+n;
-  if(st.min[t]<0) st.min[t]=0;
-  if(n>0 && !st.days.includes(t)){ st.days.push(t); st.days.sort(); }
-  save(); render();
-}
-function startTimer(id){ if(S.run){ stopTimer(); } S.run={id, t0:Date.now()}; save(); render(); }
-function stopTimer(){
+function startTimer(id){ if(S.run){ stopTimer(true); } S.run={id, t0:Date.now()}; save(); render(); }
+function stopTimer(silent){
   if(!S.run) return;
   const mins=(Date.now()-S.run.t0)/60000;
-  const id=S.run.id; S.run=null;
-  if(mins>=0.1) addMin(id, Math.round(mins*10)/10);
-  else { save(); render(); }
-  toast("⏱️ "+fmtMin(Math.max(1,Math.round(mins)))+" ajoutées");
+  const id=S.run.id, st=stOf(id), t=today(); S.run=null;
+  if(mins>=0.1) st.min[t]=(st.min[t]||0)+Math.round(mins*10)/10;
+  if(!st.days.includes(t)){ st.days.push(t); st.days.sort(); } // terminer = fait
+  save(); render();
+  if(!silent) toast("⏱️ Séance de "+fmtMin(Math.max(1,Math.round(mins)))+" enregistrée");
 }
+/* la case à cocher : si le chrono tourne pour cette app, cocher = terminer (arrête + enregistre) */
+function onCheck(id){ if(S.run && S.run.id===id){ stopTimer(); } else { toggle(id); } }
 function openById(id){
   const a=S.apps.find(x=>x.id===id);
   if(a&&a.url){ window.open(a.url,"_blank","noopener"); }
@@ -250,7 +248,7 @@ function render(){
     runHtml=`<div class="run">
       <div class="clock" id="clk">00:00</div>
       <div class="t"><b>${a?a.emoji+" "+esc(a.name):"Chrono"}</b><small>séance en cours</small></div>
-      <button onclick="stopTimer()">⏹ Stop</button></div>`;
+      <button onclick="stopTimer()">✓ Terminer</button></div>`;
   }
 
   document.getElementById("app").innerHTML=`
@@ -285,11 +283,10 @@ function render(){
             <b>${esc(a.name)}</b>
             <div class="meta">${str>0?`<span class="flame">🔥 ${str} j</span>`:""}<span>✓ ${checks(a.id)}</span><span>⏱ ${fmtMin(totalMin(a.id))}</span>${todayMin(a.id)?`<span style="color:var(--jade)">+${todayMin(a.id)} min</span>`:""}</div>
           </div>
-          <div class="chk ${on?"on":""}" onclick="toggle('${a.id}')" role="checkbox" aria-checked="${on}"></div>
+          <div class="chk ${on?"on":""} ${running?"live":""}" onclick="onCheck('${a.id}')" role="checkbox" aria-checked="${on}"></div>
         </div>
         <div class="ractions">
-          <button class="timer ${running?"on":""}" onclick="${running?"stopTimer()":`startTimer('${a.id}')`}">${running?"⏹ Stop":"▶ Chrono"}</button>
-          <button onclick="addMin('${a.id}',5)">＋5 min</button>
+          <button class="timer ${running?"fin":""}" onclick="${running?"stopTimer()":`startTimer('${a.id}')`}">${running?"✓ Terminer":"▶ Commencer"}</button>
           ${a.url?`<button onclick="openById('${a.id}')">↗ Ouvrir</button>`:`<button onclick="editApp('${a.id}')">✎ Lien</button>`}
         </div>
         <div class="heat">${last7.map(d=>`<i class="${d?"on":""}"></i>`).join("")}<span class="lbl">7 j</span></div>
@@ -301,7 +298,7 @@ function render(){
       <button onclick="openManage()">✎ Modifier</button>
       <button onclick="openStats()">📊 Bilan</button>
     </div>
-    <div class="hint">Les cases se vident chaque matin.<br>Les coches et le temps, eux, ne s'oublient jamais.</div>
+    <div class="hint">Commence le chrono, coche quand tu as fini : le temps s'enregistre tout seul.<br>Les cases se vident chaque matin ; les coches et le temps ne s'oublient jamais.</div>
   `;
   clearInterval(tick);
   if(S.run){ tick=setInterval(updClock,1000); updClock(); }
