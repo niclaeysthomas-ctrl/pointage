@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1218" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Coffre">
+<title>Le Coffre</title>
+<style>
+  :root{
+    --bg:#eef1f6; --card:#ffffff; --card2:#f4f6fa; --line:#e6e9ef; --line2:#dbe0ea;
+    --ink:#1c2230; --muted:#697086; --faint:#9aa2b4;
+    --accent:#ff6a45; --accent-soft:rgba(255,106,69,.12);
+    --good:#12b76a; --good-soft:rgba(18,183,106,.13);
+    --warn:#f5a524; --warn-soft:rgba(245,165,36,.14);
+    --bad:#f0455f; --bad-soft:rgba(240,69,95,.12);
+    --shadow:0 1px 2px rgba(28,40,70,.05), 0 10px 26px rgba(28,40,70,.07);
+    --shadow-sm:0 1px 2px rgba(28,40,70,.06);
+    --disp:ui-rounded,'SF Pro Rounded','Nunito',-apple-system,system-ui,sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1218; --card:#1b2029; --card2:#232935; --line:#2a3140; --line2:#333c4d;
+      --ink:#eef2f8; --muted:#98a2b5; --faint:#616c80;
+      --accent:#ff7d5c; --accent-soft:rgba(255,125,92,.16);
+      --good:#34d17f; --good-soft:rgba(52,209,127,.16);
+      --warn:#f7c159; --warn-soft:rgba(247,193,89,.16);
+      --bad:#ff5c74; --bad-soft:rgba(255,92,116,.16);
+      --shadow:none; --shadow-sm:none;
+    }
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:radial-gradient(90% 40% at 100% 0%, var(--accent-soft), transparent 55%),var(--bg);
+    color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100vh}
+  #app{max-width:560px;margin:0 auto;padding:8px 15px calc(40px + env(safe-area-inset-bottom))}
+  a{color:var(--accent)}
+
+  header{padding:20px 4px 10px}
+  .eyebrow{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--accent)}
+  .eyebrow::before{content:"";width:18px;height:2px;border-radius:2px;background:var(--accent)}
+  h1{font-family:var(--disp);font-size:32px;line-height:1.05;font-weight:800;letter-spacing:-.02em;margin-top:7px}
+  .sub{color:var(--muted);font-size:13.5px;line-height:1.5;margin-top:9px}
+  .sub b{color:var(--ink)}
+
+  .card{background:var(--card);border-radius:20px;padding:17px 18px;margin:13px 0;box-shadow:var(--shadow)}
+  .card h2{font-family:var(--disp);font-size:17px;font-weight:800;letter-spacing:-.01em;display:flex;
+    align-items:center;gap:9px;margin-bottom:4px}
+  .card p.hint{color:var(--muted);font-size:12.5px;line-height:1.55;margin:7px 0 0}
+
+  .tabs{display:flex;gap:6px;background:var(--card2);border-radius:15px;padding:5px;margin:14px 0 4px}
+  .tabs button{flex:1;border:none;background:transparent;color:var(--muted);font-family:var(--disp);
+    font-weight:750;font-size:14.5px;padding:10px 6px;border-radius:11px;cursor:pointer;transition:.15s}
+  .tabs button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
+
+  .rows{margin-top:12px;border-top:1px solid var(--line)}
+  .row{display:flex;align-items:center;gap:11px;padding:11px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+  .row.dim{opacity:.42;cursor:default}
+  .box{width:23px;height:23px;flex:none;border-radius:7px;border:2px solid var(--line2);display:grid;
+    place-items:center;font-size:13px;color:transparent;transition:.12s}
+  .row.sel .box{background:var(--accent);border-color:var(--accent);color:#fff}
+  .em{font-size:19px;flex:none;width:24px;text-align:center}
+  .nm{flex:1;min-width:0}
+  .nm b{display:block;font-family:var(--disp);font-size:15px;font-weight:750;letter-spacing:-.01em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .nm span{display:block;font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sz{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+  .tag{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 7px;
+    border-radius:6px;flex:none}
+  .tag.new{background:var(--good-soft);color:var(--good)}
+  .tag.over{background:var(--warn-soft);color:var(--warn)}
+  .tag.same{background:var(--card2);color:var(--faint)}
+
+  .fold{display:flex;align-items:center;gap:8px;padding:12px 2px;border-bottom:1px solid var(--line);
+    cursor:pointer;color:var(--faint);font-size:12.5px;font-weight:700}
+  .fold .chev{transition:transform .18s;display:inline-block}
+  .fold.open .chev{transform:rotate(90deg)}
+  .selall{display:flex;gap:8px;margin-top:11px}
+  .selall button{flex:1;border:1px solid var(--line2);background:var(--card2);color:var(--muted);
+    font-weight:700;font-size:12.5px;padding:8px;border-radius:10px;cursor:pointer}
+
+  .btn{width:100%;border:none;border-radius:14px;padding:15px;font-family:var(--disp);font-weight:800;
+    font-size:15.5px;cursor:pointer;margin-top:12px;transition:transform .12s;letter-spacing:-.01em}
+  .btn:active{transform:scale(.985)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.pri{background:var(--accent);color:#fff}
+  .btn.sec{background:var(--card2);color:var(--ink);border:1px solid var(--line2)}
+  .btn.go{background:var(--good);color:#fff}
+  .btn.danger{background:var(--bad-soft);color:var(--bad)}
+
+  .tot{display:flex;align-items:baseline;gap:9px;margin:2px 0 0}
+  .tot b{font-family:var(--disp);font-size:32px;font-weight:800;letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;line-height:1}
+  .tot span{color:var(--muted);font-size:13px}
+
+  textarea{width:100%;min-height:96px;background:var(--card2);border:1px solid var(--line2);border-radius:12px;
+    padding:11px;font-family:var(--mono);font-size:11.5px;color:var(--ink);resize:vertical;margin-top:10px}
+  input[type=file]{display:none}
+  .drop{display:block;border:2px dashed var(--line2);border-radius:14px;padding:22px 14px;text-align:center;
+    color:var(--muted);font-size:13.5px;font-weight:650;cursor:pointer;margin-top:11px}
+  .drop b{display:block;font-family:var(--disp);color:var(--ink);font-size:15px;margin-bottom:3px}
+
+  .note{border-radius:13px;padding:12px 14px;font-size:12.5px;line-height:1.55;margin-top:12px}
+  .note.w{background:var(--warn-soft);color:var(--ink);border-left:3px solid var(--warn)}
+  .note.g{background:var(--good-soft);color:var(--ink);border-left:3px solid var(--good)}
+  .note.b{background:var(--bad-soft);color:var(--ink);border-left:3px solid var(--bad)}
+  .note b{font-weight:800}
+
+  .mode{display:flex;gap:8px;margin-top:13px}
+  .mode label{flex:1;background:var(--card2);border:2px solid var(--line);border-radius:13px;padding:11px 12px;
+    cursor:pointer;transition:.12s}
+  .mode label.on{border-color:var(--accent);background:var(--accent-soft)}
+  .mode b{display:block;font-family:var(--disp);font-size:14px;font-weight:800}
+  .mode span{display:block;font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px}
+  .mode input{display:none}
+
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;font-weight:700;
+    text-decoration:none;padding:8px 0}
+  #toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--card);padding:13px 22px;border-radius:14px;font-weight:750;font-size:14px;opacity:0;
+    transition:.25s;pointer-events:none;z-index:60;max-width:90%;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.3)}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .hide{display:none!important}
+  @media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="eyebrow">Sauvegarde &amp; transfert</div>
+    <h1>Le Coffre</h1>
+    <p class="sub">Toutes tes apps vivent sur <b>le même domaine</b>, donc elles partagent <b>un seul stockage</b>.
+    Ce coffre le lit en entier : une seule sauvegarde couvre les 21 apps.</p>
+    <a class="back" href="./">← Le Pointage</a>
+  </header>
+
+  <div class="tabs">
+    <button id="tabE" class="on" onclick="tab('E')">📤 Exporter</button>
+    <button id="tabI" onclick="tab('I')">📥 Importer</button>
+  </div>
+
+  <!-- ============ EXPORTER ============ -->
+  <div id="paneE">
+    <div class="card">
+      <h2>📦 Ce que contient cet appareil</h2>
+      <div class="tot"><b id="totSz">—</b><span id="totTx"></span></div>
+      <div class="rows" id="rowsE"></div>
+      <div class="selall">
+        <button onclick="selAll(1)">Tout cocher</button>
+        <button onclick="selAll(0)">Tout décocher</button>
+      </div>
+      <button class="btn pri" id="btnDl" onclick="doExport()">📤 Télécharger le coffre</button>
+      <button class="btn sec" onclick="doCopy()">📋 Copier en texte (sans fichier)</button>
+      <p class="hint">Le fichier <span style="font-family:var(--mono)">.json</span> se range dans <b>Fichiers</b> (iPhone)
+      ou <b>Téléchargements</b> (Mac). Pour l'envoyer sur le tel : AirDrop, ou iCloud Drive, ou tu te le mets en pièce jointe.
+      La copie texte sert quand le fichier ne veut pas passer — tu colles dans l'onglet Importer.</p>
+    </div>
+    <div class="note w">
+      <b>Prends l'habitude.</b> Le stockage d'un navigateur n'est pas éternel : vider les données du site,
+      réinstaller l'app, ou un nettoyage automatique de Safari, et tout part. Un coffre de temps en temps,
+      c'est ton seul filet.
+    </div>
+  </div>
+
+  <!-- ============ IMPORTER ============ -->
+  <div id="paneI" class="hide">
+    <div class="card">
+      <h2>📥 Restaurer un coffre</h2>
+      <p class="hint">Charge le fichier venu de l'autre appareil. Rien n'est écrit avant que tu appuies sur Restaurer.</p>
+      <label class="drop" for="f"><b>Choisir un fichier .json</b>depuis Fichiers, iCloud, Téléchargements…</label>
+      <input type="file" id="f" accept=".json,application/json,text/plain" onchange="pickFile(this)">
+      <textarea id="paste" placeholder="…ou colle ici le texte copié depuis l'autre appareil"></textarea>
+      <button class="btn sec" onclick="readPaste()">Lire le texte collé</button>
+    </div>
+
+    <div id="prev" class="hide">
+      <div class="card">
+        <h2>🔍 Contenu du coffre</h2>
+        <div id="meta" class="hint" style="margin-top:2px"></div>
+        <div id="warnSame"></div>
+        <div class="rows" id="rowsI"></div>
+        <div class="selall">
+          <button onclick="selAllI(1)">Tout cocher</button>
+          <button onclick="selAllI(0)">Tout décocher</button>
+        </div>
+        <div class="mode">
+          <label id="mMerge" class="on"><input type="radio" name="mode" value="merge" checked onchange="setMode('merge')">
+            <b>Fusionner</b><span>Écrit seulement les apps cochées. Le reste de cet appareil n'est pas touché.</span></label>
+          <label id="mWipe"><input type="radio" name="mode" value="wipe" onchange="setMode('wipe')">
+            <b>Remplacer tout</b><span>Efface d'abord tout le stockage, puis écrit le coffre. Copie exacte.</span></label>
+        </div>
+        <div class="note g" style="font-size:12px">
+          Avant d'écrire, le coffre <b>télécharge automatiquement une sauvegarde de l'état actuel</b>
+          de cet appareil. Si tu te rates, tu peux revenir en arrière.
+        </div>
+        <button class="btn go" id="btnRestore" onclick="doImport()">📥 Restaurer</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ---------- la carte des apps : quelle clé appartient à quoi ---------- */
+const APPS=[
+  {id:"cumbre",   nom:"CUMBRE",       emoji:"🇪🇸", keys:["tcumbre"]},
+  {id:"990",      nom:"990",          emoji:"🇬🇧", keys:["t990"]},
+  {id:"arene",    nom:"L'ARÈNE",      emoji:"⚔️", keys:["arene_state"]},
+  {id:"piano",    nom:"Piano Dojo",   emoji:"🎹", keys:["pianodojo"]},
+  {id:"lacle",    nom:"LA CLÉ",       emoji:"🎼", keys:["lacle"]},
+  {id:"shred",    nom:"SHRED",        emoji:"🎸", keys:["shred2"]},
+  {id:"forge",    nom:"FORGE",        emoji:"🥊", keys:["forge_v2"]},
+  {id:"sputnik",  nom:"SPUTNIK",      emoji:"🇷🇺", keys:["sputnik_v1"]},
+  {id:"lisek",    nom:"LISEK",        emoji:"🦊", keys:["lisek_v1"]},
+  {id:"miftah",   nom:"MIFTAH",       emoji:"🇲🇦", keys:["miftah"]},
+  {id:"prisme",   nom:"PRISME",       emoji:"🔬", keys:["prisme"]},
+  {id:"bestiaire",nom:"BESTIAIRE",    emoji:"🦁", keys:["bestiaire_v1"]},
+  {id:"cortex",   nom:"CORTEX",       emoji:"🧠", keys:["cortex_v2"]},
+  {id:"closing",  nom:"LE CLOSING",   emoji:"💼", keys:["closing_v1"]},
+  {id:"lutece",   nom:"LUTÈCE",       emoji:"🕯️", keys:["lutece","atelier_lutece_v2"]},
+  {id:"offensive",nom:"L'OFFENSIVE",  emoji:"🎯", keys:["offensive"]},
+  {id:"lesas",    nom:"LE SAS",       emoji:"🚪", keys:["lesas"]},
+  {id:"pointage", nom:"LE POINTAGE",  emoji:"✅", keys:["pointage_v1"]},
+  {id:"topspin",  nom:"TOPSPIN",      emoji:"🏓", keys:["topspin_v1"]},
+  {id:"sideman",  nom:"SIDEMAN",      emoji:"🎷", keys:["sideman"]},
+  {id:"morse",    nom:"MORSE PHOQUE", emoji:"📡", keys:["morsePhoque.v1"]}
+];
+const KNOWN=new Set(APPS.flatMap(a=>a.keys));
+
+/* ---------- utilitaires ---------- */
+function bytes(s){ return s==null?0:new Blob([s]).size; }
+function fmt(n){
+  if(n<1024) return n+" o";
+  if(n<1024*1024) return (n/1024).toFixed(n/1024<10?1:0)+" Ko";
+  return (n/1048576).toFixed(2)+" Mo";
+}
+function device(){
+  const u=navigator.userAgent;
+  if(/iPhone/.test(u)) return "iPhone";
+  if(/iPad/.test(u)) return "iPad";
+  if(/Android/.test(u)) return "Android";
+  if(/Macintosh|Mac OS/.test(u)) return "Mac";
+  if(/Windows/.test(u)) return "Windows";
+  return "appareil inconnu";
+}
+function stamp(){ const d=new Date(); const p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+"-"+p(d.getHours())+"h"+p(d.getMinutes()); }
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("on");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),2600); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- lecture du stockage local ---------- */
+function scan(){
+  const out=[], seen=new Set();
+  APPS.forEach(a=>{
+    let sz=0, found=[];
+    a.keys.forEach(k=>{ const v=localStorage.getItem(k); seen.add(k);
+      if(v!==null){ sz+=bytes(v); found.push(k); } });
+    out.push({...a, size:sz, has:found.length>0, found});
+  });
+  const orphans=[];
+  for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+    if(!KNOWN.has(k)) orphans.push({key:k,size:bytes(localStorage.getItem(k))}); }
+  if(orphans.length){
+    out.push({id:"__autres", nom:"Autres clés", emoji:"❓",
+      keys:orphans.map(o=>o.key), size:orphans.reduce((s,o)=>s+o.size,0), has:true,
+      found:orphans.map(o=>o.key)});
+  }
+  return out;
+}
+let ETAT=scan();
+const selE=new Set(ETAT.filter(a=>a.has).map(a=>a.id));
+
+function renderE(){
+  const withData=ETAT.filter(a=>a.has);
+  const tot=withData.reduce((s,a)=>s+a.size,0);
+  document.getElementById("totSz").textContent=fmt(tot);
+  document.getElementById("totTx").textContent=
+    withData.length?("dans "+withData.length+" app"+(withData.length>1?"s":"")+" sur cet "+device()):
+    "— aucune donnée sur cet appareil";
+  const vides=ETAT.filter(a=>!a.has);
+  document.getElementById("rowsE").innerHTML=
+    withData.map(a=>`<div class="row ${selE.has(a.id)?"sel":""}" onclick="tog('${a.id}')">
+      <div class="box">✓</div><div class="em">${a.emoji}</div>
+      <div class="nm"><b>${esc(a.nom)}</b><span>${esc(a.found.join(" · "))}</span></div>
+      <div class="sz">${fmt(a.size)}</div></div>`).join("")
+    + (vides.length?`<div class="fold ${OPEN?"open":""}" onclick="fold()">
+        <span class="chev">›</span> ${vides.length} app${vides.length>1?"s":""} sans données sur cet appareil
+      </div>` + (OPEN?vides.map(a=>`<div class="row dim"><div class="box"></div>
+        <div class="em">${a.emoji}</div><div class="nm"><b>${esc(a.nom)}</b>
+        <span>jamais ouverte ici</span></div></div>`).join(""):"") : "");
+  const n=[...selE].length;
+  const b=document.getElementById("btnDl");
+  b.disabled=!n; b.textContent=n?`📤 Télécharger le coffre (${n} app${n>1?"s":""})`:"📤 Rien de coché";
+}
+function tog(id){ selE.has(id)?selE.delete(id):selE.add(id); renderE(); }
+let OPEN=false;
+function fold(){ OPEN=!OPEN; renderE(); }
+function selAll(v){ selE.clear(); if(v) ETAT.filter(a=>a.has).forEach(a=>selE.add(a.id)); renderE(); }
+
+/* ---------- construction du coffre ---------- */
+function build(ids){
+  const data={};
+  ETAT.filter(a=>ids.includes(a.id)).forEach(a=>{
+    a.found.forEach(k=>{ const v=localStorage.getItem(k); if(v!==null) data[k]=v; });
+  });
+  return {coffre:1, date:new Date().toISOString(), appareil:device(),
+    origine:location.origin, apps:ids.filter(i=>i!=="__autres"), data};
+}
+function download(obj,name){
+  const blob=new Blob([JSON.stringify(obj)],{type:"application/json"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},1500);
+}
+function doExport(){
+  const ids=[...selE]; if(!ids.length) return;
+  download(build(ids),"coffre-"+device().toLowerCase()+"-"+stamp()+".json");
+  toast("Coffre téléchargé 🔐");
+}
+async function doCopy(){
+  const ids=[...selE]; if(!ids.length){ toast("Rien de coché"); return; }
+  const txt=JSON.stringify(build(ids));
+  try{ await navigator.clipboard.writeText(txt); toast("Copié ("+fmt(bytes(txt))+") 📋"); }
+  catch(e){
+    const ta=document.createElement("textarea"); ta.value=txt;
+    ta.style.cssText="position:fixed;top:0;left:0;opacity:0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); toast("Copié 📋"); }
+    catch(e2){ toast("Copie refusée — passe par le fichier"); }
+    ta.remove();
+  }
+}
+
+/* ---------- import ---------- */
+let COFFRE=null, selI=new Set(), MODE="merge";
+function pickFile(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>parse(String(r.result),f.name);
+  r.onerror=()=>toast("Fichier illisible");
+  r.readAsText(f);
+}
+function readPaste(){
+  const v=document.getElementById("paste").value.trim();
+  if(!v){ toast("La zone est vide"); return; }
+  parse(v,"texte collé");
+}
+function parse(txt,src){
+  let o; try{ o=JSON.parse(txt); }catch(e){ toast("Ce n'est pas un coffre valide (JSON illisible)"); return; }
+  if(!o||o.coffre!==1||typeof o.data!=="object"||!o.data){ toast("Fichier lu, mais ce n'est pas un coffre"); return; }
+  COFFRE=o; COFFRE._src=src;
+  selI=new Set(groups().map(g=>g.id));
+  renderI();
+  document.getElementById("prev").classList.remove("hide");
+  document.getElementById("prev").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function groups(){
+  const keys=Object.keys(COFFRE.data), out=[], used=new Set();
+  APPS.forEach(a=>{
+    const f=a.keys.filter(k=>keys.includes(k)); if(!f.length) return;
+    f.forEach(k=>used.add(k));
+    const size=f.reduce((s,k)=>s+bytes(COFFRE.data[k]),0);
+    let state="new";
+    const local=f.map(k=>localStorage.getItem(k));
+    if(local.some(v=>v!==null)) state=f.every((k,i)=>local[i]===COFFRE.data[k])?"same":"over";
+    out.push({...a, found:f, size, state});
+  });
+  const rest=keys.filter(k=>!used.has(k));
+  if(rest.length) out.push({id:"__autres", nom:"Autres clés", emoji:"❓", found:rest,
+    size:rest.reduce((s,k)=>s+bytes(COFFRE.data[k]),0),
+    state:rest.some(k=>localStorage.getItem(k)!==null)?"over":"new"});
+  return out;
+}
+function renderI(){
+  const g=groups(), d=new Date(COFFRE.date);
+  const same=COFFRE.appareil===device();
+  document.getElementById("meta").innerHTML=
+    `Coffre fait le <b>${d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</b>
+     à ${d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}
+     sur <b>${esc(COFFRE.appareil||"?")}</b> · ${g.length} app${g.length>1?"s":""} ·
+     ${fmt(g.reduce((s,x)=>s+x.size,0))} <span style="opacity:.6">(${esc(COFFRE._src)})</span>`;
+  document.getElementById("warnSame").innerHTML = same
+    ? `<div class="note w">Ce coffre a été fait sur un <b>${esc(COFFRE.appareil)}</b>, comme l'appareil où tu es.
+       Vérifie que tu ne réimportes pas ta propre sauvegarde par-dessus une progression plus récente.</div>` : "";
+  const lbl={new:'<div class="tag new">nouveau</div>',over:'<div class="tag over">écrase</div>',
+    same:'<div class="tag same">identique</div>'};
+  document.getElementById("rowsI").innerHTML=g.map(a=>
+    `<div class="row ${selI.has(a.id)?"sel":""}" onclick="togI('${a.id}')">
+      <div class="box">✓</div><div class="em">${a.emoji}</div>
+      <div class="nm"><b>${esc(a.nom)}</b><span>${esc(a.found.join(" · "))}</span></div>
+      ${lbl[a.state]}<div class="sz">${fmt(a.size)}</div></div>`).join("");
+  const n=selI.size, b=document.getElementById("btnRestore");
+  if(MODE==="wipe"){ b.disabled=false; b.textContent="📥 Remplacer tout par ce coffre"; }
+  else { b.disabled=!n; b.textContent=n?`📥 Restaurer ${n} app${n>1?"s":""}`:"📥 Rien de coché"; }
+}
+function togI(id){ selI.has(id)?selI.delete(id):selI.add(id); renderI(); }
+function selAllI(v){ selI.clear(); if(v) groups().forEach(g=>selI.add(g.id)); renderI(); }
+function setMode(m){
+  MODE=m;
+  document.getElementById("mMerge").classList.toggle("on",m==="merge");
+  document.getElementById("mWipe").classList.toggle("on",m==="wipe");
+  renderI();
+}
+function doImport(){
+  if(!COFFRE) return;
+  const g=groups();
+  const wipe=MODE==="wipe";
+  const chosen=wipe?g:g.filter(x=>selI.has(x.id));
+  if(!chosen.length){ toast("Rien à restaurer"); return; }
+  const over=chosen.filter(x=>x.state==="over").length;
+  let msg=wipe
+    ? "REMPLACER TOUT : le stockage de cet appareil est effacé, puis remplacé par le coffre ("+g.length+" apps).\n\nContinuer ?"
+    : "Restaurer "+chosen.length+" app"+(chosen.length>1?"s":"")+
+      (over?"\n\n⚠️ "+over+" écrase"+(over>1?"nt":"")+" une progression déjà présente ici.":"")+
+      "\n\nContinuer ?";
+  if(!confirm(msg)) return;
+
+  /* filet : on sauvegarde l'état actuel avant d'écrire */
+  try{
+    const all={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); all[k]=localStorage.getItem(k); }
+    if(Object.keys(all).length) download({coffre:1,date:new Date().toISOString(),appareil:device(),
+      origine:location.origin,apps:["avant-import"],data:all},
+      "coffre-AVANT-import-"+stamp()+".json");
+  }catch(e){}
+
+  try{
+    if(wipe) localStorage.clear();
+    let n=0;
+    chosen.forEach(a=>a.found.forEach(k=>{ localStorage.setItem(k,COFFRE.data[k]); n++; }));
+    toast(n+" clé"+(n>1?"s":"")+" restaurée"+(n>1?"s":"")+" ✅ recharge tes apps");
+  }catch(e){
+    alert("Écriture refusée : "+e.name+"\n\nLe stockage est probablement plein, ou en navigation privée. "+
+      "Décoche quelques apps et réessaie."); return;
+  }
+  ETAT=scan(); selE.clear(); ETAT.filter(a=>a.has).forEach(a=>selE.add(a.id)); renderE(); renderI();
+}
+
+/* ---------- onglets ---------- */
+function tab(t){
+  document.getElementById("tabE").classList.toggle("on",t==="E");
+  document.getElementById("tabI").classList.toggle("on",t==="I");
+  document.getElementById("paneE").classList.toggle("hide",t!=="E");
+  document.getElementById("paneI").classList.toggle("hide",t!=="I");
+  scrollTo({top:0,behavior:"smooth"});
+}
+renderE();
+</script>
+</body>
+</html>

@@ -133,6 +133,19 @@
 
   /* ---- pied ---- */
   .fabrow{display:flex;gap:10px;margin-top:18px}
+  .fabrow.b{margin-top:10px}
+  .catgrp{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    margin:18px 0 2px;display:flex;align-items:center;gap:8px}
+  .catgrp::before{content:"";width:14px;height:2px;border-radius:2px;background:var(--accent)}
+  .catgrp:first-of-type{margin-top:4px}
+  .catrow{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .catrow .e{font-size:21px;width:27px;text-align:center;flex:none}
+  .catrow .n{flex:1;min-width:0;font-weight:750;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .catrow .n i{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--faint);margin-top:1px}
+  .catrow button{background:var(--card2);border:none;color:var(--ink);border-radius:10px;height:36px;
+    padding:0 12px;font-size:13px;font-weight:750;cursor:pointer;flex:none}
+  .catrow button.add{background:var(--accent-soft);color:var(--accent)}
+  .catrow button.has{background:transparent;color:var(--faint);cursor:default}
   .fabrow button{flex:1;background:var(--card);border:none;box-shadow:var(--shadow-sm);color:var(--ink);border-radius:15px;
     padding:14px;font-size:13.5px;font-weight:750;cursor:pointer;transition:transform .12s}
   .fabrow button:active{transform:scale(.97)}
@@ -179,6 +192,32 @@ const DEFAULT_APPS=[
   {id:"miftah",  name:"MIFTAH",      emoji:"🇲🇦", url:"https://niclaeysthomas-ctrl.github.io/miftah/"},
   {id:"closing", name:"LE CLOSING",  emoji:"💼", url:"https://niclaeysthomas-ctrl.github.io/closing/"},
   {id:"bestia",  name:"BESTIAIRE",   emoji:"🦁", url:"https://niclaeysthomas-ctrl.github.io/bestiaire/"}
+];
+const BASE="https://niclaeysthomas-ctrl.github.io/";
+const CATALOGUE=[
+  {grp:"Mon entraînement", items:[
+    {n:"SHRED",        e:"🎸", u:"shred/",     d:"guitare"},
+    {n:"Piano Dojo",   e:"🎹", u:"piano-dojo/",d:"piano"},
+    {n:"LA CLÉ",       e:"🎼", u:"lacle/",     d:"théorie & impro"},
+    {n:"990",          e:"🇬🇧", u:"990/",       d:"anglais · TOEIC"},
+    {n:"CUMBRE",       e:"🇪🇸", u:"cumbre/",    d:"espagnol · DELE"},
+    {n:"MIFTAH",       e:"🇲🇦", u:"miftah/",    d:"darija & fuṣḥā"},
+    {n:"SPUTNIK",      e:"🇷🇺", u:"sputnik/",   d:"russe"},
+    {n:"L'ARÈNE",      e:"⚔️", u:"arene/",     d:"débat"},
+    {n:"CORTEX",       e:"🧠", u:"cortex/",    d:"pensée & décision"},
+    {n:"FORGE",        e:"🥊", u:"forge/",     d:"corps & souplesse"},
+    {n:"LE CLOSING",   e:"💼", u:"closing/",   d:"finance & M&A"},
+    {n:"L'OFFENSIVE",  e:"🎯", u:"offensive/", d:"candidatures"},
+    {n:"LE SAS",       e:"🚪", u:"lesas/",     d:"cockpit du jour"}]},
+  {grp:"Ce que j'ai offert", items:[
+    {n:"BESTIAIRE",    e:"🦁", u:"bestiaire/", d:"zoologie · ton neveu"},
+    {n:"PRISME",       e:"🔬", u:"prisme/",    d:"sciences"},
+    {n:"TOPSPIN",      e:"🏓", u:"topspin/",   d:"tennis de table"},
+    {n:"SIDEMAN",      e:"🎷", u:"sideman/",   d:"piano jazz · Simon"},
+    {n:"MORSE PHOQUE", e:"📡", u:"morse/",     d:"code morse"},
+    {n:"LISEK",        e:"🦊", u:"lisek/",     d:"polonais"}]},
+  {grp:"Outils", items:[
+    {n:"LUTÈCE",       e:"🕯️", u:"lutece/",    d:"carto souterraine"}]}
 ];
 const HUES=["#ff6a45","#f5a524","#12b76a","#3b82f6","#a855f7","#ec4899","#14b8a6","#f97316","#6366f1","#84cc16"];
 function appColor(i){ return HUES[i%HUES.length]; }
@@ -306,6 +345,10 @@ function render(){
       <button onclick="openManage()">✎ Modifier</button>
       <button onclick="openStats()">📊 Bilan</button>
     </div>
+    <div class="fabrow b">
+      <button onclick="openLauncher()">🚀 Toutes mes apps</button>
+      <button onclick="location.href='coffre.html'">🔐 Coffre</button>
+    </div>
     <div class="hint">Commence le chrono, coche quand tu as fini : le temps s'enregistre tout seul.<br>Les cases se vident chaque matin ; les coches et le temps ne s'oublient jamais.</div>
   `;
   clearInterval(tick);
@@ -367,6 +410,30 @@ function move(id,dir){
   if(j<0||j>=S.apps.length) return;
   [S.apps[i],S.apps[j]]=[S.apps[j],S.apps[i]];
   save(); openManage();
+}
+function inList(url){ return S.apps.some(a=>(a.url||"").replace(/\/$/,"")===url.replace(/\/$/,"")); }
+function openLauncher(){
+  const html=CATALOGUE.map(g=>`<div class="catgrp">${g.grp}</div>`+g.items.map(it=>{
+    const url=BASE+it.u, dedans=inList(url);
+    return `<div class="catrow">
+      <div class="e">${it.e}</div>
+      <div class="n">${esc(it.n)}<i>${esc(it.d)}</i></div>
+      ${dedans?`<button class="has" title="déjà dans ton registre">✓ suivie</button>`
+              :`<button class="add" onclick="addFromCat('${esc(it.n)}','${it.e}','${url}')">＋ suivre</button>`}
+      <button onclick="window.open('${url}','_blank')">↗</button>
+    </div>`;
+  }).join("")).join("");
+  sheet(`<h3>🚀 Toutes mes apps</h3>
+    <p style="color:var(--muted);font-size:12.5px;line-height:1.55;margin:-10px 0 4px">
+      <b style="color:var(--ink)">↗</b> ouvre l'app. <b style="color:var(--ink)">＋ suivre</b> l'ajoute à ton registre du jour —
+      n'y mets que ce que tu veux vraiment pointer tous les jours, sinon la fraction ne veut plus rien dire.</p>
+    ${html}
+    <button class="btn ghost" style="margin-top:18px" onclick="closeOv()">Fermer</button>`);
+}
+function addFromCat(name,emoji,url){
+  const nid="x"+Date.now().toString(36);
+  S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}};
+  save(); render(); openLauncher(); toast(name+" ajoutée au registre");
 }
 function openStats(){
   const rows=S.apps.slice().sort((a,b)=>totalMin(b.id)-totalMin(a.id)).map(a=>`
