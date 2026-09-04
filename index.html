@@ -227,6 +227,26 @@ function load(){
   let s; try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
   if(!s||!s.apps){ s={day:today(), apps:DEFAULT_APPS.slice(), st:{}, run:null}; }
   s.apps.forEach(a=>{ if(!s.st[a.id]) s.st[a.id]={days:[],min:{}}; });
+  /* Une app suivie sans lien affichait « ✎ Lien » au lieu de « ↗ Ouvrir ».
+     On rétablit l'URL depuis le catalogue, par id puis par nom. On ne rajoute
+     ni ne retire jamais d'app : la liste du jour reste son choix. */
+  try{
+    const norm=x=>String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+    const cat=[]; CATALOGUE.forEach(g=>g.items.forEach(it=>cat.push(it)));
+    const parDefaut={}; DEFAULT_APPS.forEach(a=>parDefaut[a.id]=a.url);
+    let repare=0;
+    s.apps.forEach(a=>{
+      if(a.url) return;
+      let u=parDefaut[a.id];
+      if(!u){ const m=cat.find(it=>norm(it.n)===norm(a.name)); if(m) u=BASE+m.u; }
+      if(u){ a.url=u; repare++; }
+    });
+    if(repare){
+      /* on écrit avec `s` : la globale S n'est pas encore assignée à ce stade */
+      localStorage.setItem(KEY,JSON.stringify(s));
+      setTimeout(()=>toast(repare+" lien"+(repare>1?"s":"")+" rétabli"+(repare>1?"s":"")),600);
+    }
+  }catch(e){}
   return s;
 }
 let S=load();
@@ -361,6 +381,9 @@ function updClock(){
   if(el) el.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 }
 function esc(x){ return String(x==null?"":x).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c])); }
+/* Pour une chaîne posée DANS un onclick="…('ici')" : l'apostrophe de L'ARÈNE
+   ou L'OFFENSIVE cassait l'appel. On échappe pour JS, puis pour l'attribut. */
+function escJs(x){ return esc(String(x==null?"":x).replace(/\\/g,"\\\\").replace(/'/g,"\\'")); }
 
 /* --- reset quotidien --- */
 function rollDay(){ const t=today(); if(S.day!==t){ S.day=t; save(); } }
@@ -419,7 +442,7 @@ function openLauncher(){
       <div class="e">${it.e}</div>
       <div class="n">${esc(it.n)}<i>${esc(it.d)}</i></div>
       ${dedans?`<button class="has" title="déjà dans ton registre">✓ suivie</button>`
-              :`<button class="add" onclick="addFromCat('${esc(it.n)}','${it.e}','${url}')">＋ suivre</button>`}
+              :`<button class="add" onclick="addFromCat('${escJs(it.n)}','${it.e}','${url}')">＋ suivre</button>`}
       <button onclick="window.open('${url}','_blank')">↗</button>
     </div>`;
   }).join("")).join("");
