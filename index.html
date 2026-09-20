@@ -175,6 +175,42 @@
     transition:.25s;pointer-events:none;z-index:60;max-width:90%;box-shadow:0 12px 34px rgba(0,0,0,.3)}
   #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+
+  /* ---- MA JOURNÉE (journal du jour + export) ---- */
+  .jcard{background:var(--card);border-radius:20px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow);
+    border:1.5px solid transparent;cursor:pointer;transition:transform .15s}
+  .jcard:active{transform:scale(.99)}
+  .jcard.filled{border-color:color-mix(in srgb,var(--accent) 35%,transparent);
+    background:linear-gradient(120deg,var(--accent-soft),transparent 45%),var(--card)}
+  .jhead{display:flex;align-items:center;gap:10px}
+  .jhead .ic{width:38px;height:38px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:20px;
+    background:var(--accent-soft)}
+  .jhead b{font-family:var(--disp);font-size:16.5px;font-weight:750;letter-spacing:-.01em;display:block}
+  .jhead small{color:var(--muted);font-size:12px;font-weight:600}
+  .jhead .go{margin-left:auto;color:var(--faint);font-size:18px;font-weight:800}
+  .jprev{margin-top:11px;font-size:13.5px;line-height:1.55;color:var(--ink);opacity:.82;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+  .jtagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .jtag{font-size:11px;font-weight:800;padding:5px 9px;border-radius:99px;background:var(--card2);color:var(--muted);
+    border:1.5px solid transparent;cursor:pointer;user-select:none}
+  .jtag.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .jtag.ro{cursor:default}
+  #jTxt{width:100%;min-height:210px;background:var(--card2);border:2px solid transparent;border-radius:14px;
+    color:var(--ink);padding:14px;font-size:16px;font-family:inherit;line-height:1.6;resize:vertical}
+  #jTxt:focus{outline:none;border-color:var(--accent);background:var(--card)}
+  .jsave{font-size:11.5px;color:var(--muted);font-weight:700;text-align:right;margin-top:6px;min-height:16px}
+  .jsave.ok{color:var(--good)}
+  .jday{display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .jday .d{font-size:12px;font-weight:800;color:var(--accent);width:62px;flex:none;text-transform:capitalize}
+  .jday .p{flex:1;min-width:0;font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .jday .n{flex:none;color:var(--faint);font-size:11px;font-weight:700}
+  .jbox{background:var(--card2);border-radius:14px;padding:13px;font-family:var(--mono);font-size:11.5px;
+    line-height:1.55;white-space:pre-wrap;max-height:260px;overflow-y:auto;color:var(--ink);margin-bottom:12px}
+  .jseg{display:flex;gap:7px;margin-bottom:13px}
+  .jseg div{flex:1;text-align:center;background:var(--card2);border-radius:11px;padding:10px 4px;font-size:12.5px;
+    font-weight:750;cursor:pointer;border:1.5px solid transparent}
+  .jseg div.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
 </head>
@@ -340,6 +376,7 @@ function render(){
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
     </div>
     ${runHtml}
+    ${jCardHtml()}
 
     ${S.apps.map((a,ai)=>{
       const on=doneToday(a.id), running=S.run&&S.run.id===a.id;
@@ -478,10 +515,239 @@ function openStats(){
 }
 function wipe(){ if(confirm("Effacer TOUT l'historique (coches et temps) ? Irréversible.")){ const th=S.theme; localStorage.removeItem(KEY); S=load(); S.theme=th; save(); closeOv(); render(); } }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   MA JOURNÉE — le journal du jour, et son export.
+   Ajouté le 2026-09-20 à la demande de Thomas : « une partie my day où
+   je raconte ce que j'ai fait et que tu pourrais reprendre après ».
+   Deux principes :
+   ① zéro friction — on tape, ça s'enregistre tout seul, pas de bouton ;
+   ② l'export ne contient pas QUE le texte : il y joint ce que l'app a
+      enregistré de son côté (apps cochées, minutes). Le texte dit
+      l'intention et le vécu, les chiffres disent ce qui s'est passé.
+      Les deux ensemble valent dix fois le texte seul.
+   Le journal vit dans la même clé `pointage_v1` : LE COFFRE le sauvegarde
+   et le transfère déjà, sans rien y changer.
+   ═══════════════════════════════════════════════════════════════════ */
+const J_TAGS=[
+  {id:"ok",     lbl:"✅ ça a marché"},
+  {id:"bloque", lbl:"🧱 bloqué"},
+  {id:"claude", lbl:"❓ pour Claude"},
+  {id:"idee",   lbl:"💡 idée"},
+  {id:"rien",   lbl:"😮‍💨 journée vide"},
+];
+/* des relances qui tournent : le pire ennemi d'un journal, c'est la page blanche */
+const J_PROMPTS=[
+  "Qu'est-ce que tu as VRAIMENT fait aujourd'hui ?",
+  "Qu'est-ce qui a coincé, et à quel moment précis ?",
+  "Une chose que tu as comprise aujourd'hui ?",
+  "Qu'est-ce que tu as évité aujourd'hui ? Pourquoi ?",
+  "Si demain tu ne fais qu'une chose, ce sera quoi ?",
+  "Qu'est-ce qui t'a pris plus de temps que prévu ?",
+  "Sur quoi tu veux que Claude revienne ?",
+];
+function jAll(){ if(!S.journal) S.journal={}; return S.journal; }
+function jGet(d){ return jAll()[d] || {txt:"", tags:[]}; }
+function jHas(d){ const e=jAll()[d]; return !!(e && (e.txt||"").trim()); }
+function jDays(){ return Object.keys(jAll()).filter(jHas).sort().reverse(); }
+function jSet(d, txt, tags){
+  const A=jAll();
+  const e=A[d] || {txt:"", tags:[]};
+  if(txt!=null) e.txt=txt;
+  if(tags!=null) e.tags=tags;
+  e.ts=Date.now();
+  if(!(e.txt||"").trim() && !(e.tags||[]).length) delete A[d]; else A[d]=e;
+  save();
+}
+function jPrompt(){ return J_PROMPTS[ Math.floor(Date.parse(today())/864e5) % J_PROMPTS.length ]; }
+function jDateLabel(iso, long){
+  const d=new Date(iso+"T12:00:00");
+  return d.toLocaleDateString("fr-FR", long?{weekday:"long",day:"numeric",month:"long"}:{weekday:"short",day:"numeric",month:"short"});
+}
+function jStreak(){
+  const has=new Set(jDays());
+  let anchor = has.has(today()) ? today() : (has.has(dayShift(today(),-1)) ? dayShift(today(),-1) : null);
+  if(!anchor) return 0;
+  let n=0, d=anchor;
+  while(has.has(d)){ n++; d=dayShift(d,-1); }
+  return n;
+}
+
+/* ---- la carte sur l'écran d'accueil ---- */
+function jCardHtml(){
+  const t=today(), e=jGet(t), filled=jHas(t), n=jDays().length, str=jStreak();
+  const tags=(e.tags||[]).map(id=>{ const T=J_TAGS.find(x=>x.id===id); return T?`<span class="jtag ro on">${T.lbl}</span>`:""; }).join("");
+  return `<div class="jcard ${filled?"filled":""}" id="jcard" onclick="openJournal()">
+    <div class="jhead">
+      <div class="ic">📓</div>
+      <div><b>Ma journée</b><small>${filled
+        ? "écrite" + (str>1?" · 🔥 "+str+" jours d'affilée":"") + (n>1?" · "+n+" en tout":"")
+        : jPrompt()}</small></div>
+      <div class="go">›</div>
+    </div>
+    ${filled?`<div class="jprev">${esc(e.txt)}</div>`:""}
+    ${tags?`<div class="jtagrow">${tags}</div>`:""}
+  </div>`;
+}
+
+/* ---- l'éditeur ---- */
+let jSaveT=null;
+function openJournal(date){
+  const d=date||today(), e=jGet(d), isToday=d===today();
+  sheet(`
+    <h3>📓 ${isToday?"Ma journée":jDateLabel(d,true)}</h3>
+    <p style="color:var(--muted);font-size:12.5px;line-height:1.55;margin:-10px 0 12px">
+      Raconte ce que tu as fait, ce qui a marché, ce qui a coincé. Ça s'enregistre tout seul.
+      ${isToday?`<br><b style="color:var(--ink)">${esc(jPrompt())}</b>`:""}</p>
+    <textarea id="jTxt" placeholder="Aujourd'hui j'ai…"></textarea>
+    <div class="jsave" id="jSaved"></div>
+    <div class="jtagrow" id="jTags">${J_TAGS.map(T=>
+      `<span class="jtag ${(e.tags||[]).includes(T.id)?"on":""}" data-tag="${T.id}">${T.lbl}</span>`).join("")}</div>
+    <button class="btn" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>
+    <button class="btn ghost" onclick="openJournalHistory()">📚 Les jours d'avant (${jDays().length})</button>
+    <button class="btn ghost" onclick="openJournalExport()">📤 Exporter pour Claude</button>
+  `);
+  const ta=document.getElementById("jTxt"), sv=document.getElementById("jSaved");
+  ta.value=e.txt||"";                       /* .value, jamais innerHTML : zéro souci d'échappement */
+  const flush=()=>{ jSet(d, ta.value, null); sv.textContent="✓ enregistré"; sv.className="jsave ok";
+    clearTimeout(jSaveT); jSaveT=setTimeout(()=>{ sv.textContent=""; sv.className="jsave"; },1400); };
+  let typeT=null;
+  ta.addEventListener("input",()=>{ sv.textContent="…"; sv.className="jsave";
+    clearTimeout(typeT); typeT=setTimeout(flush,600); });
+  ta.addEventListener("blur",flush);
+  document.getElementById("jTags").addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-tag]"); if(!el) return;
+    const id=el.dataset.tag, cur=(jGet(d).tags||[]).slice();
+    const i=cur.indexOf(id); if(i>=0) cur.splice(i,1); else cur.push(id);
+    jSet(d, ta.value, cur); el.classList.toggle("on");
+  });
+  if(isToday && !e.txt) setTimeout(()=>ta.focus(),250);
+}
+
+/* ---- l'historique ---- */
+function openJournalHistory(){
+  const days=jDays();
+  sheet(`
+    <h3>📚 Les jours d'avant</h3>
+    <p style="color:var(--muted);font-size:12.5px;line-height:1.55;margin:-10px 0 10px">
+      ${days.length?days.length+" journée"+(days.length>1?"s":"")+" écrite"+(days.length>1?"s":"")+". Touche un jour pour le relire ou le compléter.":"Rien encore. Écris ta première journée — même trois lignes."}</p>
+    <div id="jList">${days.map(d=>{
+      const e=jGet(d), first=(e.txt||"").trim().split("\n")[0];
+      const tg=(e.tags||[]).map(id=>{const T=J_TAGS.find(x=>x.id===id);return T?T.lbl.split(" ")[0]:"";}).join("");
+      return `<div class="jday" data-day="${d}">
+        <div class="d">${jDateLabel(d)}</div>
+        <div class="p">${esc(first)}</div>
+        <div class="n">${tg}</div></div>`;
+    }).join("")}</div>
+    <button class="btn" style="margin-top:16px" onclick="openJournal()">← Aujourd'hui</button>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>
+  `);
+  const lst=document.getElementById("jList");
+  if(lst) lst.addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-day]"); if(!el) return;
+    openJournal(el.dataset.day);
+  });
+}
+
+/* ---- l'export : le texte PLUS ce que l'app a vraiment enregistré ---- */
+function jAppsOf(d){
+  const out=[];
+  S.apps.forEach(a=>{
+    const st=stOf(a.id), coche=st.days.includes(d), min=Math.round(st.min[d]||0);
+    if(coche||min) out.push({nom:a.name, emoji:a.emoji, coche, min});
+  });
+  return out;
+}
+function buildJournalExport(nDays){
+  const L=[], t=today();
+  const jours = nDays==null ? jDays().slice() :
+    Array.from({length:nDays},(_,k)=>dayShift(t,-k));
+  const gardés = jours.filter(d=>jHas(d) || jAppsOf(d).length);
+  L.push("MA JOURNÉE — LE POINTAGE (Thomas)");
+  L.push("Export du "+t+" · "+(nDays==null?"toutes mes journées écrites ("+jDays().length+")":nDays===1?"aujourd'hui":"les "+nDays+" derniers jours"));
+  L.push("");
+  L.push("Comment lire : pour chaque jour, d'abord ce que Thomas a écrit, puis");
+  L.push("ce que l'app a enregistré de son côté (apps pointées, minutes). Les deux");
+  L.push("ne disent pas la même chose — le texte dit le vécu, les chiffres disent");
+  L.push("ce qui s'est réellement passé. Les écarts entre les deux sont le plus");
+  L.push("intéressant. Les jours marqués « ❓ pour Claude » attendent une réponse.");
+  L.push("");
+  if(!gardés.length){ L.push("(rien sur cette période)"); return L.join("\n"); }
+  gardés.forEach(d=>{
+    const e=jGet(d), apps=jAppsOf(d);
+    const tg=(e.tags||[]).map(id=>{const T=J_TAGS.find(x=>x.id===id);return T?T.lbl:id;});
+    L.push("════════════════════════════════════════");
+    L.push("◆ "+jDateLabel(d,true)+" ("+d+")"+(tg.length?"   ["+tg.join(" · ")+"]":""));
+    L.push("");
+    L.push((e.txt||"").trim() || "(rien écrit ce jour-là)");
+    L.push("");
+    if(apps.length){
+      const tot=apps.reduce((s,a)=>s+a.min,0);
+      L.push("  Pointé : "+apps.map(a=>a.emoji+" "+a.nom+(a.min?" ("+fmtMin(a.min)+")":"")).join(" · "));
+      L.push("  → "+apps.filter(a=>a.coche).length+"/"+S.apps.length+" apps"+(tot?" · "+fmtMin(tot)+" au total":" · aucun chrono"));
+    } else {
+      L.push("  Pointé : rien ce jour-là.");
+    }
+    L.push("");
+  });
+  L.push("════════════════════════════════════════");
+  L.push("— fin de l'export —");
+  return L.join("\n");
+}
+let jRange=7;
+function openJournalExport(){
+  const txt=buildJournalExport(jRange);
+  sheet(`
+    <h3>📤 Exporter pour Claude</h3>
+    <p style="color:var(--muted);font-size:12.5px;line-height:1.55;margin:-10px 0 12px">
+      Copie ce texte et colle-le à Claude. Il contient tes journées <b>et</b> ce que
+      l'app a enregistré (apps pointées, temps) — c'est ça qui le rend utile.</p>
+    <div class="jseg" id="jSeg">
+      <div data-n="1"  class="${jRange===1?"on":""}">Aujourd'hui</div>
+      <div data-n="7"  class="${jRange===7?"on":""}">7 jours</div>
+      <div data-n="30" class="${jRange===30?"on":""}">30 jours</div>
+      <div data-n="0"  class="${jRange==null?"on":""}">Tout (${jDays().length})</div>
+    </div>
+    <div class="jbox" id="jOut">${esc(txt)}</div>
+    <button class="btn" onclick="jCopy()">📋 Copier</button>
+    <button class="btn ghost" onclick="jDownload()">⬇︎ Télécharger (.md)</button>
+    <button class="btn ghost" onclick="openJournal()">← Retour</button>
+  `);
+  document.getElementById("jSeg").addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-n]"); if(!el) return;
+    const n=+el.dataset.n; jRange = n===0 ? null : n;
+    openJournalExport();
+  });
+}
+function jCopy(){
+  const txt=buildJournalExport(jRange);
+  const done=()=>toast("📋 Copié — colle-le à Claude");
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>jCopyFallback(txt,done));
+  } else jCopyFallback(txt,done);
+}
+function jCopyFallback(txt,done){
+  const ta=document.createElement("textarea");
+  ta.value=txt; ta.style.cssText="position:fixed;top:-1000px;opacity:0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("Copie impossible — sélectionne le texte à la main."); }
+  ta.remove();
+}
+function jDownload(){
+  const txt=buildJournalExport(jRange);
+  const blob=new Blob([txt],{type:"text/markdown"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="ma-journee-"+today()+".md";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+  toast("⬇︎ Fichier enregistré");
+}
+
 /* --- overlay & toast --- */
 function sheet(html){ document.getElementById("sheet").innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }
-document.getElementById("ov").addEventListener("click",e=>{ if(e.target.id==="ov") closeOv(); });
+document.getElementById("ov").addEventListener("click",e=>{ if(e.target.id==="ov"){ closeOv(); render(); } });
 let toastT;
 function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2200); }
 
