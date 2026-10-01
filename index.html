@@ -211,6 +211,93 @@
     font-weight:750;cursor:pointer;border:1.5px solid transparent}
   .jseg div.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
 
+  /* ---- L'AGENDA : ce qui est prévu, ce qui traîne ---- */
+  .agcard{background:var(--card);border-radius:20px;padding:15px 16px 12px;margin-bottom:12px;box-shadow:var(--shadow);
+    border:1.5px solid transparent}
+  .agcard.urge{border-color:color-mix(in srgb,var(--bad) 32%,transparent);
+    background:linear-gradient(120deg,color-mix(in srgb,var(--bad) 9%,transparent),transparent 45%),var(--card)}
+  .aghead{display:flex;align-items:center;gap:10px;margin-bottom:2px}
+  .aghead .ic{width:38px;height:38px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:20px;
+    background:var(--accent-soft)}
+  .aghead b{font-family:var(--disp);font-size:16.5px;font-weight:750;letter-spacing:-.01em;display:block}
+  .aghead small{color:var(--muted);font-size:12px;font-weight:600}
+  .agbad{margin-left:auto;font-size:11px;font-weight:800;padding:5px 9px;border-radius:99px;
+    background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad);flex:none}
+  .agbad.calm{background:var(--card2);color:var(--muted)}
+
+  .agrow{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .agrow:last-of-type{border-bottom:none}
+  .agchk{width:23px;height:23px;flex:none;margin-top:1px;border-radius:50%;border:2.5px solid var(--line2);
+    background:var(--card2);display:grid;place-items:center;font-size:12px;color:transparent;cursor:pointer;
+    transition:transform .16s cubic-bezier(.2,1.4,.4,1),background .2s,border-color .2s}
+  .agchk::after{content:"✓";font-weight:900;opacity:0;transform:scale(.3);transition:.2s cubic-bezier(.2,1.5,.4,1)}
+  .agchk.on{background:linear-gradient(135deg,var(--good),#39d488);border-color:transparent;color:var(--good-ink)}
+  .agchk.on::after{opacity:1;transform:scale(1)}
+  .agchk:active{transform:scale(.85)}
+  .agmain{flex:1;min-width:0;cursor:pointer}
+  .agmain b{display:block;font-size:14.5px;font-weight:700;line-height:1.35;word-break:break-word}
+  .agmain i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);font-weight:650;margin-top:3px;
+    display:flex;gap:7px;align-items:center;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+  .agmain i .agt{color:var(--accent);font-weight:800}
+  .agmain i .agd{color:var(--muted)}
+  .agmain i .agd.late{color:var(--bad);font-weight:800}
+  .agrow.ok .agmain b{text-decoration:line-through;opacity:.45;font-weight:600}
+  .agrow.ok .agmain i{opacity:.5}
+  .agst{color:var(--accent)}
+  .agpush{flex:none;align-self:center;background:var(--card2);border:none;color:var(--muted);border-radius:9px;
+    height:30px;padding:0 9px;font-size:11.5px;font-weight:800;cursor:pointer}
+
+  .agform{display:flex;gap:8px;margin-top:11px}
+  .agform input{flex:1;min-width:0;background:var(--card2);border:2px solid transparent;border-radius:13px;
+    color:var(--ink);padding:12px 13px;font-size:16px;font-family:inherit}
+  .agform input:focus{outline:none;border-color:var(--accent);background:var(--card)}
+  .agform button{flex:none;width:46px;border:none;border-radius:13px;background:var(--accent);color:#fff;
+    font-size:19px;font-weight:800;cursor:pointer}
+  .agform button:active{transform:scale(.94)}
+  .aghint{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:7px;min-height:15px;padding-left:3px}
+  .aghint b{color:var(--accent)}
+  .agmore{display:block;width:100%;background:none;border:none;color:var(--muted);font-size:12.5px;font-weight:750;
+    cursor:pointer;padding:9px 0 2px;text-align:left}
+  .agempty{font-size:13px;color:var(--muted);line-height:1.5;padding:10px 0 2px;font-weight:600}
+  .agempty b{color:var(--ink)}
+
+  .aggrp{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    margin:20px 0 2px;display:flex;align-items:center;gap:8px}
+  .aggrp::before{content:"";width:14px;height:2px;border-radius:2px;background:var(--accent)}
+  .aggrp.red{color:var(--bad)} .aggrp.red::before{background:var(--bad)}
+  .aggrp.grey{color:var(--faint)} .aggrp.grey::before{background:var(--faint)}
+  .aggrp i{margin-left:auto;font-style:normal;color:var(--faint);letter-spacing:0}
+  .agpills{display:flex;gap:7px;flex-wrap:wrap;margin:-4px 0 13px}
+  .agpills span{font-size:12px;font-weight:750;padding:8px 11px;border-radius:99px;background:var(--card2);
+    color:var(--muted);cursor:pointer;border:1.5px solid transparent;user-select:none}
+  .agpills span.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .fld2{display:flex;gap:10px}.fld2 .fld{flex:1;min-width:0}
+  .fld textarea{width:100%;min-height:92px;background:var(--card2);border:2px solid transparent;border-radius:13px;
+    color:var(--ink);padding:13px;font-size:16px;font-family:inherit;line-height:1.5;resize:vertical}
+  .fld textarea:focus{outline:none;border-color:var(--accent);background:var(--card)}
+
+  /* ---- le lien entre appareils ---- */
+  .sydot{width:38px;height:38px;border-radius:50%;border:none;background:var(--card);box-shadow:var(--shadow-sm);
+    font-size:15px;cursor:pointer;display:grid;place-items:center;position:relative;color:var(--muted)}
+  .sydot:active{transform:scale(.9)}
+  .sydot::after{content:"";position:absolute;right:5px;bottom:5px;width:9px;height:9px;border-radius:50%;
+    border:2px solid var(--card)}
+  .sydot.ok::after{background:var(--good)}
+  .sydot.work::after{background:var(--accent);animation:breathe 1.2s ease-in-out infinite}
+  .sydot.off::after{background:var(--faint)}
+  .sydot.err::after{background:var(--bad)}
+  .sydot.none::after{display:none}
+  .syline{font-size:12.5px;color:var(--muted);line-height:1.55;font-weight:600}
+  .syline b{color:var(--ink)}
+  .systep{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);
+    font-size:13.5px;line-height:1.5}
+  .systep .n{flex:none;width:23px;height:23px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-size:12px;font-weight:800;display:grid;place-items:center}
+  .systep a{font-weight:750}
+  .synote{border-radius:13px;padding:12px 14px;font-size:12px;line-height:1.55;margin-top:13px;
+    background:var(--card2);color:var(--muted)}
+  .synote b{color:var(--ink);font-weight:800}
+
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
 </head>
@@ -288,8 +375,15 @@ function load(){
   return s;
 }
 let S=load();
-function save(){ localStorage.setItem(KEY,JSON.stringify(S)); }
+/* save() écrit ET prévient la synchro. save0() écrit sans la relancer :
+   c'est ce qu'utilise la synchro elle-même, sinon elle se rappellerait en boucle. */
+function save0(){ localStorage.setItem(KEY,JSON.stringify(S)); }
+function save(){ save0(); syncSoon(); }
 function stOf(id){ if(!S.st[id]) S.st[id]={days:[],min:{}}; return S.st[id]; }
+/* Une coche n'est qu'une date dans un tableau : impossible de savoir, entre deux
+   appareils, qui a coché ou décoché en dernier. On note donc l'heure de chaque
+   geste à part — c'est ce qui permet à la fusion de trancher sans rien perdre. */
+function setCheck(id,d,v){ if(!S.chk) S.chk={}; S.chk[id+"|"+d]={t:Date.now(),v:v?1:0}; }
 
 /* --- thème --- */
 function applyTheme(){ if(S.theme){ document.documentElement.dataset.theme=S.theme; } else { delete document.documentElement.dataset.theme; } }
@@ -315,7 +409,7 @@ function fmtMin(m){ if(m<60) return m+" min"; const h=Math.floor(m/60); return h
 function toggle(id){
   const st=stOf(id), t=today();
   const i=st.days.indexOf(t);
-  if(i>=0){ st.days.splice(i,1); } else { st.days.push(t); st.days.sort(); }
+  if(i>=0){ st.days.splice(i,1); setCheck(id,t,0); } else { st.days.push(t); st.days.sort(); setCheck(id,t,1); }
   save(); render();
 }
 function startTimer(id){ if(S.run){ stopTimer(true); } S.run={id, t0:Date.now()}; save(); render(); }
@@ -324,7 +418,7 @@ function stopTimer(silent){
   const mins=(Date.now()-S.run.t0)/60000;
   const id=S.run.id, st=stOf(id), t=today(); S.run=null;
   if(mins>=0.1) st.min[t]=(st.min[t]||0)+Math.round(mins*10)/10;
-  if(!st.days.includes(t)){ st.days.push(t); st.days.sort(); } // terminer = fait
+  if(!st.days.includes(t)){ st.days.push(t); st.days.sort(); setCheck(id,t,1); } // terminer = fait
   save(); render();
   if(!silent) toast("⏱️ Séance de "+fmtMin(Math.max(1,Math.round(mins)))+" enregistrée");
 }
@@ -356,10 +450,16 @@ function render(){
       <button onclick="stopTimer()">✓ Terminer</button></div>`;
   }
 
+  /* on ne casse pas une saisie en cours : l'agenda s'écrit dans un champ qui vit
+     dans le HTML qu'on remplace, et une synchro peut déclencher un rendu. */
+  const ae=document.activeElement;
+  const keep = ae && ae.id==="agIn" ? {v:ae.value, s:ae.selectionStart} : null;
+
   document.getElementById("app").innerHTML=`
     <header>
       <div class="brand">
         <span class="mk">Le Pointage</span>
+        ${syncDotHtml()}
         <button class="tgl" onclick="toggleTheme()" aria-label="Changer de thème">${currentDark()?"☀":"☾"}</button>
       </div>
       <div class="eyebrow">Registre du jour</div>
@@ -376,6 +476,7 @@ function render(){
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
     </div>
     ${runHtml}
+    ${agCardHtml()}
     ${jCardHtml()}
 
     ${S.apps.map((a,ai)=>{
@@ -406,10 +507,16 @@ function render(){
     </div>
     <div class="fabrow b">
       <button onclick="openLauncher()">🚀 Toutes mes apps</button>
+      <button onclick="syncOpen()">🔗 Appareils</button>
       <button onclick="location.href='coffre.html'">🔐 Coffre</button>
     </div>
     <div class="hint">Commence le chrono, coche quand tu as fini : le temps s'enregistre tout seul.<br>Les cases se vident chaque matin ; les coches et le temps ne s'oublient jamais.</div>
   `;
+  agBind();
+  if(keep){
+    const el=document.getElementById("agIn");
+    if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} agPreview(); }
+  }
   clearInterval(tick);
   if(S.run){ tick=setInterval(updClock,1000); updClock(); }
 }
@@ -447,11 +554,14 @@ function saveApp(id){
   if(!name) return toast("Donne-lui un nom.");
   if(id){ const a=S.apps.find(x=>x.id===id); a.name=name; a.emoji=emoji; a.url=url; }
   else{ const nid="x"+Date.now().toString(36); S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}}; }
+  S.appsMod=Date.now();
   save(); closeOv(); render();
 }
 function delApp(id){
   if(!confirm("Supprimer cette app et son historique ?")) return;
   S.apps=S.apps.filter(x=>x.id!==id); delete S.st[id];
+  agTombs()["app:"+id]=Date.now();      // sinon l'autre appareil la remet à la prochaine synchro
+  S.appsMod=Date.now();
   if(S.run&&S.run.id===id) S.run=null;
   save(); closeOv(); render();
 }
@@ -471,6 +581,7 @@ function move(id,dir){
   const i=S.apps.findIndex(x=>x.id===id), j=i+dir;
   if(j<0||j>=S.apps.length) return;
   [S.apps[i],S.apps[j]]=[S.apps[j],S.apps[i]];
+  S.appsMod=Date.now();
   save(); openManage();
 }
 function inList(url){ return S.apps.some(a=>(a.url||"").replace(/\/$/,"")===url.replace(/\/$/,"")); }
@@ -494,7 +605,7 @@ function openLauncher(){
 }
 function addFromCat(name,emoji,url){
   const nid="x"+Date.now().toString(36);
-  S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}};
+  S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}}; S.appsMod=Date.now();
   save(); render(); openLauncher(); toast(name+" ajoutée au registre");
 }
 function openStats(){
@@ -515,6 +626,327 @@ function openStats(){
 }
 function wipe(){ if(confirm("Effacer TOUT l'historique (coches et temps) ? Irréversible.")){ const th=S.theme; localStorage.removeItem(KEY); S=load(); S.theme=th; save(); closeOv(); render(); } }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   L'AGENDA — ce qui est prévu, ce qui traîne.
+   Remplace la note partagée : une ligne tapée au kilomètre, la date et
+   l'heure sont comprises toutes seules. « 5 oct 20h psy campus » donne
+   une tâche au 5 octobre à 20:00 ; « postuler Dior » tombe sans date.
+   Le pari : tant que noter coûte plus cher qu'une ligne dans Notes,
+   l'agenda perd. Donc un seul champ, jamais de formulaire pour capturer.
+   ═══════════════════════════════════════════════════════════════════ */
+function agAll(){ if(!Array.isArray(S.agenda)) S.agenda=[]; return S.agenda; }
+function agTombs(){ if(!S.tomb) S.tomb={}; return S.tomb; }
+function agGet(id){ return agAll().find(x=>x.id===id); }
+function agId(){ return "a"+Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function agTouch(it){ it.mod=Date.now(); }
+
+/* ---- comprendre ce qui est tapé ---- */
+const AG_MOIS={janvier:1,janv:1,jan:1,fevrier:2,fevr:2,fev:2,mars:3,avril:4,avr:4,mai:5,juin:6,
+  juillet:7,juil:7,aout:8,septembre:9,sept:9,sep:9,octobre:10,oct:10,novembre:11,nov:11,decembre:12,dec:12};
+/* abréviations volontairement limitées : « jeu », « mer », « mar » sont des mots
+   français courants, on ne veut pas dater « finir le jeu » un jeudi. */
+const AG_JOURS={dimanche:0,lundi:1,mardi:2,mercredi:3,jeudi:4,vendredi:5,samedi:6,lun:1,ven:5,sam:6,dim:0};
+const AG_MRE=Object.keys(AG_MOIS).sort((a,b)=>b.length-a.length).join("|");
+const AG_JRE=Object.keys(AG_JOURS).sort((a,b)=>b.length-a.length).join("|");
+
+/* accents retirés SANS changer la longueur : les positions trouvées sur cette
+   version « à plat » servent à découper la chaîne d'origine. */
+function agFlat(s){
+  return s.toLowerCase()
+    .replace(/[àâä]/g,"a").replace(/[éèêë]/g,"e").replace(/[îï]/g,"i")
+    .replace(/[ôö]/g,"o").replace(/[ûüù]/g,"u").replace(/ç/g,"c").replace(/[’‘]/g,"'");
+}
+function agMake(day,mo,y){
+  const now=new Date(), Y=y||now.getFullYear();
+  const iso=Y+"-"+pad2(mo)+"-"+pad2(day);
+  const d=new Date(iso+"T12:00:00");
+  if(isNaN(d)||d.getDate()!==day||d.getMonth()+1!==mo) return null;   // 31 février, non.
+  /* pas d'année écrite : une date déjà bien passée parle de l'an prochain */
+  if(!y && iso<dayShift(today(),-45)) return (Y+1)+"-"+pad2(mo)+"-"+pad2(day);
+  return iso;
+}
+function agParse(raw){
+  const src=String(raw||"").trim(), f=agFlat(src);
+  const cuts=[]; let d=null,t=null,t2=null,star=0;
+  const free=(i,j)=>!cuts.some(c=>i<c[1]&&j>c[0]);
+  function scan(re,fn){
+    re.lastIndex=0; let m;
+    while((m=re.exec(f))!==null){
+      const i=m.index, j=i+m[0].length;
+      if(m[0].length===0) break;
+      if(free(i,j) && fn(m)!==false) cuts.push([i,j]);
+      if(!re.global) break;
+    }
+  }
+  scan(/(^\s*!+\s*)|(\s*!+\s*$)/g, ()=>{ star=1; return true; });
+  /* créneau : « 4:30-6:00 », « 16h30 à 18h », « 20h-22h » */
+  scan(/\b(\d{1,2})\s*[h:]\s*(\d{2})?\s*(?:-|–|—|a\b|jusqu'a\b)\s*(\d{1,2})\s*[h:]?\s*(\d{2})?\b/g, m=>{
+    const h1=+m[1], n1=+(m[2]||0), h2=+m[3], n2=+(m[4]||0);
+    if(h1>23||h2>23||n1>59||n2>59) return false;
+    t=pad2(h1)+":"+pad2(n1); t2=pad2(h2)+":"+pad2(n2); return true;
+  });
+  /* heure simple : « 20h », « 20h30 », « 9:15 » */
+  scan(/\b(\d{1,2})\s*h\s*(\d{2})?\b|\b(\d{1,2}):(\d{2})\b/g, m=>{
+    if(t) return false;
+    const h=+(m[1]!=null?m[1]:m[3]), n=+((m[1]!=null?m[2]:m[4])||0);
+    if(h>23||n>59) return false;
+    t=pad2(h)+":"+pad2(n); return true;
+  });
+  scan(new RegExp("\\b(\\d{1,2})\\s*(?:er)?\\s*("+AG_MRE+")\\.?\\b","g"), m=>{
+    if(d) return false;
+    const r=agMake(+m[1],AG_MOIS[m[2]]); if(!r) return false; d=r; return true;
+  });
+  scan(/\b(\d{1,2})[/.](\d{1,2})(?:[/.](\d{2,4}))?\b/g, m=>{
+    if(d) return false;
+    const y=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):null;
+    const r=agMake(+m[1],+m[2],y); if(!r) return false; d=r; return true;
+  });
+  scan(/\b(aujourd'hui|auj|ce soir|ce matin|cet aprem|apres-demain|apres demain|demain)\b/g, m=>{
+    if(d) return false;
+    const w=m[1];
+    d = /apres/.test(w) ? dayShift(today(),2) : /demain/.test(w) ? dayShift(today(),1) : today();
+    return true;
+  });
+  scan(new RegExp("\\b("+AG_JRE+")\\.?(\\s+prochain)?\\b","g"), m=>{
+    if(d) return false;
+    const want=AG_JOURS[m[1]], cur=new Date(today()+"T12:00:00").getDay();
+    let add=(want-cur+7)%7;
+    if(m[2]&&add===0) add=7;            // « lundi prochain », un lundi : la semaine d'après
+    d=dayShift(today(),add); return true;
+  });
+  let out="", last=0;
+  cuts.sort((a,b)=>a[0]-b[0]).forEach(c=>{ if(c[0]>=last) out+=src.slice(last,c[0]); last=Math.max(last,c[1]); });
+  out+=src.slice(last);
+  out=out.replace(/\s{2,}/g," ").replace(/^[\s,;:·\-–—]+|[\s,;:·\-–—]+$/g,"").trim();
+  return {txt:out||src, d, t, t2, star};
+}
+
+/* ---- le modèle ---- */
+function agAdd(raw){
+  const p=agParse(raw); if(!p.txt) return null;
+  const it={id:agId(), txt:p.txt, d:p.d, t:p.t, t2:p.t2, note:"", star:p.star, done:null,
+            c:Date.now(), mod:Date.now()};
+  agAll().push(it); save(); return it;
+}
+function agDel(id){
+  const it=agGet(id); if(!it) return;
+  if(!confirm("Supprimer « "+it.txt+" » ?")) return;
+  S.agenda=agAll().filter(x=>x.id!==id);
+  agTombs()[id]=Date.now();            // la pierre tombale empêche l'autre appareil de la ressusciter
+  save(); closeOv(); render();
+}
+function agDone(id){
+  const it=agGet(id); if(!it) return;
+  it.done=it.done?null:today(); agTouch(it); save();
+}
+function agStar(id){ const it=agGet(id); if(!it) return; it.star=it.star?0:1; agTouch(it); save(); closeOv(); render(); }
+function agPushToday(id){ const it=agGet(id); if(!it) return; it.d=today(); agTouch(it); save(); }
+function agSort(l){ return l.slice().sort((a,b)=>
+  (b.star||0)-(a.star||0) || (a.d||"9999").localeCompare(b.d||"9999") ||
+  (a.t||"99:99").localeCompare(b.t||"99:99") || (a.c||0)-(b.c||0)); }
+function agBuckets(){
+  const t=today(), open=agAll().filter(x=>!x.done);
+  return {
+    late : agSort(open.filter(x=>x.d&&x.d<t)),
+    now  : agSort(open.filter(x=>x.d===t)),
+    soon : agSort(open.filter(x=>x.d&&x.d>t)),
+    inbox: agSort(open.filter(x=>!x.d)),
+    done : agAll().filter(x=>x.done).sort((a,b)=>(b.mod||0)-(a.mod||0))
+  };
+}
+function agDL(d,long){
+  const t=today();
+  if(d===t) return "aujourd'hui";
+  if(d===dayShift(t,1)) return "demain";
+  if(d===dayShift(t,-1)) return "hier";
+  const dt=new Date(d+"T12:00:00");
+  const diff=Math.round((Date.parse(d+"T12:00:00")-Date.parse(t+"T12:00:00"))/864e5);
+  if(diff>1&&diff<7) return dt.toLocaleDateString("fr-FR",{weekday:"long"});
+  return dt.toLocaleDateString("fr-FR", long?{weekday:"long",day:"numeric",month:"long"}:{weekday:"short",day:"numeric",month:"short"});
+}
+
+/* ---- une ligne ---- */
+function agRowHtml(it,withDate){
+  const t=today(), late=!it.done&&it.d&&it.d<t;
+  const bits=[];
+  if(it.t) bits.push(`<span class="agt">${it.t}${it.t2?" → "+it.t2:""}</span>`);
+  if(withDate&&it.d&&it.d!==t) bits.push(`<span class="agd ${late?"late":""}">${agDL(it.d)}</span>`);
+  if(late&&!withDate) bits.push(`<span class="agd late">${agDL(it.d)}</span>`);
+  if(it.note) bits.push(`<span>📝</span>`);
+  return `<div class="agrow ${it.done?"ok":""}" data-id="${it.id}">
+    <div class="agchk ${it.done?"on":""}" data-act="chk" role="checkbox" aria-checked="${!!it.done}"></div>
+    <div class="agmain" data-act="open">
+      <b>${it.star?'<span class="agst">★</span> ':""}${esc(it.txt)}</b>
+      ${bits.length?`<i>${bits.join("")}</i>`:""}
+    </div>
+    ${late?`<button class="agpush" data-act="push">→ auj.</button>`:""}
+  </div>`;
+}
+
+/* ---- la carte d'accueil ---- */
+function agCardHtml(){
+  const B=agBuckets(), n=B.late.length+B.now.length+B.soon.length+B.inbox.length;
+  /* Le gros de ce qu'il note n'a pas de date. Si la carte ne montrait que le
+     daté, la pile en attente deviendrait invisible — donc on complète avec
+     elle (les étoilées d'abord, agSort s'en charge). */
+  let shown=[...B.late.slice(0,3), ...B.now];
+  if(shown.length<4) shown=shown.concat(B.inbox.slice(0,4-shown.length));
+  if(shown.length>5) shown=shown.slice(0,5);
+  let body;
+  if(shown.length){ body=shown.map(it=>agRowHtml(it,false)).join(""); }
+  else{
+    const nxt=B.soon[0];
+    body=`<div class="agempty">${ nxt
+      ? `Rien aujourd'hui. Ensuite : <b>${esc(nxt.txt)}</b> — ${agDL(nxt.d)}${nxt.t?" "+nxt.t:""}.`
+      : `Rien de prévu. Note ce que tu as en tête ↓` }</div>`;
+  }
+  const sub=[];
+  if(B.now.length) sub.push(B.now.length+" aujourd'hui");
+  if(B.soon.length) sub.push(B.soon.length+" à venir");
+  if(B.inbox.length) sub.push(B.inbox.length+" sans date");
+  return `<div class="agcard ${B.late.length?"urge":""}" id="agCard">
+    <div class="aghead">
+      <div class="ic">🗓</div>
+      <div><b>L'agenda</b><small>${sub.join(" · ")||"rien en attente"}</small></div>
+      ${B.late.length?`<span class="agbad">${B.late.length} en retard</span>`:""}
+    </div>
+    <div id="agList">${body}</div>
+    ${n?`<button class="agmore" data-act="all">⋯ tout voir (${n})</button>`:""}
+    <form class="agform" id="agForm"><input id="agIn" placeholder="5 oct 20h psy · demain 9h BCG · postuler Dior"
+      autocomplete="off" autocorrect="off" enterkeyhint="done" aria-label="Noter quelque chose"><button type="submit" aria-label="Ajouter">＋</button></form>
+    <div class="aghint" id="agHint"></div>
+  </div>`;
+}
+
+/* ---- saisie ---- */
+function agPreview(sfx){
+  sfx=sfx||"";
+  const el=document.getElementById("agIn"+sfx), h=document.getElementById("agHint"+sfx);
+  if(!el||!h) return;
+  const v=el.value.trim();
+  if(!v){ h.innerHTML=""; return; }
+  const p=agParse(v);
+  if(!p.d&&!p.t){ h.innerHTML="sans date — ça ira dans la liste d'attente"; return; }
+  h.innerHTML="→ <b>"+esc(p.txt)+"</b> · "+(p.d?agDL(p.d):"sans date")+(p.t?" à "+p.t+(p.t2?"–"+p.t2:""):"");
+}
+function agSubmit(e,sfx){
+  e.preventDefault(); sfx=sfx||"";
+  const el=document.getElementById("agIn"+sfx); if(!el) return;
+  const v=el.value.trim(); if(!v) return;
+  const it=agAdd(v); el.value=""; agPreview(sfx);
+  if(sfx){ agSheet(); setTimeout(()=>{ const e2=document.getElementById("agIn2"); if(e2) e2.focus(); },0); }
+  else { agRepaint(); const e2=document.getElementById("agIn"); if(e2) e2.focus(); }
+  if(it&&it.d) toast("🗓 "+agDL(it.d)+(it.t?" à "+it.t:""));
+}
+function agRepaint(){
+  const c=document.getElementById("agCard");
+  if(!c){ render(); return; }
+  c.outerHTML=agCardHtml(); agBind();
+}
+function agRowAct(ev,repaint){
+  const row=ev.target.closest("[data-id]"); if(!row) return;
+  const act=(ev.target.closest("[data-act]")||{}).dataset;
+  const id=row.dataset.id;
+  if(!act) return;
+  if(act.act==="chk"){ agDone(id); repaint(); }
+  else if(act.act==="push"){ agPushToday(id); repaint(); toast("Reporté à aujourd'hui"); }
+  else if(act.act==="open"){ agEdit(id); }
+}
+function agBind(){
+  const f=document.getElementById("agForm");
+  if(f){ f.addEventListener("submit",e=>agSubmit(e)); }
+  const i=document.getElementById("agIn");
+  if(i){ i.addEventListener("input",()=>agPreview()); }
+  const l=document.getElementById("agList");
+  if(l){ l.addEventListener("click",e=>agRowAct(e,agRepaint)); }
+  const m=document.querySelector('#agCard [data-act="all"]');
+  if(m){ m.addEventListener("click",agSheet); }
+}
+
+/* ---- la vue complète ---- */
+function agSheet(){
+  const B=agBuckets();
+  const rows=a=>a.map(it=>agRowHtml(it,true)).join("");
+  let body="";
+  if(B.late.length)  body+=`<div class="aggrp red">En retard <i>${B.late.length}</i></div>`+rows(B.late);
+  if(B.now.length)   body+=`<div class="aggrp">Aujourd'hui <i>${B.now.length}</i></div>`+rows(B.now);
+  const byDay={}; B.soon.forEach(it=>{ (byDay[it.d]=byDay[it.d]||[]).push(it); });
+  Object.keys(byDay).sort().forEach(d=>{
+    body+=`<div class="aggrp">${agDL(d,true)} <i>${byDay[d].length}</i></div>`+rows(byDay[d]); });
+  if(B.inbox.length) body+=`<div class="aggrp">Sans date <i>${B.inbox.length}</i></div>`+rows(B.inbox);
+  if(B.done.length)  body+=`<div class="aggrp grey">Fait <i>${B.done.length}</i></div>`+rows(B.done.slice(0,25));
+  if(!body) body=`<div class="agempty">Rien pour l'instant. Écris une ligne en bas : <b>5 oct 20h psy</b>, <b>demain 9h BCG</b>, ou juste <b>postuler Dior</b>.</div>`;
+  sheet(`<h3>🗓 L'agenda</h3>
+    <div id="agBody">${body}</div>
+    <form class="agform" id="agForm2" style="margin-top:17px"><input id="agIn2"
+      placeholder="Noter quelque chose…" autocomplete="off" autocorrect="off" enterkeyhint="done"><button type="submit">＋</button></form>
+    <div class="aghint" id="agHint2"></div>
+    <button class="btn ghost" style="margin-top:15px" onclick="closeOv();render()">Fermer</button>`);
+  document.getElementById("agForm2").addEventListener("submit",e=>agSubmit(e,"2"));
+  document.getElementById("agIn2").addEventListener("input",()=>agPreview("2"));
+  document.getElementById("agBody").addEventListener("click",e=>agRowAct(e,agSheet));
+}
+
+/* ---- une tâche en détail ---- */
+function agEdit(id){
+  const it=agGet(id); if(!it) return;
+  sheet(`<h3>${it.star?"★ ":""}La tâche</h3>
+    <div class="fld"><label>Quoi</label><input id="eT" value="${esc(it.txt)}"></div>
+    <div class="agpills" id="ePills">
+      <span data-d="0">Aujourd'hui</span><span data-d="1">Demain</span>
+      <span data-d="7">+1 semaine</span><span data-d="x">Sans date</span>
+    </div>
+    <div class="fld2">
+      <div class="fld"><label>Jour</label><input type="date" id="eD" value="${it.d||""}"></div>
+      <div class="fld"><label>Heure</label><input type="time" id="eH" value="${it.t||""}"></div>
+    </div>
+    <div class="fld"><label>Détails, préparation…</label><textarea id="eN" placeholder="Ce qu'il y a à préparer, les points à aborder…">${esc(it.note||"")}</textarea></div>
+    <button class="btn" onclick="agSave('${it.id}')">Enregistrer</button>
+    <button class="btn ghost" onclick="agStar('${it.id}')">${it.star?"★ Retirer l'étoile":"☆ Mettre en avant"}</button>
+    <button class="btn ghost" onclick="closeOv();agSheet()">← Retour</button>
+    <button class="btn danger" onclick="agDel('${it.id}')">Supprimer</button>`);
+  document.getElementById("ePills").addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-d]"); if(!el) return;
+    const v=el.dataset.d;
+    document.getElementById("eD").value = v==="x" ? "" : dayShift(today(),+v);
+    [...ev.currentTarget.children].forEach(c=>c.classList.remove("on"));
+    el.classList.add("on");
+  });
+}
+/* ---- ce que l'agenda dit à Claude ---- */
+function agExportLines(){
+  const B=agBuckets(), L=[], line=it=>
+    "  • "+(it.star?"★ ":"")+it.txt+(it.t?"  ["+it.t+(it.t2?"–"+it.t2:"")+"]":"")+
+    (it.note?"\n      ↳ "+it.note.replace(/\n+/g," / "):"");
+  if(!B.late.length&&!B.now.length&&!B.soon.length&&!B.inbox.length) return L;
+  L.push("════════════════════════════════════════");
+  L.push("◆ L'AGENDA (au "+today()+")");
+  L.push("");
+  if(B.late.length){ L.push("EN RETARD :"); B.late.forEach(it=>L.push(line(it)+"   (prévu "+it.d+")")); L.push(""); }
+  if(B.now.length){ L.push("AUJOURD'HUI :"); B.now.forEach(it=>L.push(line(it))); L.push(""); }
+  const soon=B.soon.filter(it=>it.d<=dayShift(today(),14));
+  if(soon.length){
+    L.push("LES 14 PROCHAINS JOURS :");
+    let cur="";
+    soon.forEach(it=>{ if(it.d!==cur){ cur=it.d; L.push("  "+agDL(it.d,true)+" ("+it.d+")"); } L.push("  "+line(it)); });
+    L.push("");
+  }
+  if(B.inbox.length){ L.push("SANS DATE, EN ATTENTE :"); B.inbox.forEach(it=>L.push(line(it))); L.push(""); }
+  return L;
+}
+function agSave(id){
+  const it=agGet(id); if(!it) return;
+  const txt=document.getElementById("eT").value.trim();
+  if(!txt) return toast("Il faut un texte.");
+  it.txt=txt;
+  it.d=document.getElementById("eD").value||null;
+  it.t=document.getElementById("eH").value||null;
+  if(!it.t) it.t2=null;
+  it.note=document.getElementById("eN").value;
+  agTouch(it); save(); closeOv(); render(); toast("Enregistré");
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    MA JOURNÉE — le journal du jour, et son export.
@@ -672,7 +1104,8 @@ function buildJournalExport(nDays){
   L.push("ce qui s'est réellement passé. Les écarts entre les deux sont le plus");
   L.push("intéressant. Les jours marqués « ❓ pour Claude » attendent une réponse.");
   L.push("");
-  if(!gardés.length){ L.push("(rien sur cette période)"); return L.join("\n"); }
+  agExportLines().forEach(x=>L.push(x));
+  if(!gardés.length){ L.push("(aucune journée écrite sur cette période)"); return L.join("\n"); }
   gardés.forEach(d=>{
     const e=jGet(d), apps=jAppsOf(d);
     const tg=(e.tags||[]).map(id=>{const T=J_TAGS.find(x=>x.id===id);return T?T.lbl:id;});
@@ -744,6 +1177,262 @@ function jDownload(){
   toast("⬇︎ Fichier enregistré");
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   LE LIEN — le tel et l'ordi qui regardent le même registre.
+   Pas de serveur à tenir : les deux appareils lisent et écrivent un
+   gist privé sur ton compte GitHub. Le jeton reste dans CE navigateur
+   (clé à part, jamais incluse dans LE COFFRE) et ne part que vers
+   api.github.com.
+   Le vrai travail n'est pas le transport, c'est la FUSION : deux
+   appareils modifient hors-ligne, et personne ne doit rien perdre.
+   D'où, pour chaque donnée, une règle qui converge toute seule —
+   réunion des coches arbitrée par l'heure du geste, maximum des
+   minutes, plus récent gagnant pour le journal et l'agenda, pierres
+   tombales pour les suppressions.
+   ═══════════════════════════════════════════════════════════════════ */
+const TOKKEY="pointage_gh_token";
+const GFILE="pointage-sync.json";
+const SY={state:"idle", busy:false};
+function ghTok(){ try{ return localStorage.getItem(TOKKEY)||""; }catch(e){ return ""; } }
+function syncCfg(){ if(!S.sync) S.sync={}; return S.sync; }
+function syncOn(){ return !!ghTok() && !!syncCfg().gist; }
+function syncDevice(){
+  const u=navigator.userAgent;
+  return /iPhone/.test(u)?"iPhone":/iPad/.test(u)?"iPad":/Android/.test(u)?"Android"
+       :/Macintosh|Mac OS/.test(u)?"Mac":/Windows/.test(u)?"Windows":"appareil";
+}
+async function gh(path,opt){
+  opt=opt||{};
+  const r=await fetch(path.startsWith("http")?path:"https://api.github.com"+path,{
+    ...opt,
+    headers:{Authorization:"Bearer "+ghTok(), Accept:"application/vnd.github+json",
+             "X-GitHub-Api-Version":"2022-11-28", ...(opt.headers||{})}});
+  if(!r.ok){ const e=new Error("GitHub "+r.status); e.status=r.status; throw e; }
+  return r;
+}
+function syncErr(e){
+  if(e&&e.status===401) return "Jeton refusé — il a expiré ou a été révoqué. Recolles-en un neuf.";
+  if(e&&e.status===404) return "Le coffre en ligne est introuvable. Relie cet appareil.";
+  if(e&&(e.status===403||e.status===429)) return "GitHub te freine un instant. Ça repartira tout seul.";
+  return "Pas de réseau — la synchro reprendra d'elle-même.";
+}
+
+/* ---- la charge utile : le registre, rien d'autre ----
+   on laisse dehors ce qui n'a de sens que sur cet appareil-ci :
+   le chrono en cours, le thème, le lien lui-même. */
+function syncPayload(){
+  return {v:1, ts:Date.now(), dev:syncDevice(), apps:S.apps, appsMod:S.appsMod||0, st:S.st,
+          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs()};
+}
+/* Deux appareils arrivent au même contenu mais pas au même ordre de clés ni de
+   tâches. Sans mise à plat, chacun croirait l'autre différent et republierait
+   sans fin. On compare — et on publie — une forme canonique. */
+function canon(v){
+  if(Array.isArray(v)) return v.map(canon);
+  if(v&&typeof v==="object"){ const o={}; Object.keys(v).sort().forEach(k=>o[k]=canon(v[k])); return o; }
+  return v;
+}
+function syncStrip(p){
+  const q={...p, agenda:(p.agenda||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)))};
+  delete q.ts; delete q.dev;
+  return JSON.stringify(canon(q));
+}
+
+function syncMerge(R){
+  if(!R||R.v!==1) return false;
+  let ch=false;
+  /* La liste des apps est un tout (son ORDRE est un choix) : le classement le plus
+     récent l'emporte, et chacun y rajoute ensuite ce que l'autre n'a jamais vu. */
+  const T0=agTombs(), vivant=a=>!T0["app:"+a.id];
+  if((R.appsMod||0)>(S.appsMod||0)){
+    const mine=S.apps, dedans={};
+    (R.apps||[]).forEach(a=>dedans[a.id]=1);
+    S.apps=(R.apps||[]).filter(vivant).concat(mine.filter(a=>!dedans[a.id]));
+    S.appsMod=R.appsMod; ch=true;
+  }else{
+    const has={}; S.apps.forEach(a=>has[a.id]=1);
+    (R.apps||[]).forEach(a=>{ if(!has[a.id]&&vivant(a)){ S.apps.push(a); ch=true; } });
+  }
+  S.apps.forEach(a=>{ if(!S.st[a.id]) S.st[a.id]={days:[],min:{}}; });
+
+  Object.keys(R.st||{}).forEach(id=>{
+    if(T0["app:"+id]) return;                        // app supprimée ici : on ne rapatrie pas son historique
+    const r=R.st[id]||{}, l=stOf(id);
+    (r.days||[]).forEach(d=>{
+      if(l.days.includes(d)) return;
+      const c=(S.chk||{})[id+"|"+d];
+      if(c&&!c.v&&(c.t||0)>(R.ts||0)) return;   // décoché ici depuis que l'autre a publié : on ne le remet pas
+      l.days.push(d); ch=true;
+    });
+    l.days.sort();
+    Object.keys(r.min||{}).forEach(d=>{
+      const v=Math.max(l.min[d]||0, r.min[d]||0);        // jamais la somme : une fusion rejouée doublerait le temps
+      if(v!==(l.min[d]||0)){ l.min[d]=v; ch=true; }
+    });
+  });
+  /* l'arbitrage des coches : le geste le plus récent l'emporte, et c'est lui
+     qui décide si le jour reste dans la liste — y compris pour le décocher. */
+  const C=S.chk=S.chk||{};
+  Object.keys(R.chk||{}).forEach(k=>{
+    const r=R.chk[k], l=C[k];
+    if(r&&(!l||(r.t||0)>(l.t||0))){ C[k]=r; ch=true; }
+  });
+  Object.keys(C).forEach(k=>{
+    const p=k.split("|"), st=S.st[p[0]]; if(!st||!p[1]) return;
+    const inside=st.days.includes(p[1]);
+    if(C[k].v&&!inside){ st.days.push(p[1]); st.days.sort(); ch=true; }
+    if(!C[k].v&&inside){ st.days=st.days.filter(x=>x!==p[1]); ch=true; }
+  });
+
+  const J=jAll();
+  Object.keys(R.journal||{}).forEach(d=>{
+    const r=R.journal[d], l=J[d];
+    if(r&&(!l||(r.ts||0)>(l.ts||0))){ J[d]=r; ch=true; }
+  });
+
+  const T=agTombs();
+  Object.keys(R.tomb||{}).forEach(k=>{ if((R.tomb[k]||0)>(T[k]||0)){ T[k]=R.tomb[k]; ch=true; } });
+  const A=agAll(), at={}; A.forEach((x,i)=>at[x.id]=i);
+  (R.agenda||[]).forEach(r=>{
+    if(!r||!r.id) return;
+    if((T[r.id]||0)>=(r.mod||0)) return;                  // supprimée après cette version-là
+    const i=at[r.id];
+    if(i==null){ A.push(r); ch=true; }
+    else if((r.mod||0)>(A[i].mod||0)){ A[i]=r; ch=true; }
+  });
+  const before=A.length;
+  S.agenda=A.filter(x=>!((T[x.id]||0)>=(x.mod||0)));
+  if(S.agenda.length!==before) ch=true;
+  return ch;
+}
+
+async function syncPull(){
+  const r=await gh("/gists/"+syncCfg().gist);
+  const j=await r.json();
+  const f=j.files&&j.files[GFILE];
+  if(!f) return null;
+  let txt=f.content;
+  if(f.truncated||txt==null){ txt=await (await fetch(f.raw_url)).text(); }
+  try{ return JSON.parse(txt); }catch(e){ return null; }
+}
+async function syncPush(p){
+  const content=JSON.stringify({...canon(p), ts:p.ts, dev:p.dev}, null, 1);
+  await gh("/gists/"+syncCfg().gist,{method:"PATCH",
+    body:JSON.stringify({files:{[GFILE]:{content}}})});
+}
+async function syncFind(){
+  const l=await (await gh("/gists?per_page=100")).json();
+  const g=(l||[]).find(x=>x.files&&x.files[GFILE]);
+  if(g){ syncCfg().url=g.html_url; return g.id; }
+  return null;
+}
+async function syncCreate(){
+  const j=await (await gh("/gists",{method:"POST",body:JSON.stringify({
+    description:"Le Pointage — registre synchronisé (privé, ne pas partager)",
+    public:false, files:{[GFILE]:{content:JSON.stringify(syncPayload())}}})})).json();
+  syncCfg().url=j.html_url; return j.id;
+}
+
+let syncT=null;
+function syncSoon(ms){ if(!syncOn()) return; clearTimeout(syncT); syncT=setTimeout(()=>syncNow(true), ms==null?4000:ms); }
+async function syncNow(silent){
+  if(!syncOn()||SY.busy) return;
+  SY.busy=true; syncSetState("work");
+  try{
+    const R=await syncPull();
+    const ch=R?syncMerge(R):false;
+    const mine=syncPayload();
+    if(!R || syncStrip(R)!==syncStrip(mine)) await syncPush(mine);
+    syncCfg().last=Date.now(); syncCfg().peer=(R&&R.dev)||syncCfg().peer;
+    save0();
+    syncSetState("ok");
+    if(ch) render();
+    if(!silent) toast("✅ À jour sur tous tes appareils");
+  }catch(e){
+    syncSetState(e&&e.status===401?"err":"off");
+    if(!silent) toast(syncErr(e));
+  }finally{ SY.busy=false; }
+}
+function syncSetState(s){
+  SY.state=s;
+  const d=document.getElementById("syDot");
+  if(d) d.className="sydot "+(syncOn()?s:"none");
+}
+function syncDotHtml(){
+  const cl=syncOn()?SY.state:"none";
+  return `<button class="sydot ${cl}" id="syDot" onclick="syncOpen()" aria-label="Lien entre appareils">${syncOn()?"☁":"🔗"}</button>`;
+}
+function syncAgo(){
+  const t=syncCfg().last; if(!t) return "jamais";
+  const m=Math.round((Date.now()-t)/60000);
+  if(m<1) return "à l'instant";
+  if(m<60) return "il y a "+m+" min";
+  const h=Math.round(m/60); if(h<24) return "il y a "+h+" h";
+  return "le "+new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+}
+
+function syncOpen(){
+  if(!syncOn()) return syncSetup();
+  const st={ok:"à jour",work:"en cours…",off:"hors ligne",err:"jeton refusé",idle:"en attente"}[SY.state]||"";
+  sheet(`<h3>☁ Mes appareils</h3>
+    <p class="syline">Ce <b>${syncDevice()}</b> partage son registre avec tes autres appareils :
+      état <b>${st}</b>, dernier échange <b>${syncAgo()}</b>${syncCfg().peer&&syncCfg().peer!==syncDevice()?` · en face : <b>${esc(syncCfg().peer)}</b>`:""}.</p>
+    <div class="synote">Ce qui voyage : tes apps du jour, les coches, le temps, le journal et l'agenda.
+      Ce qui reste ici : le chrono en cours et le thème.<br>
+      <b>Ton jeton ne quitte jamais cet appareil</b> — et LE COFFRE ne l'embarque pas dans ses exports.</div>
+    <button class="btn" onclick="syncNow()">⟳ Synchroniser maintenant</button>
+    ${syncCfg().url?`<button class="btn ghost" onclick="window.open('${syncCfg().url}','_blank','noopener')">↗ Voir le coffre en ligne</button>`:""}
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>
+    <button class="btn danger" onclick="syncUnlink()">Délier cet appareil</button>`);
+}
+function syncSetup(){
+  sheet(`<h3>🔗 Lier mes appareils</h3>
+    <p class="syline">Le tel et l'ordi écriront dans le même registre, rangé dans un
+      <b>gist privé</b> de ton compte GitHub. Trois minutes, une seule fois par appareil.</p>
+    <div class="systep"><div class="n">1</div><div>Sur ton ordi, ouvre
+      <a href="https://github.com/settings/tokens/new?scopes=gist&description=Le%20Pointage" target="_blank" rel="noopener">cette page GitHub</a>.
+      La case <b>gist</b> est déjà cochée — n'en coche aucune autre.
+      Mets <b>Expiration : No expiration</b>, sinon la synchro s'arrêtera le jour venu.</div></div>
+    <div class="systep"><div class="n">2</div><div>Clique <b>Generate token</b>, copie la ligne qui commence par
+      <span style="font-family:var(--mono)">ghp_…</span>, et colle-la ici.</div></div>
+    <div class="systep"><div class="n">3</div><div>Sur l'autre appareil, reviens ici et colle <b>le même jeton</b> :
+      Le Pointage retrouvera le registre tout seul.</div></div>
+    <div class="fld" style="margin-top:15px"><label>Le jeton</label>
+      <input id="syTok" placeholder="ghp_…" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+    <button class="btn" onclick="syncLink()">Lier cet appareil</button>
+    <button class="btn ghost" onclick="closeOv()">Plus tard</button>
+    <div class="synote">Ce jeton ne donne accès <b>qu'à tes gists</b>, rien d'autre de ton compte.
+      Il reste dans le stockage de ce navigateur. Tu peux le révoquer quand tu veux depuis GitHub,
+      et <b>Délier cet appareil</b> l'efface d'ici.</div>`);
+}
+async function syncLink(){
+  const el=document.getElementById("syTok"), tk=(el?el.value:"").trim();
+  if(!tk) return toast("Colle d'abord le jeton.");
+  try{ localStorage.setItem(TOKKEY,tk); }catch(e){ return toast("Stockage refusé par le navigateur."); }
+  toast("Connexion à GitHub…");
+  try{
+    let id=await syncFind();
+    if(!id) id=await syncCreate();
+    syncCfg().gist=id; save0();
+    await syncNow(true);
+    closeOv(); render(); toast("🔗 Appareil lié — tout est partagé");
+  }catch(e){
+    localStorage.removeItem(TOKKEY);
+    toast(syncErr(e));
+  }
+}
+function syncUnlink(){
+  if(!confirm("Délier cet appareil ?\n\nTes données restent ici, et restent dans le gist. Seul le jeton est effacé.")) return;
+  try{ localStorage.removeItem(TOKKEY); }catch(e){}
+  delete syncCfg().gist; save0(); closeOv(); render(); toast("Appareil délié");
+}
+/* l'historique des gestes de coche ne sert qu'à arbitrer : au-delà de 4 mois, inutile */
+function chkPrune(){
+  if(!S.chk) return;
+  const lim=dayShift(today(),-120);
+  Object.keys(S.chk).forEach(k=>{ const d=k.split("|")[1]; if(d&&d<lim) delete S.chk[k]; });
+}
+
 /* --- overlay & toast --- */
 function sheet(html){ document.getElementById("sheet").innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }
@@ -754,8 +1443,15 @@ function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.
 /* --- init --- */
 applyTheme();
 rollDay();
+chkPrune();
 render();
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); } });
+syncSoon(900);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); syncSoon(400); } });
+/* deux onglets ouverts sur le même appareil : on recharge ce que l'autre a écrit */
+addEventListener("storage",e=>{
+  if(e.key!==KEY||!e.newValue) return;
+  try{ S=JSON.parse(e.newValue); render(); }catch(err){}
+});
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change",()=>{ if(!S.theme) render(); });
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>

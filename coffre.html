@@ -166,6 +166,10 @@
       réinstaller l'app, ou un nettoyage automatique de Safari, et tout part. Un coffre de temps en temps,
       c'est ton seul filet.
     </div>
+    <div class="note g">
+      <b>LE POINTAGE se synchronise désormais tout seul</b> entre tes appareils (☁ dans son en-tête).
+      Le coffre reste le filet de toutes les autres apps — et la seule vraie sauvegarde si GitHub te lâche.
+    </div>
   </div>
 
   <!-- ============ IMPORTER ============ -->
@@ -234,6 +238,10 @@ const APPS=[
   {id:"morse",    nom:"MORSE PHOQUE", emoji:"📡", keys:["morsePhoque.v1"]}
 ];
 const KNOWN=new Set(APPS.flatMap(a=>a.keys));
+/* Le jeton GitHub du Pointage vit aussi dans ce stockage. Un coffre se transporte,
+   se range dans Fichiers, s'envoie par mail : un secret n'a rien à y faire. Il est
+   donc ignoré à l'export, et préservé quand un import efface tout. */
+const SECRET=new Set(["pointage_gh_token"]);
 
 /* ---------- utilitaires ---------- */
 function bytes(s){ return s==null?0:new Blob([s]).size; }
@@ -268,7 +276,7 @@ function scan(){
   });
   const orphans=[];
   for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
-    if(!KNOWN.has(k)) orphans.push({key:k,size:bytes(localStorage.getItem(k))}); }
+    if(!KNOWN.has(k)&&!SECRET.has(k)) orphans.push({key:k,size:bytes(localStorage.getItem(k))}); }
   if(orphans.length){
     out.push({id:"__autres", nom:"Autres clés", emoji:"❓",
       keys:orphans.map(o=>o.key), size:orphans.reduce((s,o)=>s+o.size,0), has:true,
@@ -426,14 +434,19 @@ function doImport(){
 
   /* filet : on sauvegarde l'état actuel avant d'écrire */
   try{
-    const all={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); all[k]=localStorage.getItem(k); }
+    const all={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+      if(!SECRET.has(k)) all[k]=localStorage.getItem(k); }
     if(Object.keys(all).length) download({coffre:1,date:new Date().toISOString(),appareil:device(),
       origine:location.origin,apps:["avant-import"],data:all},
       "coffre-AVANT-import-"+stamp()+".json");
   }catch(e){}
 
   try{
-    if(wipe) localStorage.clear();
+    if(wipe){
+      const garde={}; SECRET.forEach(k=>{ const v=localStorage.getItem(k); if(v!==null) garde[k]=v; });
+      localStorage.clear();
+      Object.keys(garde).forEach(k=>localStorage.setItem(k,garde[k]));   // sinon l'appareil se délie tout seul
+    }
     let n=0;
     chosen.forEach(a=>a.found.forEach(k=>{ localStorage.setItem(k,COFFRE.data[k]); n++; }));
     toast(n+" clé"+(n>1?"s":"")+" restaurée"+(n>1?"s":"")+" ✅ recharge tes apps");
