@@ -211,6 +211,55 @@
     font-weight:750;cursor:pointer;border:1.5px solid transparent}
   .jseg div.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
 
+  /* ---- LES DOSSIERS : une app de chaque par jour ---- */
+  .cathead{display:flex;align-items:center;gap:9px;margin:22px 0 9px;padding:0 2px}
+  .cathead:first-of-type{margin-top:6px}
+  .cathead .ce{font-size:16px;flex:none}
+  .cathead .cn{font-family:var(--disp);font-size:12px;font-weight:800;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink)}
+  .cathead .cf{font-size:11px;font-weight:800;color:var(--accent);flex:none}
+  .cathead .cs{margin-left:auto;font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;flex:none}
+  .cathead .cs.todo{background:var(--card2);color:var(--muted)}
+  .cathead .cs.ok{background:var(--good-soft);color:var(--good)}
+  .cathead .cs.warn{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+  .row.rest{opacity:.5}
+  .row.rest .iconchip{filter:grayscale(1)}
+  .restbadge{font-size:10.5px;font-weight:800;color:var(--muted);background:var(--card2);
+    padding:4px 8px;border-radius:7px;white-space:nowrap}
+
+  /* ---- LE CALENDRIER ---- */
+  .calnav{display:flex;align-items:center;gap:10px;margin:-6px 0 12px}
+  .calnav b{font-family:var(--disp);font-size:17px;font-weight:800;flex:1;text-transform:capitalize;letter-spacing:-.01em}
+  .calnav button{border:none;background:var(--card2);color:var(--ink);width:36px;height:36px;border-radius:11px;
+    font-size:15px;font-weight:800;cursor:pointer;flex:none}
+  .calnav button.now{width:auto;padding:0 12px;font-size:12.5px;background:var(--accent-soft);color:var(--accent)}
+  .caldow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:5px}
+  .caldow span{text-align:center;font-size:10px;font-weight:800;color:var(--faint);text-transform:uppercase}
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cday{aspect-ratio:1/1.12;border-radius:11px;background:var(--card2);padding:5px 3px 4px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;
+    position:relative;border:1.5px solid transparent;transition:transform .12s}
+  .cday:active{transform:scale(.94)}
+  .cday.out{background:transparent;cursor:default;opacity:.25}
+  .cday.full{background:var(--good-soft);border-color:color-mix(in srgb,var(--good) 32%,transparent)}
+  .cday.now{border-color:var(--accent)}
+  .cday b{font-size:12.5px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1}
+  .cday.now b{color:var(--accent);font-weight:850}
+  .cday .cdt{display:flex;gap:2px;margin-top:auto}
+  .cday .cdt i{width:4px;height:4px;border-radius:50%;background:var(--line2)}
+  .cday .cdt i.on{background:var(--good)}
+  .cday .cag{position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .cday .cj{position:absolute;bottom:3px;right:4px;font-size:8px;color:var(--faint)}
+  .calfoot{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
+  .calfoot div{flex:1;min-width:84px;background:var(--card2);border-radius:13px;padding:11px 10px}
+  .calfoot b{display:block;font-family:var(--disp);font-size:19px;font-weight:800;letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums}
+  .calfoot span{font-size:11px;color:var(--muted);font-weight:700}
+  .callg{font-size:11px;color:var(--faint);font-weight:650;margin-top:12px;line-height:1.6}
+  .daychip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border-radius:10px;
+    padding:7px 11px;font-size:12.5px;font-weight:700;margin:0 6px 6px 0}
+  .daychip small{color:var(--muted);font-weight:650}
+
   /* ---- LE BRIEF : ce que l'app te propose, maintenant ---- */
   .sugg{margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
   .sugg.first{margin-top:0;padding-top:0;border-top:none}
@@ -376,6 +425,34 @@ const CATALOGUE=[
     {n:"L'ÉCHÉANCIER", e:"📅", u:"echeancier/",d:"argent & échéances"},
     {n:"LUTÈCE",       e:"🕯️", u:"lutece/",    d:"carto souterraine"}]}
 ];
+/* ─── LES DOSSIERS ───
+   Une app de chaque par jour. Pour les langues et la musique, jamais la même
+   trois jours de suite : `rot` marque les dossiers où la rotation s'impose. */
+const CATS=[
+  {id:"langue",   nom:"Langues",   e:"🗣️", rot:1},
+  {id:"musique",  nom:"Musique",   e:"🎵", rot:1},
+  {id:"reflexion",nom:"Réflexion", e:"🧠", rot:0},
+  {id:"closing",  nom:"Closing",   e:"💼", rot:0},
+  {id:"sport",    nom:"Sport",     e:"🥊", rot:0}
+];
+const CAT_DEFAUT={
+  langue:["990","CUMBRE","MIFTAH","SPUTNIK","LISEK"],
+  musique:["SHRED","Piano Dojo","LA CLÉ","SIDEMAN"],
+  reflexion:["CORTEX","L'ARÈNE","LE FACE-À-FACE","PRISME","BESTIAIRE","MORSE PHOQUE","LUTÈCE"],
+  closing:["LE CLOSING","L'OFFENSIVE","L'ÉCHÉANCIER"],
+  sport:["FORGE","TOPSPIN"]
+};
+const CAT_PAR_ID={n990:"langue",cumbre:"langue",miftah:"langue",sputnik:"langue",lisek:"langue",
+  shred:"musique",piano:"musique",lacle:"musique",sideman:"musique",
+  cortex:"reflexion",arene:"reflexion",faceaface:"reflexion",prisme:"reflexion",
+  bestia:"reflexion",bestiaire:"reflexion",morse:"reflexion",lutece:"reflexion",
+  closing:"closing",offensive:"closing",echeancier:"closing",
+  forge:"sport",topspin:"sport"};
+function normName(x){ return String(x||"").toLowerCase().normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""); }
+const CAT_PAR_NOM={};
+Object.keys(CAT_DEFAUT).forEach(c=>CAT_DEFAUT[c].forEach(n=>{ CAT_PAR_NOM[normName(n)]=c; }));
+
 const HUES=["#ff6a45","#f5a524","#12b76a","#3b82f6","#a855f7","#ec4899","#14b8a6","#f97316","#6366f1","#84cc16"];
 function appColor(i){ return HUES[i%HUES.length]; }
 function today(){ return new Date().toISOString().slice(0,10); }
@@ -404,6 +481,17 @@ function load(){
       setTimeout(()=>toast(repare+" lien"+(repare>1?"s":"")+" rétabli"+(repare>1?"s":"")),600);
     }
   }catch(e){}
+  /* Rangement initial dans les dossiers. `cat` absent = jamais rangée ; `cat:""`
+     = rangée nulle part, et c'est un choix. On ne repasse donc jamais dessus. */
+  try{
+    let range=0;
+    s.apps.forEach(a=>{
+      if(a.cat!==undefined) return;
+      a.cat = CAT_PAR_ID[a.id] || CAT_PAR_NOM[normName(a.name)] || "";
+      range++;
+    });
+    if(range) localStorage.setItem(KEY,JSON.stringify(s));
+  }catch(e){}
   return s;
 }
 let S=load();
@@ -416,6 +504,54 @@ function stOf(id){ if(!S.st[id]) S.st[id]={days:[],min:{}}; return S.st[id]; }
    appareils, qui a coché ou décoché en dernier. On note donc l'heure de chaque
    geste à part — c'est ce qui permet à la fusion de trancher sans rien perdre. */
 function setCheck(id,d,v){ if(!S.chk) S.chk={}; S.chk[id+"|"+d]={t:Date.now(),v:v?1:0}; }
+
+/* ─── les dossiers ─── */
+function catDef(cid){ return CATS.filter(c=>c.id===cid)[0]||null; }
+function appsOfCat(cid){ return S.apps.filter(a=>a.cat===cid); }
+function catsActives(){ return CATS.filter(c=>appsOfCat(c.id).length); }
+function catDoneDay(cid,d){ return S.apps.some(a=>a.cat===cid&&stOf(a.id).days.includes(d)); }
+function catDone(cid){ return catDoneDay(cid,today()); }
+function catAppDone(cid){ return appsOfCat(cid).filter(a=>doneToday(a.id)); }
+function catDaysSet(cid){
+  const s=new Set(); appsOfCat(cid).forEach(a=>stOf(a.id).days.forEach(d=>s.add(d))); return s;
+}
+function catStreak(cid){
+  const D=catDaysSet(cid), t=today();
+  let d=D.has(t)?t:(D.has(dayShift(t,-1))?dayShift(t,-1):null);
+  if(!d) return 0;
+  let n=0; while(D.has(d)){ n++; d=dayShift(d,-1); }
+  return n;
+}
+/* La rotation : faite hier ET avant-hier, elle se repose aujourd'hui. On ne
+   l'interdit jamais — on la grise et on propose autre chose. Une règle qui
+   bloque se contourne ; une règle qui se voit se suit. */
+function atRest(id){
+  const a=S.apps.filter(x=>x.id===id)[0];
+  if(!a||!a.cat) return false;
+  const c=catDef(a.cat);
+  if(!c||!c.rot) return false;
+  const st=stOf(id), t=today();
+  return st.days.includes(dayShift(t,-1))&&st.days.includes(dayShift(t,-2));
+}
+function brokeRot(id){ return doneToday(id)&&atRest(id); }
+function inARow(id){
+  const st=stOf(id); let d=today(), n=0;
+  if(!st.days.includes(d)) d=dayShift(d,-1);
+  while(st.days.includes(d)){ n++; d=dayShift(d,-1); }
+  return n;
+}
+/* Les candidates du jour : ni déjà faites, ni au repos, la plus délaissée devant. */
+function catPicks(cid){
+  return appsOfCat(cid).filter(a=>!doneToday(a.id)&&!atRest(a.id))
+    .sort((x,y)=>gapDays(y.id)-gapDays(x.id));
+}
+function jamaisPointee(id){ return stOf(id).days.length===0; }
+/* Une app ajoutée hier n'a pas « jamais servi » : elle n'a pas encore eu sa chance.
+   Sans cette semaine de grâce, le brief proposerait de sortir ce qu'il vient de
+   faire ajouter. Les apps d'avant ce champ n'ont pas de `since` : elles ont eu
+   tout le temps du monde. */
+function neuve(a){ return !!(a&&a.since)&&(Date.now()-a.since)<7*864e5; }
+function aSortir(a){ return jamaisPointee(a.id)&&!neuve(a); }
 
 /* --- thème --- */
 function applyTheme(){ if(S.theme){ document.documentElement.dataset.theme=S.theme; } else { delete document.documentElement.dataset.theme; } }
@@ -466,12 +602,16 @@ function openById(id){
 let tick=null;
 function render(){
   const t=today();
-  const total=S.apps.length;
-  const done=S.apps.filter(a=>doneToday(a.id)).length;
+  /* La journée ne se compte plus en apps cochées mais en dossiers servis :
+     une app de chaque, c'est ça la journée pleine. */
+  const AC=catsActives();
+  const manque=AC.filter(c=>!catDone(c.id));
+  const total=AC.length, done=total-manque.length;
   const totMin=S.apps.reduce((s,a)=>s+todayMin(a.id),0);
   const totChecks=S.apps.reduce((s,a)=>s+checks(a.id),0);
   const dateStr=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
   const allDone=total&&done===total;
+  const nomsManque=manque.map(c=>c.nom).join(", ");
 
   let runHtml="";
   if(S.run){
@@ -502,9 +642,9 @@ function render(){
     <div class="summary">
       <div class="sumhead">
         <div class="frac">${done}<small>/${total}</small></div>
-        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Bien parti 💪 — encore "+(total-done)+".":"Nouvelle journée ✨ à toi de jouer."}</div>
+        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"Une app de chaque dossier ✨"}</div>
       </div>
-      <div class="segbar">${S.apps.map(a=>`<i class="${doneToday(a.id)?"on":""}"></i>`).join("")}</div>
+      <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}</div>
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
       ${briefHeadHtml()}
     </div>
@@ -512,26 +652,7 @@ function render(){
     ${agCardHtml()}
     ${jCardHtml()}
 
-    ${S.apps.map((a,ai)=>{
-      const on=doneToday(a.id), running=S.run&&S.run.id===a.id;
-      const str=streak(a.id);
-      const last7=Array.from({length:7},(_,k)=>stOf(a.id).days.includes(dayShift(t,-(6-k))));
-      return `<div class="row ${on?"done":""}" style="--c:${appColor(ai)}">
-        <div class="rtop">
-          <div class="iconchip" onclick="openById('${a.id}')">${a.emoji}</div>
-          <div class="nm" onclick="openById('${a.id}')">
-            <b>${esc(a.name)}</b>
-            <div class="meta">${str>0?`<span class="flame">🔥 ${str} j</span>`:""}<span>✓ ${checks(a.id)}</span><span>⏱ ${fmtMin(totalMin(a.id))}</span>${todayMin(a.id)?`<span style="color:var(--good)">+${todayMin(a.id)} min</span>`:""}</div>
-          </div>
-          <div class="chk ${on?"on":""} ${running?"live":""}" onclick="onCheck('${a.id}')" role="checkbox" aria-checked="${on}"></div>
-        </div>
-        <div class="ractions">
-          <button class="${running?"fin":"start"}" onclick="${running?"stopTimer()":`startTimer('${a.id}')`}">${running?"✓ Terminer":"▶ Commencer"}</button>
-          ${a.url?`<button class="open" onclick="openById('${a.id}')">↗ Ouvrir</button>`:`<button class="open" onclick="editApp('${a.id}')">✎ Lien</button>`}
-        </div>
-        <div class="heat">${last7.map(d=>`<i class="${d?"on":""}"></i>`).join("")}<span class="lbl">7 j</span></div>
-      </div>`;
-    }).join("")}
+    ${appListHtml()}
 
     <div class="fabrow">
       <button onclick="editApp('')">＋ Ajouter</button>
@@ -543,7 +664,7 @@ function render(){
       <button onclick="syncOpen()">🔗 Appareils</button>
       <button onclick="location.href='coffre.html'">🔐 Coffre</button>
     </div>
-    <div class="hint">Commence le chrono, coche quand tu as fini : le temps s'enregistre tout seul.<br>Les cases se vident chaque matin ; les coches et le temps ne s'oublient jamais.</div>
+    <div class="hint">Une app de chaque dossier par jour.<br>En langues et en musique, jamais la même trois jours de suite : la troisième se grise, une autre prend le relais.</div>
   `;
   agBind();
   if(keep){
@@ -552,6 +673,65 @@ function render(){
   }
   clearInterval(tick);
   if(S.run){ tick=setInterval(updClock,1000); updClock(); }
+}
+function catPicksSafe(cid){
+  const p=catPicks(cid);
+  if(p.length) return p;                 // si tout se repose, la règle cède : la journée passe avant
+  return appsOfCat(cid).filter(a=>!doneToday(a.id)).sort((x,y)=>gapDays(y.id)-gapDays(x.id));
+}
+function catHeadHtml(c){
+  const fait=catAppDone(c.id), str=catStreak(c.id), picks=catPicks(c.id);
+  let cls="todo", txt;
+  if(fait.length){
+    cls="ok";
+    txt="✓ "+fait[0].name+(fait.length>1?" +"+(fait.length-1):"");
+    if(fait.some(a=>brokeRot(a.id))){ cls="warn"; txt="⚠ 3e d'affilée"; }
+  }else if(!picks.length && appsOfCat(c.id).length){
+    cls="warn"; txt="tout au repos";
+  }else{
+    txt=picks.length+" au choix";
+  }
+  return `<div class="cathead">
+    <span class="ce">${c.e}</span><span class="cn">${c.nom}</span>
+    ${str>0?`<span class="cf">🔥 ${str} j</span>`:""}
+    <span class="cs ${cls}">${esc(txt)}</span>
+  </div>`;
+}
+function appRowHtml(a,ai){
+  const t=today(), on=doneToday(a.id), running=S.run&&S.run.id===a.id;
+  const str=streak(a.id), repos=!on&&atRest(a.id), casse=brokeRot(a.id);
+  const last7=Array.from({length:7},(_,k)=>stOf(a.id).days.includes(dayShift(t,-(6-k))));
+  return `<div class="row ${on?"done":""} ${repos?"rest":""}" style="--c:${appColor(ai)}">
+    <div class="rtop">
+      <div class="iconchip" onclick="openById('${a.id}')">${a.emoji}</div>
+      <div class="nm" onclick="openById('${a.id}')">
+        <b>${esc(a.name)}</b>
+        <div class="meta">${str>0?`<span class="flame">🔥 ${str} j</span>`:""}<span>✓ ${checks(a.id)}</span><span>⏱ ${fmtMin(totalMin(a.id))}</span>${todayMin(a.id)?`<span style="color:var(--good)">+${todayMin(a.id)} min</span>`:""}${
+          repos?`<span class="restbadge">au repos · ${inARow(a.id)} j d'affilée</span>`:""}${
+          casse?`<span class="restbadge">⚠ 3e jour d'affilée</span>`:""}</div>
+      </div>
+      <div class="chk ${on?"on":""} ${running?"live":""}" onclick="onCheck('${a.id}')" role="checkbox" aria-checked="${on}"></div>
+    </div>
+    <div class="ractions">
+      <button class="${running?"fin":"start"}" onclick="${running?"stopTimer()":`startTimer('${a.id}')`}">${running?"✓ Terminer":"▶ Commencer"}</button>
+      ${a.url?`<button class="open" onclick="openById('${a.id}')">↗ Ouvrir</button>`:`<button class="open" onclick="editApp('${a.id}')">✎ Lien</button>`}
+    </div>
+    <div class="heat">${last7.map(d=>`<i class="${d?"on":""}"></i>`).join("")}<span class="lbl">7 j</span></div>
+  </div>`;
+}
+function appListHtml(){
+  let i=0, out="";
+  CATS.forEach(c=>{
+    const liste=appsOfCat(c.id);
+    if(!liste.length) return;
+    out+=catHeadHtml(c)+liste.map(a=>appRowHtml(a,i++)).join("");
+  });
+  const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
+  if(orphelines.length){
+    out+=`<div class="cathead"><span class="ce">📦</span><span class="cn">Hors dossier</span>
+      <span class="cs todo">hors compte</span></div>`+orphelines.map(a=>appRowHtml(a,i++)).join("");
+  }
+  return out;
 }
 function updClock(){
   if(!S.run){ clearInterval(tick); return; }
@@ -568,27 +748,84 @@ function escJs(x){ return esc(String(x==null?"":x).replace(/\\/g,"\\\\").replace
 function rollDay(){ const t=today(); if(S.day!==t){ S.day=t; save(); } }
 
 /* --- édition d'une app --- */
+let editCat="";
 function editApp(id){
-  const a=id?S.apps.find(x=>x.id===id):{name:"",emoji:"⭐",url:""};
+  const a=id?S.apps.find(x=>x.id===id):{name:"",emoji:"⭐",url:"",cat:""};
+  editCat=a.cat||"";
   sheet(`
     <h3>${id?"Modifier l'app":"Ajouter une app"}</h3>
     <div class="fld"><label>Emoji</label><input id="fE" value="${esc(a.emoji)}" maxlength="4"></div>
     <div class="fld"><label>Nom</label><input id="fN" value="${esc(a.name)}" placeholder="Ex : SHRED"></div>
+    <div class="fld"><label>Dossier</label>
+      <div class="agpills" id="fC" style="margin-top:0">
+        ${CATS.map(c=>`<span data-c="${c.id}" class="${editCat===c.id?"on":""}">${c.e} ${c.nom}</span>`).join("")}
+        <span data-c="" class="${editCat?"":"on"}">hors dossier</span>
+      </div></div>
     <div class="fld"><label>Lien (facultatif)</label><input id="fU" value="${esc(a.url)}" placeholder="https://…" inputmode="url"></div>
     <button class="btn" onclick="saveApp('${id}')">Enregistrer</button>
     ${id?`<button class="btn danger" onclick="delApp('${id}')">Supprimer cette app</button>`:""}
     <button class="btn ghost" onclick="closeOv()">Annuler</button>
   `);
+  const pc=document.getElementById("fC");
+  if(pc) pc.addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-c]"); if(!el) return;
+    editCat=el.dataset.c;
+    Array.prototype.forEach.call(ev.currentTarget.children,x=>x.classList.remove("on"));
+    el.classList.add("on");
+  });
 }
 function saveApp(id){
   const name=document.getElementById("fN").value.trim();
   const emoji=document.getElementById("fE").value.trim()||"⭐";
   const url=document.getElementById("fU").value.trim();
   if(!name) return toast("Donne-lui un nom.");
-  if(id){ const a=S.apps.find(x=>x.id===id); a.name=name; a.emoji=emoji; a.url=url; }
-  else{ const nid="x"+Date.now().toString(36); S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}}; }
+  if(id){ const a=S.apps.find(x=>x.id===id); a.name=name; a.emoji=emoji; a.url=url; a.cat=editCat; }
+  else{ const nid="x"+Date.now().toString(36); S.apps.push({id:nid,name,emoji,url,cat:editCat,since:Date.now()}); S.st[nid]={days:[],min:{}}; }
   S.appsMod=Date.now();
   save(); closeOv(); render();
+}
+
+/* ---- le ménage : ce qui n'a jamais servi ---- */
+function openCleanup(){
+  const jamais=S.apps.filter(aSortir);
+  const vieilles=S.apps.filter(a=>!jamaisPointee(a.id)&&gapDays(a.id)>=30);
+  if(!jamais.length&&!vieilles.length){
+    return sheet(`<h3>🧹 Faire le ménage</h3>
+      <p class="syline">Rien à sortir : toutes tes apps ont servi récemment.</p>
+      <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+  }
+  const ligne=a=>`<div class="editrow">
+    <div class="e">${a.emoji}</div>
+    <div class="en">${esc(a.name)}<div style="color:var(--muted);font-size:12px;font-weight:600;margin-top:2px">
+      ${jamaisPointee(a.id)?"jamais cochée":"rien depuis "+gapDays(a.id)+" jours"}${a.cat&&catDef(a.cat)?" · "+catDef(a.cat).nom:""}</div></div>
+    <button onclick="sortirApp('${a.id}')">Sortir</button></div>`;
+  sheet(`<h3>🧹 Faire le ménage</h3>
+    <p class="syline">Une case qu'on ne coche jamais finit par vider la fraction de son sens.
+      Sortir une app la retire du registre du jour — <b>son historique part avec elle</b>, et tu
+      peux toujours la reprendre depuis « Toutes mes apps ».</p>
+    ${jamais.length?`<div class="aggrp red">Jamais cochées <i>${jamais.length}</i></div>${jamais.map(ligne).join("")}
+      <button class="btn danger" onclick="sortirToutes()">Sortir les ${jamais.length} d'un coup</button>`:""}
+    ${vieilles.length?`<div class="aggrp grey">Plus rien depuis un mois <i>${vieilles.length}</i></div>${vieilles.map(ligne).join("")}`:""}
+    <button class="btn ghost" style="margin-top:14px" onclick="closeOv();render()">Fermer</button>`);
+}
+function sortirApp(id){
+  const a=S.apps.find(x=>x.id===id); if(!a) return;
+  S.apps=S.apps.filter(x=>x.id!==id); delete S.st[id];
+  agTombs()["app:"+id]=Date.now(); S.appsMod=Date.now();
+  if(S.run&&S.run.id===id) S.run=null;
+  save(); openCleanup(); toast(a.name+" sortie du registre");
+}
+function sortirToutes(){
+  const jamais=S.apps.filter(aSortir);
+  if(!jamais.length) return;
+  if(!confirm("Sortir "+jamais.length+" app"+(jamais.length>1?"s":"")+" jamais cochée"+(jamais.length>1?"s":"")+" du registre ?")) return;
+  jamais.forEach(a=>{
+    S.apps=S.apps.filter(x=>x.id!==a.id); delete S.st[a.id];
+    agTombs()["app:"+a.id]=Date.now();
+    if(S.run&&S.run.id===a.id) S.run=null;
+  });
+  S.appsMod=Date.now(); save(); openCleanup(); render();
+  toast(jamais.length+" apps sorties du registre");
 }
 function delApp(id){
   if(!confirm("Supprimer cette app et son historique ?")) return;
@@ -599,14 +836,19 @@ function delApp(id){
   save(); closeOv(); render();
 }
 function openManage(){
+  const jamais=S.apps.filter(aSortir).length;
   sheet(`
     <h3>Réorganiser la liste</h3>
+    <p class="syline" style="margin:-10px 0 4px">Le <b>✎</b> ouvre l'app : c'est là qu'on change son dossier.</p>
     ${S.apps.map((a,i)=>`<div class="editrow">
-      <div class="e">${a.emoji}</div><div class="en">${esc(a.name)}</div>
+      <div class="e">${a.emoji}</div>
+      <div class="en">${esc(a.name)}<div style="color:var(--faint);font-size:11.5px;font-weight:650;margin-top:2px">
+        ${a.cat&&catDef(a.cat)?catDef(a.cat).e+" "+catDef(a.cat).nom:"hors dossier"}</div></div>
       <button onclick="move('${a.id}',-1)" ${i===0?"disabled style=opacity:.3":""}>↑</button>
       <button onclick="move('${a.id}',1)" ${i===S.apps.length-1?"disabled style=opacity:.3":""}>↓</button>
       <button onclick="closeOv();editApp('${a.id}')">✎</button>
     </div>`).join("")}
+    <button class="btn ghost" style="margin-top:14px" onclick="openCleanup()">🧹 Faire le ménage${jamais?" ("+jamais+" jamais cochée"+(jamais>1?"s":"")+")":""}</button>
     <button class="btn ghost" onclick="closeOv()">Fermer</button>
   `);
 }
@@ -638,8 +880,15 @@ function openLauncher(){
 }
 function addFromCat(name,emoji,url){
   const nid="x"+Date.now().toString(36);
-  S.apps.push({id:nid,name,emoji,url}); S.st[nid]={days:[],min:{}}; S.appsMod=Date.now();
+  S.apps.push({id:nid,name,emoji,url,cat:CAT_PAR_NOM[normName(name)]||"",since:Date.now()});
+  S.st[nid]={days:[],min:{}}; S.appsMod=Date.now();
   save(); render(); openLauncher(); toast(name+" ajoutée au registre");
+}
+function addQuick(name,emoji,url){
+  const nid="x"+Date.now().toString(36);
+  S.apps.push({id:nid,name,emoji,url,cat:CAT_PAR_NOM[normName(name)]||"",since:Date.now()});
+  S.st[nid]={days:[],min:{}}; S.appsMod=Date.now();
+  save(); closeOv(); render(); toast(name+" ajoutée au registre");
 }
 function openStats(){
   const rows=S.apps.slice().sort((a,b)=>totalMin(b.id)-totalMin(a.id)).map(a=>`
@@ -711,17 +960,26 @@ function briefAll(){
          {l:"✓ C'est fait", c:"ok", f:"agDoneR('"+it.id+"')"}]});
   });
 
-  /* Deux séries au plus : à cinq, le brief devient un mur de reproches,
-     et un mur de reproches, on le referme. */
-  S.apps.filter(a=>!doneToday(a.id)&&streak(a.id)>=3)
-    .sort((a,b)=>streak(b.id)-streak(a.id)).slice(0,2)
-    .forEach(a=>{
-      const s=streak(a.id), typ=typicalMin(a.id);
-      pris[a.id]=1;
-      add({k:"serie:"+a.id, score:70+Math.min(s,25), e:a.emoji, t:a.name+" — "+s+" jours d'affilée",
-        w:"Pas encore aujourd'hui."+(typ?" D'habitude tu y passes "+fmtMin(typ)+".":" Une coche suffit à tenir la série."),
-        a:[{l:"▶ Commencer", c:"go", f:"startTimer('"+a.id+"');closeOv()"},
-           {l:"✓ Fait", c:"ok", f:"onCheck('"+a.id+"');closeOv()"}]});
+  /* Les dossiers qui manquent : c'est ça, la journée. Le choix de l'app tient
+     compte de la rotation, donc le brief ne reproche jamais une série cassée
+     quand c'est la règle elle-même qui demandait de tourner.
+     Trois au plus : la liste du dessous montre déjà les cinq. */
+  const ACT=catsActives();
+  ACT.filter(c=>!catDone(c.id))
+    .sort((a,b)=>catStreak(b.id)-catStreak(a.id)).slice(0,3)
+    .forEach(c=>{
+      const picks=catPicksSafe(c.id);
+      if(!picks.length) return;
+      const p=picks[0], str=catStreak(c.id), typ=typicalMin(p.id);
+      const repos=appsOfCat(c.id).filter(a=>!doneToday(a.id)&&atRest(a.id));
+      pris[p.id]=1;
+      add({k:"cat:"+c.id, score:75+Math.min(str,20), e:c.e, t:c.nom+" — "+p.emoji+" "+p.name,
+        w:(str>0?str+" jours d'affilée sur ce dossier. ":"")+
+          (repos.length?repos.map(a=>a.name).join(" et ")+(repos.length>1?" se reposent":" se repose")+" aujourd'hui. ":"")+
+          (picks.length>1?picks.length+" au choix. ":"")+
+          (typ?"Compte "+fmtMin(typ)+".":"Lance le chrono, il comptera."),
+        a:[{l:"▶ "+p.name, c:"go", f:"startTimer('"+p.id+"');closeOv()"},
+           {l:"✓ Fait", c:"ok", f:"onCheck('"+p.id+"');closeOv()"}]});
     });
 
   if(B.late.length){
@@ -759,8 +1017,9 @@ function briefAll(){
          {l:"La sortir", c:"", f:"closeOv();editApp('"+a.id+"')"}]});
   }
 
+  /* Sans aucun dossier rangé, on retombe sur l'ancienne logique : une app à faire. */
   const reste=S.apps.filter(a=>!doneToday(a.id)&&!pris[a.id]);
-  if(reste.length){
+  if(!ACT.length && reste.length){
     const p=reste.slice().sort((a,b)=>gapDays(b.id)-gapDays(a.id))[0];
     const typ=typicalMin(p.id), g=gapDays(p.id);
     add({k:"quete", score:34, e:p.emoji, t:"Commencer par "+p.name,
@@ -770,6 +1029,29 @@ function briefAll(){
          {l:"↗ Ouvrir", c:"", f:"openById('"+p.id+"')"}]});
   }
 
+  /* Un dossier vide, c'est une journée qui ne pourra jamais être pleine.
+     Le lanceur contient sûrement de quoi le remplir. */
+  CATS.filter(c=>!appsOfCat(c.id).length).forEach(c=>{
+    const cands=[];
+    CATALOGUE.forEach(g=>g.items.forEach(x=>{
+      if(CAT_PAR_NOM[normName(x.n)]===c.id && !inList(BASE+x.u)) cands.push(x);
+    }));
+    if(!cands.length) return;
+    add({k:"vide:"+c.id, score:44, e:c.e, t:"Rien dans "+c.nom,
+      w:"Ce dossier est vide : ta journée se compte sur "+ACT.length+" dossiers au lieu de "+CATS.length+". "+
+        cands.map(x=>x.n).join(" et ")+" "+(cands.length>1?"attendent":"attend")+" dans le lanceur.",
+      a:[{l:"＋ "+cands[0].n, c:"go", f:"addQuick('"+escJs(cands[0].n)+"','"+cands[0].e+"','"+BASE+cands[0].u+"')"},
+         {l:"Toutes mes apps", c:"", f:"closeOv();openLauncher()"}]});
+  });
+
+  const jamais=S.apps.filter(aSortir);
+  if(jamais.length>=2){
+    add({k:"menage", score:26, e:"🧹", t:jamais.length+" apps n'ont jamais été cochées",
+      w:jamais.slice(0,3).map(a=>a.name).join(", ")+(jamais.length>3?"…":"")+
+        ". Elles allongent le registre sans rien y ajouter — les sortir rend la fraction honnête.",
+      a:[{l:"Faire le ménage", c:"", f:"closeOv();openCleanup()"}]});
+  }
+
   const dem=agAll().filter(x=>!x.done&&x.d===dayShift(t,1)).sort((a,b)=>(a.t||"99").localeCompare(b.t||"99"));
   if(dem.length>=2){
     add({k:"demain", score:28, e:"📅", t:"Demain : "+dem.length+" choses"+(dem[0].t?", dès "+dem[0].t:""),
@@ -777,9 +1059,12 @@ function briefAll(){
       a:[{l:"Voir l'agenda", c:"", f:"closeOv();agSheet()"}]});
   }
 
-  if(S.apps.length && !S.apps.some(a=>!doneToday(a.id))){
+  const bouclee = ACT.length ? !ACT.some(c=>!catDone(c.id))
+                             : (S.apps.length && !S.apps.some(a=>!doneToday(a.id)));
+  if(bouclee){
     const tot=S.apps.reduce((s,a)=>s+todayMin(a.id),0);
-    add({k:"boucle", score:58, e:"🎉", t:"Journée bouclée — "+S.apps.length+"/"+S.apps.length,
+    const n=ACT.length||S.apps.length;
+    add({k:"boucle", score:58, e:"🎉", t:"Journée bouclée — "+n+"/"+n+(ACT.length?" dossiers":""),
       w:(tot?fmtMin(tot)+" de pratique aujourd'hui. ":"")+"Tu peux fermer l'app sans arrière-pensée.",
       a: jHas(t)?[]:[{l:"Écrire ma journée", c:"go", f:"closeOv();openJournal()"}]});
   }
@@ -1106,14 +1391,139 @@ function agSheet(){
   if(B.done.length)  body+=`<div class="aggrp grey">Fait <i>${B.done.length}</i></div>`+rows(B.done.slice(0,25));
   if(!body) body=`<div class="agempty">Rien pour l'instant. Écris une ligne en bas : <b>5 oct 20h psy</b>, <b>demain 9h BCG</b>, ou juste <b>postuler Dior</b>.</div>`;
   sheet(`<h3>🗓 L'agenda</h3>
+    ${agSegHtml("liste")}
     <div id="agBody">${body}</div>
     <form class="agform" id="agForm2" style="margin-top:17px"><input id="agIn2"
       placeholder="Noter quelque chose…" autocomplete="off" autocorrect="off" enterkeyhint="done"><button type="submit">＋</button></form>
     <div class="aghint" id="agHint2"></div>
     <button class="btn ghost" style="margin-top:15px" onclick="closeOv();render()">Fermer</button>`);
+  agSegBind();
   document.getElementById("agForm2").addEventListener("submit",e=>agSubmit(e,"2"));
   document.getElementById("agIn2").addEventListener("input",()=>agPreview("2"));
   document.getElementById("agBody").addEventListener("click",e=>agRowAct(e,agSheet));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE CALENDRIER — le mois d'un coup d'œil.
+   Il réunit ce que l'app sait d'un jour : les dossiers servis (les
+   points), ce qui était prévu (la pastille orange), la journée écrite
+   (le ✎). Un mois de régularité se lit alors sans rien ouvrir.
+   ═══════════════════════════════════════════════════════════════════ */
+let calYM=null;
+function calInit(){ if(!calYM) calYM=today().slice(0,7); }
+function calShift(n){
+  const p=calYM.split("-"), d=new Date(+p[0], +p[1]-1+n, 1);
+  calYM=d.getFullYear()+"-"+pad2(d.getMonth()+1);
+  calSheet();
+}
+function calGoToday(){ calYM=today().slice(0,7); calSheet(); }
+function calData(ym){
+  const map={}, get=d=>(map[d]=map[d]||{cats:{},min:0,ag:0,j:0});
+  S.apps.forEach(a=>{
+    const st=stOf(a.id);
+    st.days.forEach(d=>{ if(d.slice(0,7)===ym&&a.cat) get(d).cats[a.cat]=1; });
+    Object.keys(st.min||{}).forEach(d=>{ if(d.slice(0,7)===ym) get(d).min+=Math.round(st.min[d]||0); });
+  });
+  agAll().forEach(it=>{ if(it.d&&it.d.slice(0,7)===ym) get(it.d).ag++; });
+  Object.keys(jAll()).forEach(d=>{ if(d.slice(0,7)===ym&&jHas(d)) get(d).j=1; });
+  return map;
+}
+function agSegHtml(cur){
+  return `<div class="jseg" id="agSeg">
+    <div data-v="liste" class="${cur==="liste"?"on":""}">📋 La liste</div>
+    <div data-v="cal" class="${cur==="cal"?"on":""}">🗓 Le calendrier</div>
+  </div>`;
+}
+function agSegBind(){
+  const s=document.getElementById("agSeg");
+  if(s) s.addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-v]"); if(!el) return;
+    if(el.dataset.v==="cal") calSheet(); else agSheet();
+  });
+}
+function calSheet(){
+  calInit();
+  const ym=calYM, p=ym.split("-"), y=+p[0], mo=+p[1];
+  const D=calData(ym), AC=catsActives(), t=today();
+  const first=new Date(y,mo-1,1);
+  const debut=(first.getDay()+6)%7;                 // la semaine commence lundi
+  const n=new Date(y,mo,0).getDate();
+  const cells=[];
+  for(let i=0;i<debut;i++) cells.push(`<div class="cday out"></div>`);
+  for(let d=1;d<=n;d++){
+    const iso=ym+"-"+pad2(d), e=D[iso]||{cats:{},min:0,ag:0,j:0};
+    const faits=AC.filter(c=>e.cats[c.id]).length;
+    cells.push(`<div class="cday ${AC.length&&faits===AC.length?"full":""} ${iso===t?"now":""}" data-d="${iso}">
+      <b>${d}</b>
+      ${e.ag?`<span class="cag"></span>`:""}
+      ${e.j?`<span class="cj">✎</span>`:""}
+      <div class="cdt">${AC.map(c=>`<i class="${e.cats[c.id]?"on":""}"></i>`).join("")}</div>
+    </div>`);
+  }
+  const jours=AC.length?Object.keys(D).filter(d=>AC.every(c=>D[d].cats[c.id])).length:0;
+  const min=Object.keys(D).reduce((s,d)=>s+D[d].min,0);
+  const ecrits=Object.keys(D).filter(d=>D[d].j).length;
+  sheet(`<h3>🗓 L'agenda</h3>
+    ${agSegHtml("cal")}
+    <div class="calnav">
+      <button onclick="calShift(-1)" aria-label="Mois précédent">‹</button>
+      <b>${first.toLocaleDateString("fr-FR",{month:"long",year:"numeric"})}</b>
+      ${ym!==t.slice(0,7)?`<button class="now" onclick="calGoToday()">Aujourd'hui</button>`:""}
+      <button onclick="calShift(1)" aria-label="Mois suivant">›</button>
+    </div>
+    <div class="caldow">${["L","M","M","J","V","S","D"].map(x=>`<span>${x}</span>`).join("")}</div>
+    <div class="calgrid" id="calGrid">${cells.join("")}</div>
+    <div class="calfoot">
+      <div><b>${jours}</b><span>jour${jours>1?"s":""} plein${jours>1?"s":""}</span></div>
+      <div><b>${fmtMin(min)}</b><span>de pratique</span></div>
+      <div><b>${ecrits}</b><span>journée${ecrits>1?"s":""} écrite${ecrits>1?"s":""}</span></div>
+    </div>
+    <div class="callg">Les points sous chaque jour sont tes ${AC.length||"—"} dossiers.
+      Pastille orange en haut : quelque chose à l'agenda. <b>✎</b> : journée écrite.
+      Touche un jour pour l'ouvrir.</div>
+    <button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`);
+  agSegBind();
+  const g=document.getElementById("calGrid");
+  if(g) g.addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-d]"); if(!el) return;
+    calDay(el.dataset.d);
+  });
+}
+function calDay(d){
+  const items=agSort(agAll().filter(x=>x.d===d));
+  const pointe=S.apps.filter(a=>stOf(a.id).days.includes(d));
+  const min=S.apps.reduce((s,a)=>s+Math.round(stOf(a.id).min[d]||0),0);
+  const e=jGet(d), AC=catsActives();
+  sheet(`<h3>${jDateLabel(d,true)}</h3>
+    ${AC.length?`<div class="agpills" style="margin:-4px 0 15px">${AC.map(c=>
+      `<span class="${catDoneDay(c.id,d)?"on":""}">${c.e} ${c.nom}</span>`).join("")}</div>`:""}
+    ${items.length?`<div class="aggrp">À l'agenda <i>${items.length}</i></div>
+      <div id="calDayAg">${items.map(it=>agRowHtml(it,false)).join("")}</div>`:""}
+    ${pointe.length?`<div class="aggrp">Pointé <i>${pointe.length}</i></div>
+      <div style="margin-top:10px">${pointe.map(a=>{
+        const m=Math.round(stOf(a.id).min[d]||0);
+        return `<span class="daychip">${a.emoji} ${esc(a.name)}${m?` <small>${fmtMin(m)}</small>`:""}</span>`;
+      }).join("")}</div>${min?`<div class="syline" style="margin-top:6px">${fmtMin(min)} au total ce jour-là.</div>`:""}`:""}
+    ${jHas(d)?`<div class="aggrp">La journée écrite</div>
+      <div class="jprev" style="-webkit-line-clamp:14;margin-top:11px">${esc(e.txt)}</div>
+      <button class="btn ghost" style="margin-top:11px" onclick="openJournal('${d}')">Ouvrir le journal</button>`:""}
+    ${!items.length&&!pointe.length&&!jHas(d)?`<div class="agempty">Rien ce jour-là.</div>`:""}
+    <form class="agform" id="calForm" style="margin-top:17px"><input id="calIn"
+      placeholder="Noter quelque chose ce jour-là…" autocomplete="off" enterkeyhint="done"><button type="submit">＋</button></form>
+    <button class="btn ghost" style="margin-top:15px" onclick="calSheet()">← Le calendrier</button>`);
+  const ag=document.getElementById("calDayAg");
+  if(ag) ag.addEventListener("click",ev=>agRowAct(ev,()=>calDay(d)));
+  const f=document.getElementById("calForm");
+  if(f) f.addEventListener("submit",ev=>{
+    ev.preventDefault();
+    const el=document.getElementById("calIn"), v=el.value.trim();
+    if(!v) return;
+    /* le jour ouvert sert de date par défaut — sauf si la phrase en donne une */
+    const q=agParse(v);
+    agAll().push({id:agId(), txt:q.txt, d:q.d||d, t:q.t, t2:q.t2, note:"", star:q.star,
+                  done:null, c:Date.now(), mod:Date.now()});
+    save(); calDay(d); toast("Noté");
+  });
 }
 
 /* ---- une tâche en détail ---- */
