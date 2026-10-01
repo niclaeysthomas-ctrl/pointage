@@ -211,6 +211,38 @@
     font-weight:750;cursor:pointer;border:1.5px solid transparent}
   .jseg div.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
 
+  /* ---- LE BRIEF : ce que l'app te propose, maintenant ---- */
+  .sugg{margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
+  .sugg.first{margin-top:0;padding-top:0;border-top:none}
+  .st{display:flex;gap:11px;align-items:flex-start}
+  .st .se{font-size:21px;line-height:1.15;flex:none;width:26px;text-align:center}
+  .st .sb{flex:1;min-width:0}
+  .st .sb b{display:block;font-size:14.5px;font-weight:750;line-height:1.35;letter-spacing:-.01em}
+  .st .sb i{display:block;font-style:normal;font-size:12.5px;color:var(--muted);font-weight:600;
+    margin-top:4px;line-height:1.5}
+  .sa{display:flex;gap:8px;margin-top:12px}
+  .sa button{flex:1;border:none;border-radius:12px;padding:11px 6px;font-size:13px;font-weight:750;
+    cursor:pointer;background:var(--card2);color:var(--ink);transition:transform .12s}
+  .sa button:active{transform:scale(.97)}
+  .sa button.go{background:var(--accent);color:#fff;box-shadow:0 4px 12px var(--accent-soft)}
+  .sa button.ok{background:var(--good);color:var(--good-ink);box-shadow:0 4px 12px var(--good-soft)}
+  .briefmore{display:block;width:100%;background:none;border:none;color:var(--muted);font-size:12.5px;
+    font-weight:750;cursor:pointer;padding:12px 0 0;text-align:left}
+  .bhead{font-family:var(--disp);font-size:13px;font-weight:750;color:var(--muted);margin:-6px 0 14px;
+    text-transform:capitalize}
+  .spark{display:flex;gap:5px;align-items:flex-end;height:44px;margin-top:2px}
+  .spark i{flex:1;background:var(--card2);border-radius:4px;min-height:3px}
+  .spark i.on{background:linear-gradient(180deg,var(--accent2),var(--accent))}
+  .spark i.today{outline:2px solid var(--accent);outline-offset:2px}
+  .sparkl{display:flex;gap:5px;margin-top:6px}
+  .sparkl span{flex:1;text-align:center;font-size:10px;color:var(--faint);font-weight:800;text-transform:uppercase}
+  .btot{display:flex;align-items:baseline;gap:8px;margin-top:14px;font-size:12.5px;color:var(--muted);
+    font-weight:650;flex-wrap:wrap}
+  .btot b{font-family:var(--disp);font-size:21px;font-weight:800;color:var(--ink);letter-spacing:-.02em;
+    font-variant-numeric:tabular-nums}
+  .bdelta{font-weight:800}
+  .bdelta.up{color:var(--good)} .bdelta.down{color:var(--muted)}
+
   /* ---- L'AGENDA : ce qui est prévu, ce qui traîne ---- */
   .agcard{background:var(--card);border-radius:20px;padding:15px 16px 12px;margin-bottom:12px;box-shadow:var(--shadow);
     border:1.5px solid transparent}
@@ -474,6 +506,7 @@ function render(){
       </div>
       <div class="segbar">${S.apps.map(a=>`<i class="${doneToday(a.id)?"on":""}"></i>`).join("")}</div>
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
+      ${briefHeadHtml()}
     </div>
     ${runHtml}
     ${agCardHtml()}
@@ -626,6 +659,200 @@ function openStats(){
 }
 function wipe(){ if(confirm("Effacer TOUT l'historique (coches et temps) ? Irréversible.")){ const th=S.theme; localStorage.removeItem(KEY); S=load(); S.theme=th; save(); closeOv(); render(); } }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE BRIEF — ce que l'app propose, et pourquoi.
+   Règle du jeu : aucune suggestion générique. Chacune cite un chiffre
+   que l'app a vraiment enregistré (une série, un écart, une heure) —
+   sinon ce n'est qu'un conseil de plus, et un conseil de plus ne fait
+   rien faire à personne.
+   Deuxième règle : pour ce qui dort, proposer la sortie autant que la
+   reprise. Une case qu'on ne coche jamais vide la fraction de son
+   sens, et un registre qui culpabilise finit par se fermer.
+   ═══════════════════════════════════════════════════════════════════ */
+function lastDone(id){ const d=stOf(id).days; return d.length?d[d.length-1]:null; }
+function gapDays(id){
+  const l=lastDone(id); if(!l) return 9999;
+  return Math.round((Date.parse(today()+"T12:00:00")-Date.parse(l+"T12:00:00"))/864e5);
+}
+function typicalMin(id){
+  const v=Object.values(stOf(id).min||{}).filter(x=>x>0).sort((a,b)=>a-b);
+  return v.length?Math.round(v[Math.floor(v.length/2)]):0;    // la médiane, pas la moyenne : une grosse séance ne doit pas fixer la norme
+}
+function minsUntil(hhmm){
+  const p=String(hhmm).split(":"), n=new Date();
+  return (+p[0]*60 + +p[1]) - (n.getHours()*60+n.getMinutes());
+}
+function fmtIn(m){ return m<0 ? "il y a "+fmtMin(-m) : m<60 ? "dans "+m+" min" : "dans "+fmtMin(m); }
+function agDoneR(id){ agDone(id); closeOv(); render(); }
+function agPushTodayR(id){ agPushToday(id); closeOv(); render(); toast("Reporté à aujourd'hui"); }
+
+function briefAll(){
+  const t=today(), B=agBuckets(), H=new Date().getHours(), out=[], pris={};
+  const add=o=>out.push(o);
+
+  if(S.run){
+    const mins=Math.round((Date.now()-S.run.t0)/60000);
+    if(mins>=120){
+      const a=S.apps.find(x=>x.id===S.run.id);
+      add({k:"chrono", score:200, e:"⏱", t:"Le chrono tourne depuis "+fmtMin(mins),
+        w:"Sur "+(a?a.name:"une app")+". Tu l'as sans doute oublié : arrête-le, sinon la séance enregistrée n'aura plus rien à voir avec ce que tu as fait.",
+        a:[{l:"✓ Arrêter maintenant", c:"ok", f:"stopTimer();closeOv();render()"}]});
+    }
+  }
+
+  B.now.filter(x=>x.t).forEach(it=>{
+    const m=minsUntil(it.t);
+    if(m>240||m<-90) return;
+    add({k:"rdv:"+it.id, score:150-Math.max(0,m)/8, e:"📍", t:it.txt,
+      w:(m>=0 ? "À "+it.t+" — "+fmtIn(m)+"." : "C'était à "+it.t+".")+
+        (it.note?" Tu as noté de quoi préparer." : ""),
+      a:[{l:"Ouvrir", c:"", f:"agEdit('"+it.id+"')"},
+         {l:"✓ C'est fait", c:"ok", f:"agDoneR('"+it.id+"')"}]});
+  });
+
+  /* Deux séries au plus : à cinq, le brief devient un mur de reproches,
+     et un mur de reproches, on le referme. */
+  S.apps.filter(a=>!doneToday(a.id)&&streak(a.id)>=3)
+    .sort((a,b)=>streak(b.id)-streak(a.id)).slice(0,2)
+    .forEach(a=>{
+      const s=streak(a.id), typ=typicalMin(a.id);
+      pris[a.id]=1;
+      add({k:"serie:"+a.id, score:70+Math.min(s,25), e:a.emoji, t:a.name+" — "+s+" jours d'affilée",
+        w:"Pas encore aujourd'hui."+(typ?" D'habitude tu y passes "+fmtMin(typ)+".":" Une coche suffit à tenir la série."),
+        a:[{l:"▶ Commencer", c:"go", f:"startTimer('"+a.id+"');closeOv()"},
+           {l:"✓ Fait", c:"ok", f:"onCheck('"+a.id+"');closeOv()"}]});
+    });
+
+  if(B.late.length){
+    const p=B.late[0];
+    add({k:"retard", score:66, e:"⚠️", t:B.late.length+" chose"+(B.late.length>1?"s":"")+" en retard",
+      w:"La plus ancienne : « "+p.txt+" », prévue "+agDL(p.d).replace(/\.$/,"")+".",
+      a:[{l:"Voir l'agenda", c:"", f:"closeOv();agSheet()"},
+         {l:"→ Aujourd'hui", c:"go", f:"agPushTodayR('"+p.id+"')"}]});
+  }
+
+  if(H>=19 && !jHas(t)){
+    add({k:"journal", score:62, e:"🌙", t:"Écris ta journée",
+      w:jPrompt()+" Trois lignes suffisent — et c'est ce que tu me colleras plus tard.",
+      a:[{l:"Ouvrir le journal", c:"go", f:"closeOv();openJournal()"}]});
+  }
+
+  const dort=B.inbox.filter(x=>x.c&&(Date.now()-x.c)>7*864e5).sort((a,b)=>a.c-b.c)[0];
+  if(dort){
+    add({k:"inbox", score:46, e:"🕰", t:"« "+dort.txt+" » attend depuis "+Math.round((Date.now()-dort.c)/864e5)+" jours",
+      w:"Sans date, une tâche ne se fait jamais : elle se relit. Donne-lui un jour — ou raye-la, c'est une réponse aussi.",
+      a:[{l:"Lui donner un jour", c:"go", f:"agEdit('"+dort.id+"')"},
+         {l:"✓ Fait", c:"ok", f:"agDoneR('"+dort.id+"')"}]});
+  }
+
+  /* Une seule app endormie à la fois : la plus ancienne. */
+  const endormies=S.apps.filter(a=>!pris[a.id]&&gapDays(a.id)>=12&&gapDays(a.id)<9000)
+    .sort((a,b)=>gapDays(b.id)-gapDays(a.id));
+  if(endormies.length){
+    const a=endormies[0], g=gapDays(a.id);
+    pris[a.id]=1;
+    add({k:"dort:"+a.id, score:40, e:"💤", t:a.name+" dort depuis "+g+" jours",
+      w:"Soit tu t'y remets aujourd'hui, soit tu la sors du registre. Les deux valent mieux qu'une case qui reste vide tous les soirs."+
+        (endormies.length>1?" ("+(endormies.length-1)+" autre"+(endormies.length>2?"s":"")+" dans le même cas.)":""),
+      a:[{l:"▶ S'y remettre", c:"go", f:"startTimer('"+a.id+"');closeOv()"},
+         {l:"La sortir", c:"", f:"closeOv();editApp('"+a.id+"')"}]});
+  }
+
+  const reste=S.apps.filter(a=>!doneToday(a.id)&&!pris[a.id]);
+  if(reste.length){
+    const p=reste.slice().sort((a,b)=>gapDays(b.id)-gapDays(a.id))[0];
+    const typ=typicalMin(p.id), g=gapDays(p.id);
+    add({k:"quete", score:34, e:p.emoji, t:"Commencer par "+p.name,
+      w:(g>9000 ? "Jamais pointée encore — c'est l'occasion. " : g>1 ? "Pas touché depuis "+g+" jours. " : "")+
+        (typ ? "Compte "+fmtMin(typ)+", c'est ton rythme habituel." : "Lance le chrono, il fera le compte tout seul."),
+      a:[{l:"▶ Commencer", c:"go", f:"startTimer('"+p.id+"');closeOv()"},
+         {l:"↗ Ouvrir", c:"", f:"openById('"+p.id+"')"}]});
+  }
+
+  const dem=agAll().filter(x=>!x.done&&x.d===dayShift(t,1)).sort((a,b)=>(a.t||"99").localeCompare(b.t||"99"));
+  if(dem.length>=2){
+    add({k:"demain", score:28, e:"📅", t:"Demain : "+dem.length+" choses"+(dem[0].t?", dès "+dem[0].t:""),
+      w:"La première est « "+dem[0].txt+" ». Si quelque chose doit être prêt avant, c'est ce soir que ça se prépare.",
+      a:[{l:"Voir l'agenda", c:"", f:"closeOv();agSheet()"}]});
+  }
+
+  if(S.apps.length && !S.apps.some(a=>!doneToday(a.id))){
+    const tot=S.apps.reduce((s,a)=>s+todayMin(a.id),0);
+    add({k:"boucle", score:58, e:"🎉", t:"Journée bouclée — "+S.apps.length+"/"+S.apps.length,
+      w:(tot?fmtMin(tot)+" de pratique aujourd'hui. ":"")+"Tu peux fermer l'app sans arrière-pensée.",
+      a: jHas(t)?[]:[{l:"Écrire ma journée", c:"go", f:"closeOv();openJournal()"}]});
+  }
+
+  return out.sort((a,b)=>b.score-a.score);
+}
+
+function suggHtml(s,first){
+  return `<div class="sugg ${first?"first":""}">
+    <div class="st"><div class="se">${s.e}</div>
+      <div class="sb"><b>${esc(s.t)}</b><i>${esc(s.w)}</i></div></div>
+    ${s.a&&s.a.length?`<div class="sa">${s.a.map(x=>
+      `<button class="${x.c||""}" onclick="${x.f}">${esc(x.l)}</button>`).join("")}</div>`:""}
+  </div>`;
+}
+function briefHeadHtml(){
+  const L=briefAll();
+  if(!L.length) return `<button class="briefmore" onclick="openBrief()">⋯ le brief du jour</button>`;
+  const n=L.length-1;
+  return suggHtml(L[0]) +
+    `<button class="briefmore" onclick="openBrief()">⋯ ${n>0?n+" autre"+(n>1?"s":"")+" suggestion"+(n>1?"s":"")+" · ":""}le brief du jour</button>`;
+}
+
+function weekStats(){
+  const t=today(), out=[];
+  for(let k=6;k>=0;k--){
+    const d=dayShift(t,-k); let min=0, any=false;
+    S.apps.forEach(a=>{ const st=stOf(a.id); min+=Math.round(st.min[d]||0); if(st.days.includes(d)) any=true; });
+    out.push({d,min,any});
+  }
+  return out;
+}
+function weekMin(offset){
+  let s=0;
+  for(let k=0;k<7;k++){ const d=dayShift(today(),-(k+offset));
+    S.apps.forEach(a=>s+=Math.round(stOf(a.id).min[d]||0)); }
+  return s;
+}
+function openBrief(){
+  const L=briefAll(), W=weekStats(), B=agBuckets(), t=today();
+  const total=S.apps.length, done=S.apps.filter(a=>doneToday(a.id)).length;
+  const max=Math.max(1, ...W.map(x=>x.min));
+  const cette=weekMin(0), avant=weekMin(7);
+  const jours=W.filter(x=>x.any).length;
+  const now=new Date();
+  const attend=[...B.late, ...B.now];
+
+  const delta = avant ? Math.round((cette-avant)/avant*100) : null;
+  const deltaTxt = delta===null ? "" :
+    `<span class="bdelta ${delta>=0?"up":"down"}">${delta>=0?"+":""}${delta}%</span> vs la semaine d'avant`;
+
+  sheet(`<h3>📋 Le brief</h3>
+    <div class="bhead">${now.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})} ·
+      ${String(now.getHours()).padStart(2,"0")}h${String(now.getMinutes()).padStart(2,"0")} ·
+      ${done}/${total} pointé${done>1?"s":""}</div>
+
+    ${L.length?L.slice(0,7).map((s,i)=>suggHtml(s,i===0)).join(""):
+      `<div class="agempty">Rien à signaler. C'est plutôt bon signe.</div>`}
+
+    ${attend.length?`<div class="aggrp">Ce qui t'attend <i>${attend.length}</i></div>
+      <div id="briefAg">${attend.map(it=>agRowHtml(it,true)).join("")}</div>`:""}
+
+    <div class="aggrp">Ton rythme <i>7 jours</i></div>
+    <div class="spark">${W.map(x=>
+      `<i class="${x.min?"on":""} ${x.d===t?"today":""}" style="height:${Math.max(3,Math.round(x.min/max*44))}px"></i>`).join("")}</div>
+    <div class="sparkl">${W.map(x=>
+      `<span>${new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"narrow"})}</span>`).join("")}</div>
+    <div class="btot"><b>${fmtMin(cette)}</b> cette semaine · <b>${jours}</b> j/7 pointés ${deltaTxt}</div>
+
+    <button class="btn ghost" style="margin-top:18px" onclick="closeOv();render()">Fermer</button>`);
+  const ag=document.getElementById("briefAg");
+  if(ag) ag.addEventListener("click",e=>agRowAct(e,openBrief));
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    L'AGENDA — ce qui est prévu, ce qui traîne.
