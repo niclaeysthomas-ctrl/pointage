@@ -379,6 +379,29 @@
     background:var(--card2);color:var(--muted)}
   .synote b{color:var(--ink);font-weight:800}
 
+
+  /* les candidatures */
+  .ccard{background:var(--card);border-radius:22px;padding:16px 16px 12px;margin:0 0 16px;box-shadow:var(--shadow);border:2px solid var(--accent-soft)}
+  .chead{display:flex;align-items:center;gap:12px}
+  .cnum{font-family:var(--disp);font-size:40px;font-weight:800;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums;min-width:44px;text-align:center}
+  .ctxt{flex:1;min-width:0}.ctxt b{display:block;font-size:15px}
+  .ctxt small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.4}
+  .cplus{border:none;background:var(--accent);color:#fff;font-weight:800;font-size:17px;border-radius:14px;padding:12px 16px;cursor:pointer;box-shadow:0 4px 12px var(--accent-soft)}
+  .cplus:active{transform:scale(.95)}
+  .ctab{width:100%;border-collapse:collapse;margin-top:12px;font-size:13.5px}
+  .ctab th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:700;padding:0 6px 6px;border-bottom:1px solid var(--line)}
+  .ctab td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle;cursor:pointer}
+  .ctab tr:last-child td{border-bottom:none}
+  .ctab td b{display:block;font-weight:750;overflow-wrap:anywhere}
+  .ctab td small{display:block;color:var(--muted);font-size:11.5px;margin-top:1px;overflow-wrap:anywhere}
+  .ctab td.cd{white-space:nowrap;color:var(--muted);font-size:12.5px}
+  .cst{display:inline-block;white-space:nowrap;font-size:11.5px;font-weight:750;border-radius:99px;padding:4px 9px;background:var(--card2);color:var(--muted)}
+  .cst.entretien{background:var(--good-soft);color:var(--good)}
+  .cst.offre{background:var(--good);color:var(--good-ink)}
+  .cst.refus{opacity:.6;text-decoration:line-through}
+  .cst.rel{background:var(--accent-soft);color:var(--accent)}
+  .cvide{color:var(--muted);font-size:13px;font-style:italic;padding:12px 2px 4px}
+  .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
 </head>
@@ -426,28 +449,24 @@ const CATALOGUE=[
     {n:"LUTÈCE",       e:"🕯️", u:"lutece/",    d:"carto souterraine"}]}
 ];
 /* ─── LES DOSSIERS ───
-   Une app de chaque par jour. Pour les langues et la musique, jamais la même
-   trois jours de suite : `rot` marque les dossiers où la rotation s'impose. */
+   Cap sur le stage de janvier : trois priorités, chacune tous les jours.
+   Tout le reste vit dans « Le reste » : visible, cochable, mais hors compte. */
 const CATS=[
-  {id:"langue",   nom:"Langues",   e:"🗣️", rot:1},
-  {id:"musique",  nom:"Musique",   e:"🎵", rot:1},
-  {id:"reflexion",nom:"Réflexion", e:"🧠", rot:0},
-  {id:"closing",  nom:"Closing",   e:"💼", rot:0},
-  {id:"sport",    nom:"Sport",     e:"🥊", rot:0}
+  {id:"anglais",  nom:"Anglais",   e:"🇬🇧", rot:0},
+  {id:"espagnol", nom:"Espagnol",  e:"🇪🇸", rot:0},
+  {id:"closing",  nom:"Closing",   e:"💼", rot:0}
 ];
 const CAT_DEFAUT={
-  langue:["990","CUMBRE","MIFTAH","SPUTNIK","LISEK"],
-  musique:["SHRED","Piano Dojo","LA CLÉ","SIDEMAN"],
-  reflexion:["CORTEX","L'ARÈNE","LE FACE-À-FACE","PRISME","BESTIAIRE","MORSE PHOQUE","LUTÈCE"],
-  closing:["LE CLOSING","L'OFFENSIVE","L'ÉCHÉANCIER"],
-  sport:["FORGE","TOPSPIN"]
+  anglais:["990"],
+  espagnol:["CUMBRE"],
+  closing:["LE CLOSING"]
 };
-const CAT_PAR_ID={n990:"langue",cumbre:"langue",miftah:"langue",sputnik:"langue",lisek:"langue",
-  shred:"musique",piano:"musique",lacle:"musique",sideman:"musique",
-  cortex:"reflexion",arene:"reflexion",faceaface:"reflexion",prisme:"reflexion",
-  bestia:"reflexion",bestiaire:"reflexion",morse:"reflexion",lutece:"reflexion",
-  closing:"closing",offensive:"closing",echeancier:"closing",
-  forge:"sport",topspin:"sport"};
+const CAT_PAR_ID={n990:"anglais",cumbre:"espagnol",closing:"closing"};
+const PRIO=[
+  {cat:"anglais",  name:"990",        emoji:"🇬🇧", url:"https://niclaeysthomas-ctrl.github.io/990/"},
+  {cat:"espagnol", name:"CUMBRE",     emoji:"🇪🇸", url:"https://niclaeysthomas-ctrl.github.io/cumbre/"},
+  {cat:"closing",  name:"LE CLOSING", emoji:"💼", url:"https://niclaeysthomas-ctrl.github.io/closing/"}
+];
 function normName(x){ return String(x||"").toLowerCase().normalize("NFD")
   .replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""); }
 const CAT_PAR_NOM={};
@@ -492,6 +511,26 @@ function load(){
     });
     if(range) localStorage.setItem(KEY,JSON.stringify(s));
   }catch(e){}
+  /* Passage « cap sur le stage » (une seule fois par appareil) : 990, CUMBRE et
+     LE CLOSING passent devant, chacune dans son dossier ; tout le reste glisse
+     dans « Le reste ». Rien n'est supprimé, aucun historique ne bouge. */
+  try{
+    if(s.mig!=="stage1"){
+      const nu=x=>String(x||"").replace(/\/$/,"");
+      const devant=[];
+      PRIO.forEach(p=>{
+        let a=s.apps.find(x=>CAT_PAR_ID[x.id]===p.cat||normName(x.name)===normName(p.name)||(x.url&&nu(x.url)===nu(p.url)));
+        if(!a){ const nid="p_"+p.cat; a={id:nid,name:p.name,emoji:p.emoji,url:p.url,since:Date.now()}; s.apps.push(a); }
+        if(!s.st[a.id]) s.st[a.id]={days:[],min:{}};
+        a.cat=p.cat; devant.push(a);
+      });
+      s.apps.forEach(a=>{ if(!devant.includes(a)) a.cat=""; });
+      s.apps=devant.concat(s.apps.filter(a=>!devant.includes(a)));
+      s.mig="stage1"; s.appsMod=Date.now();
+      localStorage.setItem(KEY,JSON.stringify(s));
+    }
+  }catch(e){}
+  if(!s.cands) s.cands=[];
   return s;
 }
 let S=load();
@@ -642,13 +681,14 @@ function render(){
     <div class="summary">
       <div class="sumhead">
         <div class="frac">${done}<small>/${total}</small></div>
-        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"Une app de chaque dossier ✨"}</div>
+        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING ✨"}</div>
       </div>
       <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}</div>
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
       ${briefHeadHtml()}
     </div>
     ${runHtml}
+    ${candCardHtml()}
     ${agCardHtml()}
     ${jCardHtml()}
 
@@ -664,7 +704,7 @@ function render(){
       <button onclick="syncOpen()">🔗 Appareils</button>
       <button onclick="location.href='coffre.html'">🔐 Coffre</button>
     </div>
-    <div class="hint">Une app de chaque dossier par jour.<br>En langues et en musique, jamais la même trois jours de suite : la troisième se grise, une autre prend le relais.</div>
+    <div class="hint">Cap sur le stage de janvier : 990, CUMBRE et LE CLOSING, tous les jours.<br>Le reste attend sans compter, plié en bas.</div>
   `;
   agBind();
   if(keep){
@@ -689,7 +729,7 @@ function catHeadHtml(c){
   }else if(!picks.length && appsOfCat(c.id).length){
     cls="warn"; txt="tout au repos";
   }else{
-    txt=picks.length+" au choix";
+    txt=appsOfCat(c.id).length===1?"à faire":picks.length+" au choix";
   }
   return `<div class="cathead">
     <span class="ce">${c.e}</span><span class="cn">${c.nom}</span>
@@ -728,11 +768,15 @@ function appListHtml(){
   });
   const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
   if(orphelines.length){
-    out+=`<div class="cathead"><span class="ce">📦</span><span class="cn">Hors dossier</span>
-      <span class="cs todo">hors compte</span></div>`+orphelines.map(a=>appRowHtml(a,i++)).join("");
+    const fait=orphelines.filter(a=>doneToday(a.id)).length;
+    out+=`<div class="cathead reste" onclick="toggleReste()" style="cursor:pointer">
+      <span class="ce">📦</span><span class="cn">Le reste</span>
+      <span class="cs todo">${orphelines.length} app${orphelines.length>1?"s":""}${fait?" · "+fait+" ✓":""} · hors compte ${S.resteOuvert?"▾":"▸"}</span></div>`+
+      (S.resteOuvert?orphelines.map(a=>appRowHtml(a,i++)).join(""):"");
   }
   return out;
 }
+function toggleReste(){ S.resteOuvert=!S.resteOuvert; save0(); render(); }
 function updClock(){
   if(!S.run){ clearInterval(tick); return; }
   const s=Math.floor((Date.now()-S.run.t0)/1000);
@@ -759,7 +803,7 @@ function editApp(id){
     <div class="fld"><label>Dossier</label>
       <div class="agpills" id="fC" style="margin-top:0">
         ${CATS.map(c=>`<span data-c="${c.id}" class="${editCat===c.id?"on":""}">${c.e} ${c.nom}</span>`).join("")}
-        <span data-c="" class="${editCat?"":"on"}">hors dossier</span>
+        <span data-c="" class="${editCat?"":"on"}">📦 le reste</span>
       </div></div>
     <div class="fld"><label>Lien (facultatif)</label><input id="fU" value="${esc(a.url)}" placeholder="https://…" inputmode="url"></div>
     <button class="btn" onclick="saveApp('${id}')">Enregistrer</button>
@@ -843,7 +887,7 @@ function openManage(){
     ${S.apps.map((a,i)=>`<div class="editrow">
       <div class="e">${a.emoji}</div>
       <div class="en">${esc(a.name)}<div style="color:var(--faint);font-size:11.5px;font-weight:650;margin-top:2px">
-        ${a.cat&&catDef(a.cat)?catDef(a.cat).e+" "+catDef(a.cat).nom:"hors dossier"}</div></div>
+        ${a.cat&&catDef(a.cat)?catDef(a.cat).e+" "+catDef(a.cat).nom:"📦 le reste"}</div></div>
       <button onclick="move('${a.id}',-1)" ${i===0?"disabled style=opacity:.3":""}>↑</button>
       <button onclick="move('${a.id}',1)" ${i===S.apps.length-1?"disabled style=opacity:.3":""}>↓</button>
       <button onclick="closeOv();editApp('${a.id}')">✎</button>
@@ -982,6 +1026,14 @@ function briefAll(){
            {l:"✓ Fait", c:"ok", f:"onCheck('"+p.id+"');closeOv()"}]});
     });
 
+  const aRel=cAll().filter(cARelancer).sort((a,b)=>(a.d||"").localeCompare(b.d||""));
+  if(aRel.length){
+    const c=aRel[0];
+    add({k:"relance:"+c.id, score:70, e:"⏰", t:"Relancer "+(c.ent||"une candidature"),
+      w:"Envoyée il y a "+cAge(c)+" jours, sans réponse notée."+(aRel.length>1?" ("+(aRel.length-1)+" autre"+(aRel.length>2?"s":"")+" dans le même cas.)":"")+" Une relance courte et polie double souvent les chances d'avoir une réponse.",
+      a:[{l:"Ouvrir la fiche", c:"go", f:"closeOv();cEdit('"+c.id+"')"}]});
+  }
+
   if(B.late.length){
     const p=B.late[0];
     add({k:"retard", score:66, e:"⚠️", t:B.late.length+" chose"+(B.late.length>1?"s":"")+" en retard",
@@ -1005,7 +1057,7 @@ function briefAll(){
   }
 
   /* Une seule app endormie à la fois : la plus ancienne. */
-  const endormies=S.apps.filter(a=>!pris[a.id]&&gapDays(a.id)>=12&&gapDays(a.id)<9000)
+  const endormies=S.apps.filter(a=>a.cat&&catDef(a.cat)&&!pris[a.id]&&gapDays(a.id)>=12&&gapDays(a.id)<9000)
     .sort((a,b)=>gapDays(b.id)-gapDays(a.id));
   if(endormies.length){
     const a=endormies[0], g=gapDays(a.id);
@@ -1044,7 +1096,7 @@ function briefAll(){
          {l:"Toutes mes apps", c:"", f:"closeOv();openLauncher()"}]});
   });
 
-  const jamais=S.apps.filter(aSortir);
+  const jamais=S.apps.filter(a=>a.cat&&catDef(a.cat)&&aSortir(a));
   if(jamais.length>=2){
     add({k:"menage", score:26, e:"🧹", t:jamais.length+" apps n'ont jamais été cochées",
       w:jamais.slice(0,3).map(a=>a.name).join(", ")+(jamais.length>3?"…":"")+
@@ -1659,6 +1711,121 @@ function jCardHtml(){
   </div>`;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   LES CANDIDATURES — le compteur du stage de janvier.
+   Chaque +1 est une ligne du tableau : le chiffre et le suivi ne peuvent
+   donc jamais se contredire. Une ligne porte son heure de modif (`mod`)
+   pour que la synchro tranche entre deux appareils.
+   ═══════════════════════════════════════════════════════════════════ */
+const C_ST=[
+  {id:"envoyee",  l:"Envoyée",   e:"📤"},
+  {id:"relance",  l:"Relancée",  e:"🔁"},
+  {id:"entretien",l:"Entretien", e:"🗣️"},
+  {id:"refus",    l:"Refus",     e:"✕"},
+  {id:"offre",    l:"Offre",     e:"🎉"}
+];
+function cAll(){ if(!S.cands) S.cands=[]; return S.cands; }
+function cStatut(id){ return C_ST.find(x=>x.id===id)||C_ST[0]; }
+function cSorted(){ return cAll().slice().sort((a,b)=>(b.d||"").localeCompare(a.d||"")||(b.mod||0)-(a.mod||0)); }
+function cAge(c){ return Math.round((Date.parse(today()+"T12:00:00")-Date.parse((c.d||today())+"T12:00:00"))/864e5); }
+function cARelancer(c){ return c.st==="envoyee"&&cAge(c)>=7; }
+function cDate(d){ if(!d) return ""; const x=new Date(d+"T12:00:00"); return x.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}); }
+function cRow(c){
+  const s=cStatut(c.st), rel=cARelancer(c);
+  return `<tr onclick="cEdit('${c.id}')">
+    <td><b>${esc(c.ent||"Sans nom")}</b>${c.poste?`<small>${esc(c.poste)}</small>`:""}</td>
+    <td class="cd">${cDate(c.d)}</td>
+    <td><span class="cst ${c.st||"envoyee"} ${rel?"rel":""}">${rel?"⏰ à relancer":s.e+" "+s.l}</span></td>
+  </tr>`;
+}
+function cTable(list){
+  if(!list.length) return `<div class="cvide">Aucune candidature encore. Le premier ＋1 est le plus dur.</div>`;
+  return `<table class="ctab"><thead><tr><th>Entreprise</th><th>Date</th><th>Statut</th></tr></thead>
+    <tbody>${list.map(cRow).join("")}</tbody></table>`;
+}
+function candCardHtml(){
+  const A=cAll(), n=A.length, t=today();
+  const sem=A.filter(c=>c.d&&c.d>dayShift(t,-7)).length;
+  const auj=A.filter(c=>c.d===t).length;
+  const ent=A.filter(c=>c.st==="entretien"||c.st==="offre").length;
+  const rel=A.filter(cARelancer).length;
+  const L=cSorted();
+  return `<div class="ccard">
+    <div class="chead">
+      <div class="cnum">${n}</div>
+      <div class="ctxt"><b>Candidatures stage</b>
+        <small>${auj?"+"+auj+" aujourd'hui · ":""}${sem} sur 7 jours${ent?" · "+ent+" entretien"+(ent>1?"s":""):""}${rel?` · <span style="color:var(--accent)">${rel} à relancer</span>`:""}</small></div>
+      <button class="cplus" onclick="cPlus()" aria-label="Ajouter une candidature">＋1</button>
+    </div>
+    ${cTable(L.slice(0,5))}
+    ${n>5?`<button class="cmore" onclick="cAllSheet()">Tout voir (${n}) ›</button>`:""}
+  </div>`;
+}
+/* ＋1 compte tout de suite, puis ouvre la fiche : on peut la remplir… ou pas. */
+function cPlus(){
+  const c={id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5), ent:"", poste:"", d:today(), st:"envoyee", note:"", mod:Date.now()};
+  cAll().push(c); save(); render();
+  cEdit(c.id,true);
+}
+let cEditSt="envoyee";
+function cEdit(id,neuf){
+  const c=cAll().find(x=>x.id===id); if(!c) return;
+  cEditSt=c.st||"envoyee";
+  sheet(`<h3>${neuf?"＋1 candidature 🎯":"📨 Candidature"}</h3>
+    <div class="fld"><label>Entreprise</label><input id="cE" placeholder="Ex : Rothschild & Co"></div>
+    <div class="fld"><label>Poste</label><input id="cP" placeholder="Ex : Stage M&A — janvier"></div>
+    <div class="fld"><label>Envoyée le</label><input id="cD" type="date"></div>
+    <div class="fld"><label>Statut</label>
+      <div class="agpills" id="cS" style="margin-top:0">${C_ST.map(s=>`<span data-s="${s.id}" class="${cEditSt===s.id?"on":""}">${s.e} ${s.l}</span>`).join("")}</div></div>
+    <div class="fld"><label>Note (contact, lien, prochaine étape…)</label><textarea id="cN" placeholder="Ex : relancer Mme X le 20"></textarea></div>
+    <button class="btn" onclick="cSave('${id}')">Enregistrer</button>
+    <button class="btn danger" onclick="cDel('${id}',${neuf?1:0})">${neuf?"Annuler ce ＋1":"Supprimer"}</button>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+  /* .value plutôt qu'un attribut : zéro souci d'échappement */
+  document.getElementById("cE").value=c.ent||"";
+  document.getElementById("cP").value=c.poste||"";
+  document.getElementById("cD").value=c.d||today();
+  document.getElementById("cN").value=c.note||"";
+  document.getElementById("cS").addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-s]"); if(!el) return;
+    cEditSt=el.dataset.s;
+    Array.prototype.forEach.call(ev.currentTarget.children,x=>x.classList.remove("on"));
+    el.classList.add("on");
+  });
+  if(neuf) setTimeout(()=>{ const e=document.getElementById("cE"); if(e) e.focus(); },250);
+}
+function cSave(id){
+  const c=cAll().find(x=>x.id===id); if(!c) return closeOv();
+  c.ent=document.getElementById("cE").value.trim();
+  c.poste=document.getElementById("cP").value.trim();
+  c.d=document.getElementById("cD").value||c.d||today();
+  c.note=document.getElementById("cN").value.trim();
+  c.st=cEditSt; c.mod=Date.now();
+  save(); closeOv(); render(); toast("Candidature enregistrée");
+}
+function cDel(id,neuf){
+  if(!neuf&&!confirm("Supprimer cette candidature ?")) return;
+  S.cands=cAll().filter(x=>x.id!==id);
+  agTombs()["cand:"+id]=Date.now();      // sinon l'autre appareil la remet
+  save(); closeOv(); render(); toast(neuf?"＋1 annulé":"Candidature supprimée");
+}
+function cAllSheet(){
+  const A=cAll(), par=C_ST.map(s=>{ const k=A.filter(c=>c.st===s.id).length; return k?`<span class="jtag ro">${s.e} ${s.l} · ${k}</span>`:""; }).join("");
+  sheet(`<h3>📨 Toutes mes candidatures (${A.length})</h3>
+    <div class="jtagrow" style="margin:-6px 0 12px">${par}</div>
+    ${cTable(cSorted())}
+    <button class="btn" style="margin-top:16px" onclick="closeOv();cPlus()">＋1 candidature</button>
+    <button class="btn ghost" onclick="cCopy()">📋 Copier le tableau</button>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+function cCopy(){
+  const lignes=["Entreprise\tPoste\tDate\tStatut\tNote"].concat(cSorted().map(c=>
+    [c.ent,c.poste,c.d,cStatut(c.st).l,(c.note||"").replace(/\s+/g," ")].join("\t")));
+  const txt=lignes.join("\n");
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject())
+    .then(()=>toast("Copié — colle-le dans un tableur"),()=>toast("Copie refusée par le navigateur"));
+}
+
 /* ---- l'éditeur ---- */
 let jSaveT=null;
 function openJournal(date){
@@ -1859,7 +2026,7 @@ function syncErr(e){
    le chrono en cours, le thème, le lien lui-même. */
 function syncPayload(){
   return {v:1, ts:Date.now(), dev:syncDevice(), apps:S.apps, appsMod:S.appsMod||0, st:S.st,
-          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs()};
+          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs(), cands:cAll()};
 }
 /* Deux appareils arrivent au même contenu mais pas au même ordre de clés ni de
    tâches. Sans mise à plat, chacun croirait l'autre différent et republierait
@@ -1870,7 +2037,8 @@ function canon(v){
   return v;
 }
 function syncStrip(p){
-  const q={...p, agenda:(p.agenda||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)))};
+  const q={...p, agenda:(p.agenda||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id))),
+    cands:(p.cands||[]).slice().sort((a,b)=>String(a.id).localeCompare(String(b.id)))};
   delete q.ts; delete q.dev;
   return JSON.stringify(canon(q));
 }
@@ -1940,6 +2108,20 @@ function syncMerge(R){
   const before=A.length;
   S.agenda=A.filter(x=>!((T[x.id]||0)>=(x.mod||0)));
   if(S.agenda.length!==before) ch=true;
+
+  /* les candidatures : même règle que l'agenda — la version la plus récente
+     l'emporte, et une suppression plus récente qu'une version la fait taire. */
+  const CA=cAll(), ci={}; CA.forEach((x,i)=>ci[x.id]=i);
+  (R.cands||[]).forEach(r=>{
+    if(!r||!r.id) return;
+    if((T["cand:"+r.id]||0)>=(r.mod||0)) return;
+    const i=ci[r.id];
+    if(i==null){ CA.push(r); ch=true; }
+    else if((r.mod||0)>(CA[i].mod||0)){ CA[i]=r; ch=true; }
+  });
+  const cb=CA.length;
+  S.cands=CA.filter(x=>!((T["cand:"+x.id]||0)>=(x.mod||0)));
+  if(S.cands.length!==cb) ch=true;
   return ch;
 }
 
