@@ -388,6 +388,14 @@
   .ctxt small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.4}
   .cplus{border:none;background:var(--accent);color:#fff;font-weight:800;font-size:17px;border-radius:14px;padding:12px 16px;cursor:pointer;box-shadow:0 4px 12px var(--accent-soft)}
   .cplus:active{transform:scale(.95)}
+  .ccard.ok{border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+  .cgoal{margin-top:12px}
+  .cbar{display:flex;gap:5px}
+  .cbar i{height:9px;flex:1;border-radius:99px;background:var(--card2);transition:.3s}
+  .cbar i.on{background:var(--accent)}
+  .ccard.ok .cbar i.on{background:linear-gradient(90deg,var(--good),#3ddc8b)}
+  .cbar i.bonus{flex:.5}
+  .cgl{font-size:12.5px;color:var(--muted);margin-top:6px}.cgl b{color:var(--ink)}
   .ctab{width:100%;border-collapse:collapse;margin-top:12px;font-size:13.5px}
   .ctab th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:700;padding:0 6px 6px;border-bottom:1px solid var(--line)}
   .ctab td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:middle;cursor:pointer}
@@ -645,12 +653,13 @@ function render(){
      une app de chaque, c'est ça la journée pleine. */
   const AC=catsActives();
   const manque=AC.filter(c=>!catDone(c.id));
-  const total=AC.length, done=total-manque.length;
+  const cOk=cToday()>=C_OBJ;
+  const total=AC.length+1, done=total-manque.length-(cOk?0:1);
   const totMin=S.apps.reduce((s,a)=>s+todayMin(a.id),0);
   const totChecks=S.apps.reduce((s,a)=>s+checks(a.id),0);
   const dateStr=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
   const allDone=total&&done===total;
-  const nomsManque=manque.map(c=>c.nom).join(", ");
+  const nomsManque=manque.map(c=>c.nom).concat(cOk?[]:["candidatures ("+cToday()+"/"+C_OBJ+")"]).join(", ");
 
   let runHtml="";
   if(S.run){
@@ -681,9 +690,9 @@ function render(){
     <div class="summary">
       <div class="sumhead">
         <div class="frac">${done}<small>/${total}</small></div>
-        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING ✨"}</div>
+        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING + 5 candidatures ✨"}</div>
       </div>
-      <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}</div>
+      <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}<i class="${cOk?"on":""}"></i></div>
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
       ${briefHeadHtml()}
     </div>
@@ -704,7 +713,7 @@ function render(){
       <button onclick="syncOpen()">🔗 Appareils</button>
       <button onclick="location.href='coffre.html'">🔐 Coffre</button>
     </div>
-    <div class="hint">Cap sur le stage de janvier : 990, CUMBRE et LE CLOSING, tous les jours.<br>Le reste attend sans compter, plié en bas.</div>
+    <div class="hint">Cap sur le stage de janvier : 990, CUMBRE, LE CLOSING et 5 candidatures, tous les jours.<br>Le reste attend sans compter, plié en bas.</div>
   `;
   agBind();
   if(keep){
@@ -1026,6 +1035,12 @@ function briefAll(){
            {l:"✓ Fait", c:"ok", f:"onCheck('"+p.id+"');closeOv()"}]});
     });
 
+  if(cToday()<C_OBJ){
+    const k=cToday(), m=C_OBJ-k, str=cStreak();
+    add({k:"cands", score:90+Math.min(str,10), e:"📨", t:k?"Encore "+m+" candidature"+(m>1?"s":"")+" aujourd'hui":C_OBJ+" candidatures aujourd'hui",
+      w:(k?k+" envoyée"+(k>1?"s":"")+" sur "+C_OBJ+". ":"")+(str>0?"Tu tiens "+str+" jour"+(str>1?"s":"")+" d'affilée à "+C_OBJ+" ou plus — ne casse pas la série. ":"")+"Le stage de janvier se joue maintenant.",
+      a:[{l:"＋1 candidature", c:"go", f:"closeOv();cPlus()"}]});
+  }
   const aRel=cAll().filter(cARelancer).sort((a,b)=>(a.d||"").localeCompare(b.d||""));
   if(aRel.length){
     const c=aRel[0];
@@ -1728,6 +1743,15 @@ function cAll(){ if(!S.cands) S.cands=[]; return S.cands; }
 function cStatut(id){ return C_ST.find(x=>x.id===id)||C_ST[0]; }
 function cSorted(){ return cAll().slice().sort((a,b)=>(b.d||"").localeCompare(a.d||"")||(b.mod||0)-(a.mod||0)); }
 function cAge(c){ return Math.round((Date.parse(today()+"T12:00:00")-Date.parse((c.d||today())+"T12:00:00"))/864e5); }
+const C_OBJ=5;   // minimum de candidatures par jour
+function cOn(d){ return cAll().filter(c=>c.d===d).length; }
+function cToday(){ return cOn(today()); }
+function cStreak(){
+  /* jours d'affilée à 5 ou plus ; aujourd'hui ne casse pas la série tant qu'il n'est pas fini */
+  let d=today(); if(cOn(d)<C_OBJ) d=dayShift(d,-1);
+  let n=0; while(cOn(d)>=C_OBJ){ n++; d=dayShift(d,-1); }
+  return n;
+}
 function cARelancer(c){ return c.st==="envoyee"&&cAge(c)>=7; }
 function cDate(d){ if(!d) return ""; const x=new Date(d+"T12:00:00"); return x.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}); }
 function cRow(c){
@@ -1749,13 +1773,17 @@ function candCardHtml(){
   const auj=A.filter(c=>c.d===t).length;
   const ent=A.filter(c=>c.st==="entretien"||c.st==="offre").length;
   const rel=A.filter(cARelancer).length;
-  const L=cSorted();
-  return `<div class="ccard">
+  const L=cSorted(), k=cToday(), ok=k>=C_OBJ, str=cStreak();
+  return `<div class="ccard ${ok?"ok":""}">
     <div class="chead">
       <div class="cnum">${n}</div>
       <div class="ctxt"><b>Candidatures stage</b>
-        <small>${auj?"+"+auj+" aujourd'hui · ":""}${sem} sur 7 jours${ent?" · "+ent+" entretien"+(ent>1?"s":""):""}${rel?` · <span style="color:var(--accent)">${rel} à relancer</span>`:""}</small></div>
+        <small>${n} en tout · ${sem} sur 7 jours${ent?" · "+ent+" entretien"+(ent>1?"s":""):""}${rel?` · <span style="color:var(--accent)">${rel} à relancer</span>`:""}</small></div>
       <button class="cplus" onclick="cPlus()" aria-label="Ajouter une candidature">＋1</button>
+    </div>
+    <div class="cgoal">
+      <div class="cbar">${Array.from({length:Math.max(C_OBJ,k)},(_,i)=>`<i class="${i<k?"on":""} ${i>=C_OBJ?"bonus":""}"></i>`).join("")}</div>
+      <div class="cgl"><b>${k}/${C_OBJ}</b> aujourd'hui${ok?(k>C_OBJ?" · objectif dépassé 💪":" · objectif atteint ✓"):" · encore "+(C_OBJ-k)}${str>0?` · 🔥 ${str} j à ${C_OBJ}+`:""}</div>
     </div>
     ${cTable(L.slice(0,5))}
     ${n>5?`<button class="cmore" onclick="cAllSheet()">Tout voir (${n}) ›</button>`:""}
