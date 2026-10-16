@@ -447,6 +447,9 @@
   .cst.rel{background:var(--accent-soft);color:var(--accent)}
   .crel{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:5px 10px;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap}
   .crel.big{display:block;margin-top:8px;padding:8px 12px;font-size:12.5px}
+  .civ{background:var(--good-soft);border-radius:14px;padding:12px 12px 2px;margin:-2px 0 13px}
+  .civt{font-size:12.5px;font-weight:800;color:var(--good);margin-bottom:9px}
+  .civ .fld input{background:var(--card)}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -1876,6 +1879,13 @@ function cEdit(id,neuf){
     <div class="fld"><label>Envoyée le</label><input id="cD" type="date"></div>
     <div class="fld"><label>Statut</label>
       <div class="agpills" id="cS" style="margin-top:0">${C_ST.map(s=>`<span data-s="${s.id}" class="${cEditSt===s.id?"on":""}">${s.e} ${s.l}</span>`).join("")}</div></div>
+    <div id="cIv" class="civ" style="display:${cEditSt==="entretien"?"block":"none"}">
+      <div class="civt">🗣️ L'entretien — il sera ajouté à ton agenda</div>
+      <div class="fld2">
+        <div class="fld"><label>Jour</label><input type="date" id="cID"></div>
+        <div class="fld"><label>Heure</label><input type="time" id="cIH"></div>
+      </div>
+    </div>
     <div class="fld"><label>Note (contact, lien, prochaine étape…)</label><textarea id="cN" placeholder="Ex : relancer Mme X le 20"></textarea></div>
     <button class="btn" onclick="cSave('${id}')">Enregistrer</button>
     <button class="btn danger" onclick="cDel('${id}',${neuf?1:0})">${neuf?"Annuler ce ＋1":"Supprimer"}</button>
@@ -1885,9 +1895,14 @@ function cEdit(id,neuf){
   document.getElementById("cP").value=c.poste||"";
   document.getElementById("cD").value=c.d||today();
   document.getElementById("cN").value=c.note||"";
+  const ag=c.ag&&agGet(c.ag);
+  document.getElementById("cID").value=(ag&&ag.d)||c.ivd||"";
+  document.getElementById("cIH").value=(ag&&ag.t)||c.ivt||"";
   document.getElementById("cS").addEventListener("click",ev=>{
     const el=ev.target.closest("[data-s]"); if(!el) return;
     cEditSt=el.dataset.s;
+    document.getElementById("cIv").style.display=cEditSt==="entretien"?"block":"none";
+    if(cEditSt==="entretien") setTimeout(()=>{ const d=document.getElementById("cID"); if(d&&!d.value) d.focus(); },50);
     Array.prototype.forEach.call(ev.currentTarget.children,x=>x.classList.remove("on"));
     el.classList.add("on");
   });
@@ -1900,7 +1915,21 @@ function cSave(id){
   c.d=document.getElementById("cD").value||c.d||today();
   c.note=document.getElementById("cN").value.trim();
   c.st=cEditSt; c.mod=Date.now();
-  save(); closeOv(); render(); toast("Candidature enregistrée"); cBack();
+  let msg="Candidature enregistrée";
+  if(c.st==="entretien"){
+    c.ivd=document.getElementById("cID").value||""; c.ivt=document.getElementById("cIH").value||"";
+    if(c.ivd){ const nouveau=!(c.ag&&agGet(c.ag)); cAgendaSync(c); msg=nouveau?"🗓 Entretien ajouté à l'agenda · "+agDL(c.ivd)+(c.ivt?" à "+c.ivt:""):"🗓 Entretien mis à jour dans l'agenda"; }
+  }
+  save(); closeOv(); render(); toast(msg); cBack();
+}
+/* L'entretien vit aussi dans l'agenda : une seule tâche par candidature (c.ag),
+   mise à jour si on change la date, jamais dupliquée. */
+function cAgendaSync(c){
+  const txt="Entretien "+(c.ent||"")+(c.poste?" — "+c.poste:"");
+  const note=["Préparer : l'entreprise, le poste, 3 questions à poser."].concat(c.note?["Notes : "+c.note]:[]).join("\n");
+  let it=c.ag&&agGet(c.ag);
+  if(!it){ it={id:agId(), txt, d:c.ivd, t:c.ivt||null, t2:null, note, star:1, done:null, c:Date.now(), mod:Date.now()}; agAll().push(it); c.ag=it.id; }
+  else{ it.txt=txt; it.d=c.ivd; it.t=c.ivt||null; agTouch(it); }
 }
 function cDel(id,neuf){
   if(!neuf&&!confirm("Supprimer cette candidature ?")) return;
@@ -1956,6 +1985,7 @@ function cList(){
     return `<div class="crow st-${c.st||"envoyee"} ${late?"late":""}" onclick="cRet=1;cEdit('${c.id}')">
       <div class="cr1"><b>${esc(c.ent||"Sans nom")}</b><span class="cst ${c.st||"envoyee"} ${late?"rel":""}">${late?"⏰ à relancer":s.e+" "+s.l}</span></div>
       <div class="cr2">${c.poste?esc(c.poste)+" · ":""}envoyée le ${cDate(c.d)} · ${quand}${c.rel?" · relancée le "+cDate(c.rel)+(c.nrel>1?" ("+c.nrel+"×)":""):""}${!late&&cProchaine(c)!=null?" · relance dans "+cProchaine(c)+" j":""}</div>
+      ${c.st==="entretien"&&c.ivd?`<div class="cr2" style="color:var(--good);font-weight:750">🗓 Entretien ${agDL(c.ivd)}${c.ivt?" à "+c.ivt:""}</div>`:""}
       ${late?`<button class="crel big" onclick="event.stopPropagation();cRelance('${c.id}')">🔁 J'ai relancé aujourd'hui</button>`:""}
       ${c.note?`<div class="cr3">📝 ${esc(c.note)}</div>`:""}
     </div>`;
