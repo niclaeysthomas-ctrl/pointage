@@ -464,6 +464,16 @@
   .cw em{position:absolute;left:-3px;right:-3px;height:0;border-top:2px dashed color-mix(in srgb,var(--good) 75%,transparent)}
   .cw b{font-size:11.5px;font-weight:800;margin-top:4px}
   .cw small{font-size:9.5px;color:var(--faint);font-weight:700;white-space:nowrap}
+  .rvnudge{display:block;width:100%;margin:2px 0 8px;border:none;background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:10px;font-size:13px;font-weight:800;cursor:pointer}
+  .rvbtn{margin-left:auto;border:none;background:var(--accent-soft);color:var(--accent);border-radius:99px;padding:4px 10px;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:0;text-transform:none}
+  .rvprog{height:6px;background:var(--card2);border-radius:99px;overflow:hidden}
+  .rvprog i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .rvcard{background:var(--card2);border-radius:16px;padding:18px 16px;margin:12px 0}
+  .rvcard b{display:block;font-size:18px;font-weight:800;overflow-wrap:anywhere}
+  .rvcard small{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+  .rvgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .rvgrid button{border:none;background:var(--accent-soft);color:var(--accent);border-radius:13px;padding:12px 6px;font-size:13.5px;font-weight:800;cursor:pointer}
+  .rvdate{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -1465,6 +1475,7 @@ function agCardHtml(){
       <div><b>L'agenda</b><small>${sub.join(" · ")||"rien en attente"}</small></div>
       ${B.late.length?`<span class="agbad">${B.late.length} en retard</span>`:""}
     </div>
+    ${rvDue()?`<button class="rvnudge" onclick="rvStart()">🧹 Trier tes ${B.inbox.length} tâches sans date · 1 min</button>`:""}
     <div id="agList">${body}</div>
     ${n?`<button class="agmore" data-act="all">⋯ tout voir (${n})</button>`:""}
     <form class="agform" id="agForm"><input id="agIn" placeholder="5 oct 20h psy · demain 9h BCG · postuler Dior"
@@ -1530,7 +1541,7 @@ function agSheet(){
   const byDay={}; B.soon.forEach(it=>{ (byDay[it.d]=byDay[it.d]||[]).push(it); });
   Object.keys(byDay).sort().forEach(d=>{
     body+=`<div class="aggrp">${agDL(d,true)} <i>${byDay[d].length}</i></div>`+rows(byDay[d]); });
-  if(B.inbox.length) body+=`<div class="aggrp">Sans date <i>${B.inbox.length}</i></div>`+rows(B.inbox);
+  if(B.inbox.length) body+=`<div class="aggrp">Sans date <i>${B.inbox.length}</i><button class="rvbtn" onclick="rvStart()">🧹 Trier</button></div>`+rows(B.inbox);
   if(B.done.length)  body+=`<div class="aggrp grey">Fait <i>${B.done.length}</i></div>`+rows(B.done.slice(0,25));
   if(!body) body=`<div class="agempty">Rien pour l'instant. Écris une ligne en bas : <b>5 oct 20h psy</b>, <b>demain 9h BCG</b>, ou juste <b>postuler Dior</b>.</div>`;
   sheet(`<h3>🗓 L'agenda</h3>
@@ -1544,6 +1555,65 @@ function agSheet(){
   document.getElementById("agForm2").addEventListener("submit",e=>agSubmit(e,"2"));
   document.getElementById("agIn2").addEventListener("input",()=>agPreview("2"));
   document.getElementById("agBody").addEventListener("click",e=>agRowAct(e,agSheet));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE TRI DE LA SEMAINE — les tâches sans date, une par une :
+   garder, dater, faite ou supprimer. Proposé tous les 7 jours dès 3 tâches.
+   ═══════════════════════════════════════════════════════════════════ */
+let RV=null;
+function rvDue(){
+  const n=agBuckets().inbox.length; if(n<3) return false;
+  return !S.lastReview || Date.now()-S.lastReview>=7*864e5;
+}
+function rvStart(){ RV={ids:agBuckets().inbox.map(x=>x.id), i:0, k:{keep:0,date:0,done:0,del:0}}; rvShow(); }
+function rvShow(){
+  while(RV.i<RV.ids.length && !agGet(RV.ids[RV.i])) RV.i++;
+  if(RV.i>=RV.ids.length) return rvEnd();
+  const it=agGet(RV.ids[RV.i]), n=RV.ids.length;
+  sheet(`<h3>🧹 Le tri de la semaine</h3>
+    <div class="rvprog"><i style="width:${Math.round(100*RV.i/n)}%"></i></div>
+    <div class="cr2" style="margin:6px 2px 0">${RV.i+1} sur ${n} · ajoutée ${agDL(new Date(it.c||Date.now()).toISOString().slice(0,10))}</div>
+    <div class="rvcard"><b>${esc(it.txt)}</b>${it.note?`<small>📝 ${esc(it.note)}</small>`:""}</div>
+    <div class="rvgrid">
+      <button onclick="rvDate(0)">Aujourd'hui</button>
+      <button onclick="rvDate(1)">Demain</button>
+      <button onclick="rvDate(7)">Dans 1 semaine</button>
+      <button onclick="document.getElementById('rvD').showPicker?document.getElementById('rvD').showPicker():document.getElementById('rvD').focus()">📅 Choisir…</button>
+    </div>
+    <input type="date" id="rvD" class="rvdate" onchange="rvDate(null,this.value)">
+    <button class="btn" onclick="rvAct('keep')">Garder sans date</button>
+    <button class="btn ghost" onclick="rvAct('done')">✓ C'est déjà fait</button>
+    <button class="btn danger" onclick="rvAct('del')">🗑 Supprimer</button>
+    <button class="btn ghost" onclick="rvStop()">Arrêter le tri</button>`);
+}
+function rvDate(n,v){
+  const it=agGet(RV.ids[RV.i]); if(!it) return rvNext();
+  it.d=v||dayShift(today(),n); agTouch(it); save(); RV.k.date++;
+  toast("🗓 "+agDL(it.d)); rvNext();
+}
+function rvAct(a){
+  const it=agGet(RV.ids[RV.i]);
+  if(it){
+    if(a==="done"){ it.done=today(); agTouch(it); save(); }
+    if(a==="del"){ S.agenda=agAll().filter(x=>x.id!==it.id); agTombs()[it.id]=Date.now(); save(); toast("Supprimée"); }
+    RV.k[a]++;
+  }
+  rvNext();
+}
+function rvNext(){ RV.i++; rvShow(); }
+function rvStop(){ S.lastReview=Date.now(); save0(); RV=null; closeOv(); render(); }
+function rvEnd(){
+  const k=RV.k; S.lastReview=Date.now(); save0();
+  sheet(`<h3>✨ Tri terminé</h3>
+    <div class="cstats">
+      <div><b>${k.keep}</b><small>gardées</small></div>
+      <div class="hot"><b>${k.date}</b><small>datées</small></div>
+      <div class="good"><b>${k.done}</b><small>déjà faites</small></div>
+      <div><b>${k.del}</b><small>supprimées</small></div>
+    </div>
+    <div class="synote" style="margin-top:0">Prochain tri proposé dans 7 jours.</div>
+    <button class="btn" onclick="RV=null;closeOv();render()">Fermer</button>`);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
