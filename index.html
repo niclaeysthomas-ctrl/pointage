@@ -325,6 +325,9 @@
   .agrow.ok .agmain b{text-decoration:line-through;opacity:.45;font-weight:600}
   .agrow.ok .agmain i{opacity:.5}
   .agst{color:var(--accent)}
+  .agtri{flex:none;align-self:center;display:flex;gap:6px}
+  .agurg{flex:none;background:var(--accent);border:none;color:#fff;border-radius:9px;height:30px;padding:0 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .agtri .agpush{padding:0 10px;font-size:12px;white-space:nowrap}
   .agpush{flex:none;align-self:center;background:var(--card2);border:none;color:var(--muted);border-radius:9px;
     height:30px;padding:0 9px;font-size:11.5px;font-weight:800;cursor:pointer}
 
@@ -1368,6 +1371,9 @@ function agDone(id){
   it.done=it.done?null:today(); agTouch(it); save();
 }
 function agStar(id){ const it=agGet(id); if(!it) return; it.star=it.star?0:1; agTouch(it); save(); closeOv(); render(); }
+/* En retard → on tranche : urgent (aujourd'hui, en tête) ou pas urgent (plus de date, plus d'alerte). */
+function agUrgent(id){ const it=agGet(id); if(!it) return; it.d=today(); it.star=1; agTouch(it); save(); }
+function agLater(id){ const it=agGet(id); if(!it) return; it.d=null; it.t=null; it.t2=null; agTouch(it); save(); }
 function agPushToday(id){ const it=agGet(id); if(!it) return; it.d=today(); agTouch(it); save(); }
 function agSort(l){ return l.slice().sort((a,b)=>
   (b.star||0)-(a.star||0) || (a.d||"9999").localeCompare(b.d||"9999") ||
@@ -1407,7 +1413,7 @@ function agRowHtml(it,withDate){
       <b>${it.star?'<span class="agst">★</span> ':""}${esc(it.txt)}</b>
       ${bits.length?`<i>${bits.join("")}</i>`:""}
     </div>
-    ${late?`<button class="agpush" data-act="push">→ auj.</button>`:""}
+    ${late?`<div class="agtri"><button class="agurg" data-act="urg">🔥 Urgent</button><button class="agpush" data-act="later">Pas urgent</button></div>`:""}
   </div>`;
 }
 
@@ -1478,6 +1484,8 @@ function agRowAct(ev,repaint){
   if(!act) return;
   if(act.act==="chk"){ agDone(id); repaint(); }
   else if(act.act==="push"){ agPushToday(id); repaint(); toast("Reporté à aujourd'hui"); }
+  else if(act.act==="urg"){ agUrgent(id); repaint(); toast("🔥 Urgent : en tête, pour aujourd'hui"); }
+  else if(act.act==="later"){ agLater(id); repaint(); toast("Rangé dans « Sans date »"); }
   else if(act.act==="open"){ agEdit(id); }
 }
 function agBind(){
