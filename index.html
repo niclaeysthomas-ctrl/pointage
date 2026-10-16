@@ -409,6 +409,10 @@
   .cst.refus{opacity:.6;text-decoration:line-through}
   .cst.rel{background:var(--accent-soft);color:var(--accent)}
   .cvide{color:var(--muted);font-size:13px;font-style:italic;padding:12px 2px 4px}
+  .cgo{display:flex;align-items:center;justify-content:space-between;width:100%;margin:14px 0 4px;border:none;border-radius:15px;
+    background:var(--accent);color:#fff;padding:14px 16px;font-size:14.5px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s}
+  .cgo:active{transform:scale(.98)}
+  .cgo span{opacity:.85;font-weight:700}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -686,6 +690,8 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
+
+    <button class="cgo" onclick="cAllSheet()">📨 Suivi des candidatures <span>${cAll().length} ›</span></button>
 
     <div class="summary">
       <div class="sumhead">
@@ -1786,7 +1792,7 @@ function candCardHtml(){
       <div class="cgl"><b>${k}/${C_OBJ}</b> aujourd'hui${ok?(k>C_OBJ?" · objectif dépassé 💪":" · objectif atteint ✓"):" · encore "+(C_OBJ-k)}${str>0?` · 🔥 ${str} j à ${C_OBJ}+`:""}</div>
     </div>
     ${cTable(L.slice(0,5))}
-    ${n>5?`<button class="cmore" onclick="cAllSheet()">Tout voir (${n}) ›</button>`:""}
+    ${n?`<button class="cmore" onclick="cAllSheet()">Ouvrir le suivi (${n}) ›</button>`:""}
   </div>`;
 }
 /* ＋1 compte tout de suite, puis ouvre la fiche : on peut la remplir… ou pas. */
@@ -2293,6 +2299,10 @@ rollDay();
 chkPrune();
 render();
 syncSoon(900);
+/* lien direct : …/pointage/#candidatures ouvre le suivi */
+function cHash(){ if(/^#(candidatures|suivi)$/i.test(location.hash)) cAllSheet(); }
+cHash();
+addEventListener("hashchange",cHash);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); syncSoon(400); } });
 /* deux onglets ouverts sur le même appareil : on recharge ce que l'autre a écrit */
 addEventListener("storage",e=>{
