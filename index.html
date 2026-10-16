@@ -445,6 +445,8 @@
   .crow.st-offre{--cc:var(--good)} .crow.st-refus{--cc:var(--faint);opacity:.6} .crow.late{--cc:var(--accent)}
   .cst.envoyee{background:rgba(59,130,246,.13);color:#3b82f6} .cst.relance{background:rgba(245,165,36,.15);color:#c98200}
   .cst.rel{background:var(--accent-soft);color:var(--accent)}
+  .crel{border:none;background:var(--accent);color:#fff;border-radius:99px;padding:5px 10px;font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .crel.big{display:block;margin-top:8px;padding:8px 12px;font-size:12.5px}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -1098,8 +1100,8 @@ function briefAll(){
   if(aRel.length){
     const c=aRel[0];
     add({k:"relance:"+c.id, score:70, e:"⏰", t:"Relancer "+(c.ent||"une candidature"),
-      w:"Envoyée il y a "+cAge(c)+" jours, sans réponse notée."+(aRel.length>1?" ("+(aRel.length-1)+" autre"+(aRel.length>2?"s":"")+" dans le même cas.)":"")+" Une relance courte et polie double souvent les chances d'avoir une réponse.",
-      a:[{l:"Ouvrir la fiche", c:"go", f:"closeOv();cEdit('"+c.id+"')"}]});
+      w:(c.rel?"Relancée il y a "+cDepuis(c)+" jours":"Envoyée il y a "+cAge(c)+" jours")+", sans réponse notée."+(aRel.length>1?" ("+(aRel.length-1)+" autre"+(aRel.length>2?"s":"")+" dans le même cas.)":"")+" Une relance courte et polie aide souvent à obtenir une réponse.",
+      a:[{l:"🔁 J'ai relancé", c:"go", f:"closeOv();cRelance('"+c.id+"')"},{l:"Ouvrir la fiche", f:"closeOv();cEdit('"+c.id+"')"}]});
   }
 
   if(B.late.length){
@@ -1810,14 +1812,25 @@ function cStreak(){
   let n=0; while(cOn(d)>=C_OBJ){ n++; d=dayShift(d,-1); }
   return n;
 }
-function cARelancer(c){ return c.st==="envoyee"&&cAge(c)>=7; }
+/* À relancer : envoyée ou déjà relancée, et 7 jours sans nouvelles depuis le dernier geste. */
+const C_REL=7;
+function cDepuis(c){ const ref=c.rel||c.d||today(); return Math.round((Date.parse(today()+"T12:00:00")-Date.parse(ref+"T12:00:00"))/864e5); }
+function cARelancer(c){ return (c.st==="envoyee"||c.st==="relance")&&cDepuis(c)>=C_REL; }
+function cProchaine(c){ return (c.st==="envoyee"||c.st==="relance")?C_REL-cDepuis(c):null; }
+function cRelance(id){
+  const c=cAll().find(x=>x.id===id); if(!c) return;
+  c.st="relance"; c.rel=today(); c.nrel=(c.nrel||0)+1; c.mod=Date.now();
+  save(); render();
+  if(document.getElementById("cLs")) cList();
+  toast("🔁 Relance notée · prochaine le "+cDate(dayShift(today(),C_REL)));
+}
 function cDate(d){ if(!d) return ""; const x=new Date(d+"T12:00:00"); return x.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}); }
 function cRow(c){
   const s=cStatut(c.st), rel=cARelancer(c);
   return `<tr onclick="cEdit('${c.id}')">
     <td><b>${esc(c.ent||"Sans nom")}</b>${c.poste?`<small>${esc(c.poste)}</small>`:""}</td>
     <td class="cd">${cDate(c.d)}</td>
-    <td><span class="cst ${c.st||"envoyee"} ${rel?"rel":""}">${rel?"⏰ à relancer":s.e+" "+s.l}</span></td>
+    <td>${rel?`<button class="crel" onclick="event.stopPropagation();cRelance('${c.id}')">🔁 J'ai relancé</button>`:`<span class="cst ${c.st||"envoyee"}">${s.e+" "+s.l}</span>`}</td>
   </tr>`;
 }
 function cTable(list){
@@ -1942,7 +1955,8 @@ function cList(){
     const quand=a<=0?"aujourd'hui":a===1?"hier":"il y a "+a+" j";
     return `<div class="crow st-${c.st||"envoyee"} ${late?"late":""}" onclick="cRet=1;cEdit('${c.id}')">
       <div class="cr1"><b>${esc(c.ent||"Sans nom")}</b><span class="cst ${c.st||"envoyee"} ${late?"rel":""}">${late?"⏰ à relancer":s.e+" "+s.l}</span></div>
-      <div class="cr2">${c.poste?esc(c.poste)+" · ":""}envoyée le ${cDate(c.d)} · ${quand}</div>
+      <div class="cr2">${c.poste?esc(c.poste)+" · ":""}envoyée le ${cDate(c.d)} · ${quand}${c.rel?" · relancée le "+cDate(c.rel)+(c.nrel>1?" ("+c.nrel+"×)":""):""}${!late&&cProchaine(c)!=null?" · relance dans "+cProchaine(c)+" j":""}</div>
+      ${late?`<button class="crel big" onclick="event.stopPropagation();cRelance('${c.id}')">🔁 J'ai relancé aujourd'hui</button>`:""}
       ${c.note?`<div class="cr3">📝 ${esc(c.note)}</div>`:""}
     </div>`;
   }).join("");
