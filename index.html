@@ -149,6 +149,8 @@
   .fabrow button{flex:1;background:var(--card);border:none;box-shadow:var(--shadow-sm);color:var(--ink);border-radius:15px;
     padding:14px;font-size:13.5px;font-weight:750;cursor:pointer;transition:transform .12s}
   .fabrow button:active{transform:scale(.97)}
+  .bknudge{display:block;width:100%;margin-top:10px;border:1.5px dashed var(--line2);background:transparent;color:var(--muted);border-radius:14px;padding:11px;font-size:12.5px;font-weight:650;cursor:pointer}
+  .bknudge b{color:var(--accent)}
   .hint{color:var(--muted);font-size:12.5px;text-align:center;margin-top:20px;line-height:1.65;font-weight:500}
 
   /* ---- feuille modale ---- */
@@ -745,10 +747,11 @@ function render(){
       <button onclick="openStats()">📊 Bilan</button>
     </div>
     <div class="fabrow b">
-      <button onclick="openLauncher()">🚀 Toutes mes apps</button>
+      <button onclick="openLauncher()">🚀 Mes apps</button>
       <button onclick="syncOpen()">🔗 Appareils</button>
-      <button onclick="location.href='coffre.html'">🔐 Coffre</button>
+      <button onclick="bkSheet()">💾 Sauvegarde</button>
     </div>
+    ${bkNudgeHtml()}
     <div class="hint">Cap sur le stage de janvier : 990, CUMBRE, LE CLOSING et 5 candidatures, tous les jours.<br>Le reste attend sans compter, plié en bas.</div>
   `;
   agBind();
@@ -2376,6 +2379,70 @@ function chkPrune(){
   if(!S.chk) return;
   const lim=dayShift(today(),-120);
   Object.keys(S.chk).forEach(k=>{ const d=k.split("|")[1]; if(d&&d<lim) delete S.chk[k]; });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA SAUVEGARDE — un fichier à garder au chaud.
+   L'import FUSIONNE (même règle que la synchro) : il ajoute et met à jour,
+   il n'efface jamais rien de ce qui est ici. Le Coffre, lui, remplace tout.
+   ═══════════════════════════════════════════════════════════════════ */
+function bkAgo(){
+  const t=S.lastExport; if(!t) return null;
+  return Math.floor((Date.now()-t)/864e5);
+}
+function bkNeeded(){
+  const vide=!cAll().length&&!agAll().length&&!S.apps.some(a=>stOf(a.id).days.length);
+  if(vide||syncOn()) return false;
+  const a=bkAgo(); return a==null||a>=7;
+}
+function bkNudgeHtml(){
+  if(!bkNeeded()) return "";
+  const a=bkAgo();
+  return `<button class="bknudge" onclick="bkExport()">💾 ${a==null?"Aucune sauvegarde pour l'instant":"Dernière sauvegarde il y a "+a+" j"} · <b>Sauvegarder</b></button>`;
+}
+function bkSheet(){
+  const a=bkAgo();
+  sheet(`<h3>💾 Sauvegarde</h3>
+    <div class="synote" style="margin-top:0">Tes données vivent dans ce navigateur. Un vidage du cache ou un nouveau téléphone peut les effacer.
+      <br><br>☁ Synchro entre appareils : <b>${syncOn()?"activée — une copie est gardée dans ton gist GitHub":"pas activée"}</b>
+      <br>📁 Dernier fichier de sauvegarde : <b>${a==null?"jamais":a===0?"aujourd'hui":"il y a "+a+" j"}</b></div>
+    <button class="btn" onclick="bkExport()">⬇ Télécharger une sauvegarde</button>
+    <button class="btn ghost" onclick="document.getElementById('bkFile').click()">⬆ Importer une sauvegarde (fusion)</button>
+    <input type="file" id="bkFile" accept=".json,application/json" style="display:none" onchange="bkImport(this)">
+    <div class="synote">L'import <b>ajoute et met à jour</b> : il ne supprime rien de ce qui est déjà ici.
+      Pour sauvegarder toutes tes apps d'un coup, il y a aussi <a href="coffre.html">🔐 Le Coffre</a>.</div>
+    ${syncOn()?"":`<button class="btn ghost" onclick="syncSetup()">🔗 Activer la synchro entre appareils</button>`}
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+function bkExport(){
+  const data={...syncPayload(), pointage:1};
+  const blob=new Blob([JSON.stringify(data,null,1)],{type:"application/json"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download="pointage-sauvegarde-"+today()+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  S.lastExport=Date.now(); save0(); closeOv(); render();
+  toast("💾 Sauvegarde téléchargée");
+}
+function bkImport(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    let R; try{ R=JSON.parse(r.result); }catch(e){ return toast("Fichier illisible."); }
+    if(R&&R.coffre&&R.data&&R.data[KEY]){ try{ R=JSON.parse(R.data[KEY]); R={v:1,ts:0,...syncPayloadOf(R)}; }catch(e){} }
+    if(!R||R.v!==1) return toast("Ce n'est pas une sauvegarde du Pointage.");
+    const avant=cAll().length+agAll().length;
+    const ch=syncMerge(R);
+    save(); closeOv(); render();
+    const apres=cAll().length+agAll().length;
+    toast(ch?"✅ Importé"+(apres>avant?" · "+(apres-avant)+" élément"+(apres-avant>1?"s":"")+" ajouté"+(apres-avant>1?"s":""):""):"Rien de nouveau dans ce fichier");
+  };
+  r.readAsText(f);
+}
+/* un fichier du Coffre contient l'état brut : on le remet au format de la synchro */
+function syncPayloadOf(x){
+  return {apps:x.apps||[], appsMod:x.appsMod||0, st:x.st||{}, chk:x.chk||{}, journal:x.journal||{},
+          agenda:x.agenda||[], tomb:x.tomb||{}, cands:x.cands||[]};
 }
 
 /* --- overlay & toast --- */
