@@ -413,6 +413,33 @@
     background:var(--accent);color:#fff;padding:14px 16px;font-size:14.5px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s}
   .cgo:active{transform:scale(.98)}
   .cgo span{opacity:.85;font-weight:700}
+  .copen{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;border:none;border-radius:14px;
+    background:var(--accent-soft);color:var(--accent);padding:13px;font-size:14.5px;font-weight:800;cursor:pointer}
+  .copen:active{transform:scale(.98)}
+  .sheet.wide{max-height:94vh}
+  .cstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:-4px 0 14px}
+  .cstats div{background:var(--card2);border-radius:14px;padding:10px 6px;text-align:center}
+  .cstats b{display:block;font-family:var(--disp);font-size:22px;font-weight:800;line-height:1.1}
+  .cstats small{display:block;font-size:10.5px;font-weight:700;color:var(--muted);margin-top:2px;line-height:1.2}
+  .cstats .hot b{color:var(--accent)} .cstats .good b{color:var(--good)}
+  .csearch{width:100%;background:var(--card2);border:2px solid transparent;border-radius:13px;color:var(--ink);padding:12px 13px;font-size:16px;font-family:inherit}
+  .csearch:focus{outline:none;border-color:var(--accent);background:var(--card)}
+  .cfilt{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;margin:0 -2px;scrollbar-width:none}
+  .cfilt::-webkit-scrollbar{display:none}
+  .cfilt span{flex:none;font-size:12.5px;font-weight:750;padding:7px 11px;border-radius:99px;background:var(--card2);color:var(--muted);cursor:pointer;white-space:nowrap;border:1.5px solid transparent}
+  .cfilt span.on{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
+  .clist{margin-top:8px}
+  .crow{position:relative;background:var(--card2);border-radius:14px;padding:11px 12px 11px 16px;margin-bottom:8px;cursor:pointer;overflow:hidden}
+  .crow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--cc,var(--line2))}
+  .crow:active{transform:scale(.99)}
+  .cr1{display:flex;align-items:flex-start;gap:8px}
+  .cr1 b{flex:1;min-width:0;font-size:15px;font-weight:800;overflow-wrap:anywhere}
+  .cr2{font-size:12.5px;color:var(--muted);margin-top:3px;font-weight:600}
+  .cr3{font-size:12.5px;color:var(--ink);opacity:.8;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crow.st-envoyee{--cc:#3b82f6} .crow.st-relance{--cc:#f5a524} .crow.st-entretien{--cc:var(--good)}
+  .crow.st-offre{--cc:var(--good)} .crow.st-refus{--cc:var(--faint);opacity:.6} .crow.late{--cc:var(--accent)}
+  .cst.envoyee{background:rgba(59,130,246,.13);color:#3b82f6} .cst.relance{background:rgba(245,165,36,.15);color:#c98200}
+  .cst.rel{background:var(--accent-soft);color:var(--accent)}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -691,7 +718,7 @@ function render(){
     </header>
     <div class="rule"></div>
 
-    <button class="cgo" onclick="cAllSheet()">📨 Suivi des candidatures <span>${cAll().length} ›</span></button>
+    <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
 
     <div class="summary">
       <div class="sumhead">
@@ -1791,8 +1818,8 @@ function candCardHtml(){
       <div class="cbar">${Array.from({length:Math.max(C_OBJ,k)},(_,i)=>`<i class="${i<k?"on":""} ${i>=C_OBJ?"bonus":""}"></i>`).join("")}</div>
       <div class="cgl"><b>${k}/${C_OBJ}</b> aujourd'hui${ok?(k>C_OBJ?" · objectif dépassé 💪":" · objectif atteint ✓"):" · encore "+(C_OBJ-k)}${str>0?` · 🔥 ${str} j à ${C_OBJ}+`:""}</div>
     </div>
-    ${cTable(L.slice(0,5))}
-    ${n?`<button class="cmore" onclick="cAllSheet()">Ouvrir le suivi (${n}) ›</button>`:""}
+    ${cTable(L.slice(0,3))}
+    <button class="copen" onclick="cAllSheet()">📋 Ouvrir le tableau de suivi${n?" ("+n+")":""} ›</button>
   </div>`;
 }
 /* ＋1 compte tout de suite, puis ouvre la fiche : on peut la remplir… ou pas. */
@@ -1814,7 +1841,7 @@ function cEdit(id,neuf){
     <div class="fld"><label>Note (contact, lien, prochaine étape…)</label><textarea id="cN" placeholder="Ex : relancer Mme X le 20"></textarea></div>
     <button class="btn" onclick="cSave('${id}')">Enregistrer</button>
     <button class="btn danger" onclick="cDel('${id}',${neuf?1:0})">${neuf?"Annuler ce ＋1":"Supprimer"}</button>
-    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+    <button class="btn ghost" onclick="closeOv();render();cBack()">Fermer</button>`);
   /* .value plutôt qu'un attribut : zéro souci d'échappement */
   document.getElementById("cE").value=c.ent||"";
   document.getElementById("cP").value=c.poste||"";
@@ -1835,22 +1862,65 @@ function cSave(id){
   c.d=document.getElementById("cD").value||c.d||today();
   c.note=document.getElementById("cN").value.trim();
   c.st=cEditSt; c.mod=Date.now();
-  save(); closeOv(); render(); toast("Candidature enregistrée");
+  save(); closeOv(); render(); toast("Candidature enregistrée"); cBack();
 }
 function cDel(id,neuf){
   if(!neuf&&!confirm("Supprimer cette candidature ?")) return;
   S.cands=cAll().filter(x=>x.id!==id);
   agTombs()["cand:"+id]=Date.now();      // sinon l'autre appareil la remet
-  save(); closeOv(); render(); toast(neuf?"＋1 annulé":"Candidature supprimée");
+  save(); closeOv(); render(); toast(neuf?"＋1 annulé":"Candidature supprimée"); cBack();
 }
+/* LE TABLEAU DE SUIVI — filtres par statut, recherche, une fiche par ligne.
+   Ouvrir une fiche depuis ici y ramène ensuite (cRet). */
+let cF="all", cQ="", cRet=0;
+function cBack(){ if(cRet){ cRet=0; cAllSheet(); } }
 function cAllSheet(){
-  const A=cAll(), par=C_ST.map(s=>{ const k=A.filter(c=>c.st===s.id).length; return k?`<span class="jtag ro">${s.e} ${s.l} · ${k}</span>`:""; }).join("");
-  sheet(`<h3>📨 Toutes mes candidatures (${A.length})</h3>
-    <div class="jtagrow" style="margin:-6px 0 12px">${par}</div>
-    ${cTable(cSorted())}
-    <button class="btn" style="margin-top:16px" onclick="closeOv();cPlus()">＋1 candidature</button>
-    <button class="btn ghost" onclick="cCopy()">📋 Copier le tableau</button>
-    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+  const A=cAll(), t=today();
+  const sem=A.filter(c=>c.d&&c.d>dayShift(t,-7)).length;
+  const ent=A.filter(c=>c.st==="entretien"||c.st==="offre").length;
+  const rel=A.filter(cARelancer).length;
+  sheet(`<h3>📋 Suivi des candidatures</h3>
+    <div class="cstats">
+      <div><b>${A.length}</b><small>en tout</small></div>
+      <div><b>${sem}</b><small>sur 7 jours</small></div>
+      <div class="good"><b>${ent}</b><small>entretiens · offres</small></div>
+      <div class="hot"><b>${rel}</b><small>à relancer</small></div>
+    </div>
+    <input class="csearch" id="cQ" type="search" placeholder="🔎 Chercher une entreprise, un poste, une note…">
+    <div class="cfilt" id="cFl"></div>
+    <div class="clist" id="cLs"></div>
+    <button class="btn" style="margin-top:14px" onclick="cRet=1;closeOv();cPlus()">＋1 candidature</button>
+    <button class="btn ghost" onclick="cCopy()">📋 Copier le tableau (pour Excel / Sheets)</button>
+    <button class="btn ghost" onclick="cRet=0;closeOv();render()">Fermer</button>`);
+  document.getElementById("sheet").classList.add("wide");
+  const q=document.getElementById("cQ"); q.value=cQ;
+  q.addEventListener("input",()=>{ cQ=q.value; cList(); });
+  document.getElementById("cFl").addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-f]"); if(!el) return; cF=el.dataset.f; cList();
+  });
+  cList();
+}
+function cList(){
+  const A=cAll();
+  const fs=[{id:"all",l:"Toutes",k:A.length},{id:"late",l:"⏰ À relancer",k:A.filter(cARelancer).length}]
+    .concat(C_ST.map(s=>({id:s.id,l:s.e+" "+s.l,k:A.filter(c=>(c.st||"envoyee")===s.id).length})));
+  document.getElementById("cFl").innerHTML=fs.map(f=>`<span data-f="${f.id}" class="${cF===f.id?"on":""}">${f.l} · ${f.k}</span>`).join("");
+  const q=normName(cQ);
+  const L=cSorted().filter(c=>
+    (cF==="all"||(cF==="late"?cARelancer(c):(c.st||"envoyee")===cF)) &&
+    (!q||normName((c.ent||"")+" "+(c.poste||"")+" "+(c.note||"")).includes(q)));
+  const box=document.getElementById("cLs");
+  if(!A.length){ box.innerHTML=`<div class="cvide">Aucune candidature encore sur cet appareil. Appuie sur ＋1 candidature pour commencer.</div>`; return; }
+  if(!L.length){ box.innerHTML=`<div class="cvide">Rien ne correspond à ce filtre.</div>`; return; }
+  box.innerHTML=L.map(c=>{
+    const s=cStatut(c.st), late=cARelancer(c), a=cAge(c);
+    const quand=a<=0?"aujourd'hui":a===1?"hier":"il y a "+a+" j";
+    return `<div class="crow st-${c.st||"envoyee"} ${late?"late":""}" onclick="cRet=1;cEdit('${c.id}')">
+      <div class="cr1"><b>${esc(c.ent||"Sans nom")}</b><span class="cst ${c.st||"envoyee"} ${late?"rel":""}">${late?"⏰ à relancer":s.e+" "+s.l}</span></div>
+      <div class="cr2">${c.poste?esc(c.poste)+" · ":""}envoyée le ${cDate(c.d)} · ${quand}</div>
+      ${c.note?`<div class="cr3">📝 ${esc(c.note)}</div>`:""}
+    </div>`;
+  }).join("");
 }
 function cCopy(){
   const lignes=["Entreprise\tPoste\tDate\tStatut\tNote"].concat(cSorted().map(c=>
@@ -2287,9 +2357,9 @@ function chkPrune(){
 }
 
 /* --- overlay & toast --- */
-function sheet(html){ document.getElementById("sheet").innerHTML=html; document.getElementById("ov").classList.add("on"); }
+function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }
-document.getElementById("ov").addEventListener("click",e=>{ if(e.target.id==="ov"){ closeOv(); render(); } });
+document.getElementById("ov").addEventListener("click",e=>{ if(e.target.id==="ov"){ cRet=0; closeOv(); render(); } });
 let toastT;
 function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),2200); }
 
