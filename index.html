@@ -452,6 +452,18 @@
   .civ .fld input{background:var(--card)}
   .clink{display:inline-block;margin-top:7px;font-size:12.5px;font-weight:800;color:var(--accent);text-decoration:none;background:var(--accent-soft);padding:5px 10px;border-radius:99px}
   .cr3 a{color:var(--accent)}
+  .ccount{display:flex;align-items:center;justify-content:space-between;background:var(--accent-soft);border-radius:16px;padding:12px 14px;margin:-4px 0 12px}
+  .ccount b{display:block;font-family:var(--disp);font-size:26px;font-weight:800;color:var(--accent);line-height:1.1}
+  .ccount small{font-size:12px;font-weight:700;color:var(--muted)}
+  .cjx{font-size:11px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:2px 7px;border-radius:99px;margin-left:4px;vertical-align:2px}
+  .cweeks{display:flex;gap:6px;height:150px;align-items:stretch;margin:14px 0 6px}
+  .cw{flex:1;display:flex;flex-direction:column;align-items:center;min-width:0}
+  .cwb{flex:1;width:100%;position:relative;display:flex;align-items:flex-end}
+  .cw i{display:block;width:100%;background:var(--line2);border-radius:7px 7px 3px 3px;min-height:3px}
+  .cw.now i{background:var(--accent)}
+  .cw em{position:absolute;left:-3px;right:-3px;height:0;border-top:2px dashed color-mix(in srgb,var(--good) 75%,transparent)}
+  .cw b{font-size:11.5px;font-weight:800;margin-top:4px}
+  .cw small{font-size:9.5px;color:var(--faint);font-weight:700;white-space:nowrap}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -1853,7 +1865,7 @@ function candCardHtml(){
   return `<div class="ccard ${ok?"ok":""}">
     <div class="chead">
       <div class="cnum">${n}</div>
-      <div class="ctxt"><b>Candidatures stage</b>
+      <div class="ctxt"><b>Candidatures stage${cJours()>0?` <span class="cjx">J-${cJours()}</span>`:""}</b>
         <small>${n} en tout · ${sem} sur 7 jours${ent?" · "+ent+" entretien"+(ent>1?"s":""):""}${rel?` · <span style="color:var(--accent)">${rel} à relancer</span>`:""}</small></div>
       <button class="cplus" onclick="cPlus()" aria-label="Ajouter une candidature">＋1</button>
     </div>
@@ -1970,6 +1982,7 @@ function cAllSheet(){
     <div class="cfilt" id="cFl"></div>
     <div class="clist" id="cLs"></div>
     <button class="btn" style="margin-top:14px" onclick="cRet=1;closeOv();cPlus()">＋1 candidature</button>
+    <button class="btn ghost" onclick="cStatsSheet()">📊 Statistiques</button>
     <button class="btn ghost" onclick="cCopy()">📋 Copier le tableau (pour Excel / Sheets)</button>
     <button class="btn ghost" onclick="cRet=0;closeOv();render()">Fermer</button>`);
   document.getElementById("sheet").classList.add("wide");
@@ -2005,6 +2018,51 @@ function cList(){
       ${c.url?`<a class="clink" href="${esc(c.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Voir l'offre</a>`:""}
     </div>`;
   }).join("");
+}
+/* ---- les statistiques ---- */
+function cStage(){ return S.stageDate||"2027-01-04"; }
+function cJours(){ return Math.round((Date.parse(cStage()+"T12:00:00")-Date.parse(today()+"T12:00:00"))/864e5); }
+function cPct(a,b){ return b?Math.round(100*a/b)+" %":"—"; }
+function cStatsSheet(){
+  const A=cAll(), n=A.length, t=today();
+  const k=id=>A.filter(c=>(c.st||"envoyee")===id).length;
+  const rep=k("entretien")+k("offre")+k("refus"), ent=k("entretien")+k("offre");
+  const sem7=A.filter(c=>c.d&&c.d>dayShift(t,-7)).length;
+  let jours5=0; for(let i=0;i<14;i++){ if(cOn(dayShift(t,-i))>=C_OBJ) jours5++; }
+  /* 8 dernières semaines (lundi → dimanche) */
+  const lun=d=>{ const x=new Date(d+"T12:00:00"); const w=(x.getDay()+6)%7; return dayShift(d,-w); };
+  const l0=lun(t), sems=[];
+  for(let i=7;i>=0;i--){ const deb=dayShift(l0,-7*i), fin=dayShift(deb,6);
+    sems.push({deb, k:A.filter(c=>c.d&&c.d>=deb&&c.d<=fin).length}); }
+  const max=Math.max(C_OBJ*7,...sems.map(x=>x.k));
+  const j=cJours();
+  const reste=j>0?j*C_OBJ:0;
+  sheet(`<h3>📊 Statistiques</h3>
+    <div class="ccount">
+      <div><b>${j>0?"J-"+j:j===0?"Jour J":"Démarré"}</b><small>avant le stage · ${cDate(cStage())} ${cStage().slice(0,4)}</small></div>
+      <button class="crel" onclick="cStageEdit()">✎ Date</button>
+    </div>
+    ${j>0?`<div class="cr2" style="margin:-4px 2px 12px">Au rythme de ${C_OBJ} par jour, encore environ <b>${reste}</b> candidatures d'ici là.</div>`:""}
+    <div class="cstats">
+      <div><b>${cPct(rep,n)}</b><small>taux de réponse</small></div>
+      <div class="good"><b>${cPct(ent,n)}</b><small>taux d'entretien</small></div>
+      <div><b>${(sem7/7).toFixed(1).replace(".",",")}</b><small>par jour (7 j) · obj. ${C_OBJ}</small></div>
+      <div class="${jours5>=10?"good":"hot"}"><b>${jours5}/14</b><small>jours à ${C_OBJ}+</small></div>
+    </div>
+    <div class="civt" style="color:var(--muted);margin:4px 2px 8px">Candidatures par semaine · le trait = objectif (${C_OBJ*7})</div>
+    <div class="cweeks">${sems.map((x,i)=>`<div class="cw ${i===7?"now":""}">
+      <div class="cwb"><i style="height:${Math.round(100*x.k/max)}%"></i><em style="bottom:${Math.round(100*C_OBJ*7/max)}%"></em></div>
+      <b>${x.k}</b><small>${cDate(x.deb).replace(/\.$/,"")}</small></div>`).join("")}</div>
+    <div class="synote">Réponses : ${k("entretien")} entretien${k("entretien")>1?"s":""}, ${k("offre")} offre${k("offre")>1?"s":""}, ${k("refus")} refus, sur ${n} candidature${n>1?"s":""}.
+      Le taux ne compte que ce que tu as noté : pense à mettre à jour les statuts.</div>
+    <button class="btn ghost" onclick="cAllSheet()">← Retour au suivi</button>`);
+  document.getElementById("sheet").classList.add("wide");
+}
+function cStageEdit(){
+  const v=prompt("Date de début du stage (AAAA-MM-JJ)", cStage());
+  if(v==null) return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(v.trim())||isNaN(Date.parse(v.trim()))) return toast("Format attendu : 2027-01-04");
+  S.stageDate=v.trim(); save0(); cStatsSheet(); render(); toast("Date du stage enregistrée");
 }
 function cCopy(){
   const lignes=["Entreprise\tPoste\tEnvoyée le\tStatut\tRelancée le\tEntretien\tContact\tLien\tNote"].concat(cSorted().map(c=>
