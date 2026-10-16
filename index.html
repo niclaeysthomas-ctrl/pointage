@@ -754,11 +754,11 @@ function render(){
       ${briefHeadHtml()}
     </div>
     ${runHtml}
+    ${appListHtml()}
+    <div style="height:16px"></div>
     ${candCardHtml()}
     ${agCardHtml()}
     ${jCardHtml()}
-
-    ${appListHtml()}
 
     <div class="fabrow">
       <button onclick="editApp('')">＋ Ajouter</button>
@@ -768,10 +768,9 @@ function render(){
     <div class="fabrow b">
       <button onclick="openLauncher()">🚀 Mes apps</button>
       <button onclick="syncOpen()">🔗 Appareils</button>
-      <button onclick="bkSheet()">💾 Sauvegarde</button>
+      <button onclick="bkSheet()">💾 Sauver</button>
     </div>
     ${bkNudgeHtml()}
-    <div class="hint">Cap sur le stage de janvier : 990, CUMBRE, LE CLOSING et 5 candidatures, tous les jours.<br>Le reste attend sans compter, plié en bas.</div>
   `;
   agBind();
   if(keep){
@@ -1873,7 +1872,7 @@ function candCardHtml(){
       <div class="cbar">${Array.from({length:Math.max(C_OBJ,k)},(_,i)=>`<i class="${i<k?"on":""} ${i>=C_OBJ?"bonus":""}"></i>`).join("")}</div>
       <div class="cgl"><b>${k}/${C_OBJ}</b> aujourd'hui${ok?(k>C_OBJ?" · objectif dépassé 💪":" · objectif atteint ✓"):" · encore "+(C_OBJ-k)}${str>0?` · 🔥 ${str} j à ${C_OBJ}+`:""}</div>
     </div>
-    ${cTable(L.slice(0,3))}
+    ${(()=>{ const R=L.filter(cARelancer).slice(0,3); return R.length?`<div class="civt" style="color:var(--accent);margin:12px 0 -6px">⏰ À relancer</div>`+cTable(R):""; })()}
     <button class="copen" onclick="cAllSheet()">📋 Ouvrir le tableau de suivi${n?" ("+n+")":""} ›</button>
   </div>`;
 }
