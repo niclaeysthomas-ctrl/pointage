@@ -450,6 +450,8 @@
   .civ{background:var(--good-soft);border-radius:14px;padding:12px 12px 2px;margin:-2px 0 13px}
   .civt{font-size:12.5px;font-weight:800;color:var(--good);margin-bottom:9px}
   .civ .fld input{background:var(--card)}
+  .clink{display:inline-block;margin-top:7px;font-size:12.5px;font-weight:800;color:var(--accent);text-decoration:none;background:var(--accent-soft);padding:5px 10px;border-radius:99px}
+  .cr3 a{color:var(--accent)}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
@@ -1876,6 +1878,8 @@ function cEdit(id,neuf){
   sheet(`<h3>${neuf?"＋1 candidature 🎯":"📨 Candidature"}</h3>
     <div class="fld"><label>Entreprise</label><input id="cE" placeholder="Ex : Rothschild & Co"></div>
     <div class="fld"><label>Poste</label><input id="cP" placeholder="Ex : Stage M&A — janvier"></div>
+    <div class="fld"><label>Lien de l'offre</label><input id="cL" type="url" inputmode="url" placeholder="https://…" autocapitalize="off" spellcheck="false"></div>
+    <div class="fld"><label>Contact</label><input id="cC" placeholder="Ex : Paul Martin · paul.martin@lazard.com" autocapitalize="words"></div>
     <div class="fld"><label>Envoyée le</label><input id="cD" type="date"></div>
     <div class="fld"><label>Statut</label>
       <div class="agpills" id="cS" style="margin-top:0">${C_ST.map(s=>`<span data-s="${s.id}" class="${cEditSt===s.id?"on":""}">${s.e} ${s.l}</span>`).join("")}</div></div>
@@ -1886,7 +1890,7 @@ function cEdit(id,neuf){
         <div class="fld"><label>Heure</label><input type="time" id="cIH"></div>
       </div>
     </div>
-    <div class="fld"><label>Note (contact, lien, prochaine étape…)</label><textarea id="cN" placeholder="Ex : relancer Mme X le 20"></textarea></div>
+    <div class="fld"><label>Note (prochaine étape, impressions…)</label><textarea id="cN" placeholder="Ex : relancer Mme X le 20"></textarea></div>
     <button class="btn" onclick="cSave('${id}')">Enregistrer</button>
     <button class="btn danger" onclick="cDel('${id}',${neuf?1:0})">${neuf?"Annuler ce ＋1":"Supprimer"}</button>
     <button class="btn ghost" onclick="closeOv();render();cBack()">Fermer</button>`);
@@ -1895,6 +1899,8 @@ function cEdit(id,neuf){
   document.getElementById("cP").value=c.poste||"";
   document.getElementById("cD").value=c.d||today();
   document.getElementById("cN").value=c.note||"";
+  document.getElementById("cL").value=c.url||"";
+  document.getElementById("cC").value=c.contact||"";
   const ag=c.ag&&agGet(c.ag);
   document.getElementById("cID").value=(ag&&ag.d)||c.ivd||"";
   document.getElementById("cIH").value=(ag&&ag.t)||c.ivt||"";
@@ -1914,6 +1920,9 @@ function cSave(id){
   c.poste=document.getElementById("cP").value.trim();
   c.d=document.getElementById("cD").value||c.d||today();
   c.note=document.getElementById("cN").value.trim();
+  let u=document.getElementById("cL").value.trim();
+  if(u&&!/^https?:\/\//i.test(u)) u="https://"+u;
+  c.url=u; c.contact=document.getElementById("cC").value.trim();
   c.st=cEditSt; c.mod=Date.now();
   let msg="Candidature enregistrée";
   if(c.st==="entretien"){
@@ -1924,6 +1933,10 @@ function cSave(id){
 }
 /* L'entretien vit aussi dans l'agenda : une seule tâche par candidature (c.ag),
    mise à jour si on change la date, jamais dupliquée. */
+/* un e-mail dans le contact devient cliquable */
+function cContactHtml(t){
+  return esc(t).replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g,m=>`<a href="mailto:${m}" onclick="event.stopPropagation()">${m}</a>`);
+}
 function cAgendaSync(c){
   const txt="Entretien "+(c.ent||"")+(c.poste?" — "+c.poste:"");
   const note=["Préparer : l'entreprise, le poste, 3 questions à poser."].concat(c.note?["Notes : "+c.note]:[]).join("\n");
@@ -1975,7 +1988,7 @@ function cList(){
   const q=normName(cQ);
   const L=cSorted().filter(c=>
     (cF==="all"||(cF==="late"?cARelancer(c):(c.st||"envoyee")===cF)) &&
-    (!q||normName((c.ent||"")+" "+(c.poste||"")+" "+(c.note||"")).includes(q)));
+    (!q||normName((c.ent||"")+" "+(c.poste||"")+" "+(c.note||"")+" "+(c.contact||"")).includes(q)));
   const box=document.getElementById("cLs");
   if(!A.length){ box.innerHTML=`<div class="cvide">Aucune candidature encore sur cet appareil. Appuie sur ＋1 candidature pour commencer.</div>`; return; }
   if(!L.length){ box.innerHTML=`<div class="cvide">Rien ne correspond à ce filtre.</div>`; return; }
@@ -1987,13 +2000,15 @@ function cList(){
       <div class="cr2">${c.poste?esc(c.poste)+" · ":""}envoyée le ${cDate(c.d)} · ${quand}${c.rel?" · relancée le "+cDate(c.rel)+(c.nrel>1?" ("+c.nrel+"×)":""):""}${!late&&cProchaine(c)!=null?" · relance dans "+cProchaine(c)+" j":""}</div>
       ${c.st==="entretien"&&c.ivd?`<div class="cr2" style="color:var(--good);font-weight:750">🗓 Entretien ${agDL(c.ivd)}${c.ivt?" à "+c.ivt:""}</div>`:""}
       ${late?`<button class="crel big" onclick="event.stopPropagation();cRelance('${c.id}')">🔁 J'ai relancé aujourd'hui</button>`:""}
+      ${c.contact?`<div class="cr3">👤 ${cContactHtml(c.contact)}</div>`:""}
       ${c.note?`<div class="cr3">📝 ${esc(c.note)}</div>`:""}
+      ${c.url?`<a class="clink" href="${esc(c.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ Voir l'offre</a>`:""}
     </div>`;
   }).join("");
 }
 function cCopy(){
-  const lignes=["Entreprise\tPoste\tDate\tStatut\tNote"].concat(cSorted().map(c=>
-    [c.ent,c.poste,c.d,cStatut(c.st).l,(c.note||"").replace(/\s+/g," ")].join("\t")));
+  const lignes=["Entreprise\tPoste\tEnvoyée le\tStatut\tRelancée le\tEntretien\tContact\tLien\tNote"].concat(cSorted().map(c=>
+    [c.ent,c.poste,c.d,cStatut(c.st).l,c.rel||"",c.ivd?(c.ivd+(c.ivt?" "+c.ivt:"")):"",c.contact||"",c.url||"",(c.note||"").replace(/\s+/g," ")].join("\t")));
   const txt=lignes.join("\n");
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject())
     .then(()=>toast("Copié — colle-le dans un tableur"),()=>toast("Copie refusée par le navigateur"));
