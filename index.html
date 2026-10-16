@@ -801,23 +801,37 @@ function appRowHtml(a,ai){
     <div class="heat">${last7.map(d=>`<i class="${d?"on":""}"></i>`).join("")}<span class="lbl">7 j</span></div>
   </div>`;
 }
+/* Une app cochée aujourd'hui disparaît de sa place : on ne voit que ce qui
+   reste à faire. Elle se range dans « Fait aujourd'hui », replié en bas,
+   d'où on peut la rouvrir ou la décocher. Le chrono en cours reste visible. */
+function visibleNow(a){ return !doneToday(a.id) || (S.run&&S.run.id===a.id); }
 function appListHtml(){
   let i=0, out="";
+  const idx={}; S.apps.forEach((a,k)=>idx[a.id]=k);
   CATS.forEach(c=>{
-    const liste=appsOfCat(c.id);
+    const liste=appsOfCat(c.id).filter(visibleNow);
     if(!liste.length) return;
-    out+=catHeadHtml(c)+liste.map(a=>appRowHtml(a,i++)).join("");
+    out+=catHeadHtml(c)+liste.map(a=>appRowHtml(a,idx[a.id])).join("");
   });
   const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
-  if(orphelines.length){
-    const fait=orphelines.filter(a=>doneToday(a.id)).length;
+  const restantes=orphelines.filter(visibleNow);
+  if(restantes.length){
     out+=`<div class="cathead reste" onclick="toggleReste()" style="cursor:pointer">
       <span class="ce">📦</span><span class="cn">Le reste</span>
-      <span class="cs todo">${orphelines.length} app${orphelines.length>1?"s":""}${fait?" · "+fait+" ✓":""} · hors compte ${S.resteOuvert?"▾":"▸"}</span></div>`+
-      (S.resteOuvert?orphelines.map(a=>appRowHtml(a,i++)).join(""):"");
+      <span class="cs todo">${restantes.length} app${restantes.length>1?"s":""} · hors compte ${S.resteOuvert?"▾":"▸"}</span></div>`+
+      (S.resteOuvert?restantes.map(a=>appRowHtml(a,idx[a.id])).join(""):"");
+  }
+  const faites=S.apps.filter(a=>!visibleNow(a));
+  if(!out && faites.length) out+=`<div class="cvide" style="text-align:center;padding:18px 0 4px">Tout est fait pour aujourd'hui 🎉</div>`;
+  if(faites.length){
+    out+=`<div class="cathead fait" onclick="toggleFait()" style="cursor:pointer">
+      <span class="ce">✅</span><span class="cn">Fait aujourd'hui</span>
+      <span class="cs ok">${faites.length} app${faites.length>1?"s":""} ${S.faitOuvert?"▾":"▸"}</span></div>`+
+      (S.faitOuvert?faites.map(a=>appRowHtml(a,idx[a.id])).join(""):"");
   }
   return out;
 }
+function toggleFait(){ S.faitOuvert=!S.faitOuvert; save0(); render(); }
 function toggleReste(){ S.resteOuvert=!S.resteOuvert; save0(); render(); }
 function updClock(){
   if(!S.run){ clearInterval(tick); return; }
