@@ -905,13 +905,7 @@ function render(){
     <div class="rule"></div>
     ${ritHtml()}
     ${echHtml()}
-    ${choseHtml()}
-    ${calHtml()}
-    ${dockHtml()}
-
-    <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
-    ${banHtml()}
-    <div class="summary">
+    <div class="summary" style="margin-top:14px">
       <div class="sumhead">
         <div class="frac">${done}<small>/${total}</small></div>
         <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING + 5 candidatures ✨"}</div>
@@ -920,13 +914,19 @@ function render(){
       <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span><span class="dot"></span><span onclick="openCadre()" style="cursor:pointer">🔗 <b>${ch.n} j</b> de chaîne · 🃏 ${ch.left}</span></div>
       ${briefHeadHtml()}
     </div>
-    ${pCardHtml()}
+    ${banHtml()}
     ${runHtml}
-    ${appListHtml()}
-    <div style="height:16px"></div>
+    ${choseHtml()}
+    ${calHtml()}
+    ${appListHtml("prio")}
+    <div style="height:14px"></div>
+    <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
     ${candCardHtml()}
+    ${pCardHtml()}
+    ${dockHtml()}
+    <div style="height:6px"></div>
     ${agCardHtml()}
-    ${jCardHtml()}
+    ${appListHtml("reste")}
 
     <div class="fabrow">
       <button onclick="editApp('')">＋ Ajouter</button>
@@ -991,14 +991,16 @@ function appRowHtml(a,ai){
    reste à faire. Elle se range dans « Fait aujourd'hui », replié en bas,
    d'où on peut la rouvrir ou la décocher. Le chrono en cours reste visible. */
 function visibleNow(a){ return !doneToday(a.id) || (S.run&&S.run.id===a.id); }
-function appListHtml(){
+/* part = "prio" : les dossiers seulement · "reste" : le reste et le fait du jour · rien : tout */
+function appListHtml(part){
   let i=0, out="";
   const idx={}; S.apps.forEach((a,k)=>idx[a.id]=k);
-  CATS.forEach(c=>{
+  if(part!=="reste") CATS.forEach(c=>{
     const liste=appsOfCat(c.id).filter(visibleNow);
     if(!liste.length) return;
     out+=catHeadHtml(c)+liste.map(a=>appRowHtml(a,idx[a.id])).join("");
   });
+  if(part==="prio") return out;
   const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
   const restantes=orphelines.filter(visibleNow);
   /* « Le reste » n'est plus plié : toutes les apps restent sous les yeux et
@@ -1011,7 +1013,7 @@ function appListHtml(){
       restantes.map(a=>appRowHtml(a,idx[a.id])).join("");
   }
   const faites=S.apps.filter(a=>!visibleNow(a));
-  if(!out && faites.length) out+=`<div class="cvide" style="text-align:center;padding:18px 0 4px">Tout est fait pour aujourd'hui 🎉</div>`;
+  if(!out && faites.length && part!=="reste") out+=`<div class="cvide" style="text-align:center;padding:18px 0 4px">Tout est fait pour aujourd'hui 🎉</div>`;
   if(faites.length){
     out+=`<div class="cathead fait" onclick="toggleFait()" style="cursor:pointer">
       <span class="ce">✅</span><span class="cn">Fait aujourd'hui</span>
@@ -1227,6 +1229,13 @@ function agPushTodayR(id){ agPushToday(id); closeOv(); render(); toast("Reporté
 function briefAll(){
   const t=today(), B=agBuckets(), H=new Date().getHours(), out=[], pris={};
   const add=o=>out.push(o);
+
+  /* semaine d'échéance : la prochaine tâche du programme passe devant tout */
+  { const E=ech(), P=echPlan(), dn=echDoneList(), i=dn.indexOf(false);
+    if(E&&P.length&&i>=0){ const x=P[i], left=P.filter((_,k)=>!dn[k]).length;
+      add({k:"ech", score:120, e:E.e, t:E.nom+" J-"+dDiff(t,E.date)+" : "+x[1],
+        w:x[0]+" min. "+(left>1?"Encore "+(left-1)+" autre"+(left>2?"s":"")+" tâche"+(left>2?"s":"")+" aujourd'hui. ":"Dernière tâche du jour. ")+"Jusqu'à l'examen, l'IELTS passe avant tout le reste.",
+        a:(x[2]?[{l:"↗ Commencer", c:"go", f:"echGo('"+x[2]+"')"}]:[]).concat([{l:"✓ Fait", c:"ok", f:"echTog("+i+");closeOv()"}])}); } }
 
   /* un trou entre deux événements : le meilleur moment pour un focus */
   { const nx=calNext(), cn=calNow()[0];
