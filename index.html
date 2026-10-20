@@ -553,6 +553,44 @@
   .khist td,.khist th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:center}
   .khist th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700}
   .khist td:first-child,.khist th:first-child{text-align:left}
+
+  /* ---- L'ACCUEIL : dock, rituels, chose du jour, focus ---- */
+  .kdock{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:14px 0 2px}
+  .kdock button{border:none;background:var(--card);box-shadow:var(--shadow-sm);border-radius:14px;padding:9px 0 8px;cursor:pointer;
+    color:var(--ink);font-family:inherit;font-size:10px;font-weight:750;display:flex;flex-direction:column;align-items:center;gap:4px;
+    white-space:nowrap;overflow:hidden}
+  .kdock button span{font-size:20px;line-height:1}
+  .kdock button:active{transform:scale(.94)}
+  .krit{display:flex;align-items:center;gap:12px;width:100%;border:none;border-radius:18px;padding:14px 16px;margin:14px 0 0;
+    cursor:pointer;text-align:left;font-family:inherit;color:#fff;background:linear-gradient(120deg,var(--accent),var(--accent2));
+    box-shadow:0 8px 22px var(--accent-soft)}
+  .krit:active{transform:scale(.98)}
+  .krit.soir{background:linear-gradient(120deg,#4b3fb5,#6c5ce7);box-shadow:0 8px 22px rgba(108,92,231,.25)}
+  .krit.bilan{background:linear-gradient(120deg,#0f9b6c,#12b76a);box-shadow:0 8px 22px var(--good-soft)}
+  .krit .ke{font-size:26px;flex:none}
+  .krit b{display:block;font-family:var(--disp);font-size:16px;font-weight:800}
+  .krit small{display:block;font-size:12.5px;opacity:.92;font-weight:600;margin-top:1px}
+  .krit .kgo{margin-left:auto;font-size:22px;font-weight:800;flex:none}
+  .kfocusd{display:flex;gap:11px;align-items:center;background:var(--card);border-radius:15px;padding:11px 14px;margin:12px 0 0;
+    box-shadow:var(--shadow-sm);font-size:14px;cursor:pointer;line-height:1.35}
+  .kfocusd b{font-weight:800;overflow-wrap:anywhere}
+  .kfocusd i{font-style:normal;color:var(--accent);font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;display:block}
+  .kcheck{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;font-weight:700;font-size:14px}
+  .kcheck .kb{width:24px;height:24px;border-radius:8px;border:2px solid var(--line2);display:grid;place-items:center;color:transparent;font-size:13px;flex:none}
+  .kcheck.on .kb{background:var(--good);border-color:var(--good);color:#fff}
+  .kstat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 12px}
+  .kstat div{background:var(--card2);border-radius:13px;padding:10px 4px;text-align:center}
+  .kstat b{display:block;font-family:var(--disp);font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
+  .kstat small{display:block;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:2px;line-height:1.25}
+  .fov{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:30px 24px calc(30px + env(safe-area-inset-bottom));text-align:center}
+  .fov .fe{font-size:46px}
+  .fov .fn{font-family:var(--disp);font-size:20px;font-weight:800;margin-top:6px}
+  .fov .ft{font-family:var(--disp);font-size:84px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:18px 0 4px}
+  .fov .fs{color:var(--muted);font-size:14px;line-height:1.55;max-width:340px}
+  .fov .fbar{width:min(320px,90%);height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:14px 0 18px}
+  .fov .fbar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .fov button{margin-top:28px;border:none;background:var(--card2);color:var(--muted);font-weight:800;border-radius:13px;padding:12px 20px;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -829,6 +867,9 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
+    ${ritHtml()}
+    ${choseHtml()}
+    ${dockHtml()}
 
     <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
     ${banHtml()}
@@ -862,6 +903,7 @@ function render(){
     <div class="fabrow b">
       <button onclick="openPorte()">🚪 Porte Instagram</button>
       <button onclick="openCadre()">🛡️ Mon cadre</button>
+      <button onclick="openTel()">📱 Téléphone</button>
     </div>
     ${bkNudgeHtml()}
   `;
@@ -1206,6 +1248,12 @@ function briefAll(){
     add({k:"cands", score:90+Math.min(str,10), e:"📨", t:k?"Encore "+m+" candidature"+(m>1?"s":"")+" aujourd'hui":C_OBJ+" candidatures aujourd'hui",
       w:(k?k+" envoyée"+(k>1?"s":"")+" sur "+C_OBJ+". ":"")+(str>0?"Tu tiens "+str+" jour"+(str>1?"s":"")+" d'affilée à "+C_OBJ+" ou plus — ne casse pas la série. ":"")+"Le stage de janvier se joue maintenant.",
       a:[{l:"＋1 candidature", c:"go", f:"closeOv();cPlus()"}]});
+  }
+  const fp=forgePlan();
+  if(fp&&fp.k==="cali"&&!fp.done){
+    add({k:"forge", score:72, e:fp.t==="A"?"🛫":"🤸", t:"FORGE : séance "+fp.t+" — "+(fp.t==="A"?"planche":"HSPU"),
+      w:"Un jour sur deux, et c'est aujourd'hui. Compte une heure, échauffement compris. Elle compte comme effort utile pour la porte d'Instagram.",
+      a:[{l:"↗ Ouvrir FORGE", c:"go", f:"closeOv();forgeOpen()"}]});
   }
   const aRel=cAll().filter(cARelancer).sort((a,b)=>(a.d||"").localeCompare(b.d||""));
   if(aRel.length){
@@ -2523,6 +2571,7 @@ function syncMerge(R){
   S.cands=CA.filter(x=>!((T["cand:"+x.id]||0)>=(x.mod||0)));
   if(S.cands.length!==cb) ch=true;
   if(cadMerge(R.cadre)) ch=true;
+  if(accMerge(R.cadre)) ch=true;
   return ch;
 }
 
@@ -2754,7 +2803,8 @@ function cad(){
 }
 function cadTouch(){ cad().mod=Date.now(); }
 function cadPrune(){ const C=cad(), lim=dayShift(today(),-60);
-  ["log","minDay","ren"].forEach(k=>Object.keys(C[k]).forEach(d=>{ if(d<lim) delete C[k][d]; }));
+  ["log","minDay","ren","focus","demain","rit","fs"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
+  Object.keys(C.bilans||{}).forEach(w=>{ if(w<dayShift(today(),-200)) delete C.bilans[w]; });
   C.passe=C.passe.filter(t=>t>Date.now()-60*864e5); }
 
 /* ---- les règles : durcir = tout de suite ; assouplir = dans 48 h ---- */
@@ -2806,7 +2856,8 @@ function prioOk(){ const AC=catsActives(); return AC.every(c=>catDone(c.id)); }
 function pCost(k){ return k<=1?0:cad().conf.base*Math.pow(2,k-2); }
 function pEffSince(){ const tk=pTickets(), last=tk[tk.length-1]; return Math.max(0,effTotal()-(last?(last.eff||0):0)); }
 function pState(){
-  const C=cad(), n=pTickets().length, k=n+1, act=pActive();
+  const C=cad(), n=pTickets().length, k=n+1, act=pActive(), fo=focusOn();
+  if(fo) return {s:"focus",n,left:Math.ceil((fo.start+fo.dur*60000-Date.now())/60000)};
   if(act) return {s:"open",act,n};
   if(n>=C.conf.cap) return {s:"closed",n};
   if(k===1&&C.conf.prio&&!prioOk()) return {s:"prio",k,n};
@@ -2819,6 +2870,7 @@ function pDots(big){ const C=cad(), used=pTickets().length;
 function pCardHtml(){
   const st=pState(), C=cad(); let cls="lock", txt;
   if(st.s==="open"){ cls="open"; txt="⏳ Instagram ouvert · encore "+st.act.left+" min"; }
+  else if(st.s==="focus") txt="🎯 Focus en cours · Instagram attend "+st.left+" min";
   else if(st.s==="closed") txt="🚪 Instagram : fermé pour aujourd'hui";
   else if(st.s==="prio") txt="🔒 Instagram : d'abord tes priorités";
   else if(st.s==="effort") txt="🔒 Instagram · ticket "+st.k+" : encore "+(st.cost-st.have)+" min d'effort";
@@ -2835,6 +2887,10 @@ function openPorte(){
     body=`<div class="kbig">⏳ Ouvert · encore ${st.act.left} min</div>
       <div class="ksub">${st.act.passe?"Passe-droit en cours":"Ticket "+st.act.n+" en cours"}${st.act.intent?" · "+intLbl(st.act.intent):""}. Y retourner ne coûte rien tant que le temps n'est pas écoulé.</div>
       <button class="btn" onclick="pGo()">↗ Retourner sur Instagram</button>`;
+  }else if(st.s==="focus"){
+    body=`<div class="kbig">🎯 Focus en cours</div>
+      <div class="ksub">Encore <b>${st.left} min</b>. Instagram attend la fin : c'est toi qui l'as décidé en lançant le focus.</div>
+      <button class="btn" onclick="closeOv();focusShow()">Retour au focus</button>`;
   }else if(st.s==="closed"){
     const why=C.why.trim();
     body=`<div class="kbig">🚪 Fermé pour aujourd'hui</div>
@@ -2868,7 +2924,7 @@ function openPorte(){
   pIntent="";
   sheet(`<h3>📸 La porte d'Instagram</h3>${pDots(true)}${body}
     <div class="kladder">Tickets de ${cf.tmin} min — ${lad}<br>Effort utile : chronos des apps, candidatures (10 min chacune), séances FORGE.</div>
-    ${st.s!=="open"?(passeDispo()?`<button class="klink" onclick="pPasse()">🆘 Urgence ? Passe-droit (1 par semaine, 5 min)</button>`:`<button class="klink" style="text-decoration:none;cursor:default">Passe-droit déjà utilisé · de nouveau dans ${fmtLeft(passeNext())}</button>`):""}
+    ${st.s!=="open"&&st.s!=="focus"?(passeDispo()?`<button class="klink" onclick="pPasse()">🆘 Urgence ? Passe-droit (1 par semaine, 5 min)</button>`:`<button class="klink" style="text-decoration:none;cursor:default">Passe-droit déjà utilisé · de nouveau dans ${fmtLeft(passeNext())}</button>`):""}
     <button class="klink" onclick="openCadre()">🛡️ Règles, coffre à code, installation</button>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
 }
@@ -3065,6 +3121,7 @@ function openCadre(keep){
       <p class="kp" style="margin-top:10px">Plafond : ${cf.cap} × ${cf.tmin} min = <b>${cf.cap*cf.tmin} min par jour</b>. Mets la limite Temps d'écran d'Instagram sur la même valeur.</p></div>
     <div class="ksec"><h4>🔐 Coffre à code Temps d'écran</h4>${coffreHtml()}</div>
     <div class="ksec"><h4>📱 Installer sur l'iPhone</h4>${guideHtml()}</div>
+    <div class="ksec"><h4>📱 Le téléphone, un outil</h4><p>Écran d'accueil minimal, notifications, Concentration, rituels qui s'ouvrent seuls, niveaux de gris.</p><button class="btn ghost" onclick="openTel()">Voir les réglages</button></div>
     <div class="ksec"><h4>📊 Instagram, 7 derniers jours</h4>${histHtml()}</div>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
   if(keep) shEl.scrollTop=y;
@@ -3086,6 +3143,259 @@ function cadMerge(Rc){
   return ch;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   L'ACCUEIL — le Pointage comme écran d'accueil du téléphone.
+   • Une barre d'actions rapides : focus, tâche, candidature, FORGE, journal.
+   • La chose du jour : posée le matin, rappelée toute la journée.
+   • Trois rituels courts : le matin (2 min), la fermeture du soir (3 min),
+     le bilan du dimanche (5 min). Chacun arrive au bon moment.
+   • Le focus : une seule chose, téléphone posé ; le chrono compte comme
+     effort utile et la porte d'Instagram reste fermée jusqu'à la fin.
+   • FORGE : la séance du jour (un jour sur deux) remonte dans le brief.
+   ═══════════════════════════════════════════════════════════════════ */
+function acc(){ const C=cad();
+  ["focus","demain","rit","bilans","fs"].forEach(k=>{ if(!C[k]) C[k]={}; });
+  return C; }
+function dDiff(a,b){ return Math.round((Date.parse(b+"T12:00:00")-Date.parse(a+"T12:00:00"))/864e5); }
+function weekStart(d){ d=d||today(); const x=new Date(d+"T12:00:00"); return dayShift(d,-((x.getDay()+6)%7)); }
+function isSunday(){ return new Date(today()+"T12:00:00").getDay()===0; }
+function hm(){ const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+
+/* ---- FORGE : lu directement dans son stockage (même domaine) ---- */
+function forgeData(){ try{ return JSON.parse(localStorage.getItem("forge_v2")||"null"); }catch(e){ return null; } }
+function forgeUrl(){ const a=S.apps.find(isForgeApp); return a&&a.url?a.url:BASE+"forge/"; }
+function forgePlan(){
+  const F=forgeData(); if(!F) return null;
+  const t=today(), log=(F.workoutLog||[]).filter(w=>w.cali), L=log[log.length-1];
+  const done=!!(L&&L.date===t);
+  let info=F.cali&&F.cali.days&&F.cali.days[t];
+  if(!info){
+    if(!L||dDiff(L.date,t)>=2) info={k:"cali",t:L?(L.cali==="A"?"B":"A"):"A"};
+    else if(L.date===t) info={k:"cali",t:L.cali};
+    else info={k:"off"};
+  }
+  return {k:info.k, t:info.t, done};
+}
+function forgeTxt(p){ if(!p) return null;
+  if(p.k==="cali") return (p.t==="A"?"🛫 Séance A — planche":"🤸 Séance B — HSPU")+(p.done?" ✓":"");
+  return "🥊 Récup : boxe ou souplesse"; }
+function forgeOpen(){ window.open(forgeUrl(),"_blank","noopener"); }
+function forgeWeek(ws){ const F=forgeData(); if(!F) return null; const we=dayShift(ws,6);
+  const inW=x=>x.date>=ws&&x.date<=we;
+  return {cali:(F.workoutLog||[]).filter(w=>w.cali&&inW(w)).length, boxe:(F.boxeLog||[]).filter(inW).length, soup:(F.mobLog||[]).filter(inW).length}; }
+
+/* ---- le focus ---- */
+let fSel={id:null,dur:25}, fT=null;
+function focusOn(){ const F=S.focusRun; return F&&Date.now()<F.t0+F.dur*60000?F:null; }
+function openFocus(){
+  if(focusOn()) return focusShow();
+  const B=briefAll().find(s=>s.k.indexOf("cat:")===0);
+  const prio=catsActives().map(c=>catPicksSafe(c.id)[0]).filter(Boolean);
+  const autres=S.apps.filter(a=>!prio.includes(a));
+  if(!fSel.id||!S.apps.some(a=>a.id===fSel.id)) fSel.id=(prio[0]||S.apps[0]||{}).id||null;
+  const chip=a=>`<button class="kchip ${fSel.id===a.id?"on":""}" data-f="${a.id}" onclick="fPick('${a.id}')">${a.emoji} ${esc(a.name)}</button>`;
+  sheet(`<h3>🎯 Focus</h3>
+    <div class="ksub" style="text-align:left">Une seule chose, téléphone posé, écran éteint si tu veux. Le chrono de l'app tourne : ça compte comme effort utile pour la porte, et Instagram reste fermé jusqu'à la fin.</div>
+    <div class="ksec"><h4>Sur quoi ?</h4>
+      ${prio.length?`<p>Tes priorités d'abord${B?" — conseil du brief : "+esc(B.t):""}</p><div class="kchips">${prio.map(chip).join("")}</div>`:""}
+      ${autres.length?`<p style="margin-top:12px">Ou autre chose</p><div class="kchips">${autres.map(chip).join("")}</div>`:""}</div>
+    <div class="ksec"><h4>Combien de temps ?</h4><div class="kchips" style="grid-template-columns:repeat(3,1fr)">
+      ${[15,25,50].map(m=>`<button class="kchip ${fSel.dur===m?"on":""}" data-d="${m}" onclick="fDur(${m})">${m} min</button>`).join("")}</div></div>
+    <p class="kp" style="margin-top:12px;color:var(--muted);font-size:12px">Le Pointage ne peut pas sonner écran verrouillé. Pour une alarme à la fin, lance aussi le minuteur de l'iPhone.</p>
+    <button class="btn" onclick="focusGo()">▶ Commencer le focus</button>
+    <button class="btn ghost" onclick="closeOv();render()">Annuler</button>`);
+}
+function fPick(id){ fSel.id=id; document.querySelectorAll("[data-f]").forEach(b=>b.classList.toggle("on",b.dataset.f===id)); }
+function fDur(m){ fSel.dur=m; document.querySelectorAll("[data-d]").forEach(b=>b.classList.toggle("on",+b.dataset.d===m)); }
+function focusGo(){
+  if(!fSel.id) return toast("Choisis sur quoi tu te concentres.");
+  closeOv();
+  if(!(S.run&&S.run.id===fSel.id)) startTimer(fSel.id);
+  S.focusRun={id:fSel.id, t0:S.run.t0, start:Date.now(), dur:fSel.dur};
+  save(); focusShow();
+}
+function focusShow(){
+  const F=S.focusRun; if(!F) return;
+  let el=document.getElementById("fov");
+  if(!el){ el=document.createElement("div"); el.id="fov"; el.className="fov"; document.body.appendChild(el); }
+  const a=S.apps.find(x=>x.id===F.id)||{emoji:"🎯",name:"Focus"};
+  const paint=()=>{ const end=F.start+F.dur*60000, left=Math.max(0,end-Date.now());
+    if(left<=0){ focusEnd(true); return; }
+    const m=Math.floor(left/60000), s=Math.floor(left%60000/1000);
+    el.innerHTML=`<div class="fe">${a.emoji}</div><div class="fn">${esc(a.name)}</div>
+      <div class="ft">${m}:${pad2(s)}</div>
+      <div class="fbar"><i style="width:${Math.round((1-left/(F.dur*60000))*100)}%"></i></div>
+      <div class="fs">Pose ton téléphone. Une seule chose jusqu'à la fin.<br>Instagram attend : la porte est fermée pendant le focus.</div>
+      <button onclick="focusStop()">Arrêter le focus</button>`; };
+  paint(); clearInterval(fT); fT=setInterval(paint,1000);
+}
+function focusStop(){ if(!confirm("Arrêter le focus maintenant ?\n\nLe temps déjà passé reste compté.")) return; focusEnd(false); }
+function focusEnd(complete){
+  const F=S.focusRun; clearInterval(fT); const el=document.getElementById("fov"); if(el) el.remove();
+  if(!F) return;
+  S.focusRun=null;
+  if(S.run&&S.run.id===F.id){ if(complete) S.run.t0=Math.max(S.run.t0,Date.now()-F.dur*60000-(F.start-F.t0)); stopTimer(true); }
+  const C=acc(), t=today(); C.fs[t]=(C.fs[t]||0)+(complete?1:0);
+  save(); render();
+  if(navigator.vibrate) navigator.vibrate([120,60,120]);
+  toast(complete?"🎯 Focus terminé : "+F.dur+" min. Bravo.":"Focus arrêté — le temps passé est compté.");
+}
+function focusResume(){ const F=S.focusRun; if(!F) return; if(Date.now()>=F.start+F.dur*60000) focusEnd(true); else focusShow(); }
+
+/* ---- la barre d'actions et la chose du jour ---- */
+function dockHtml(){
+  const fp=forgePlan();
+  return `<div class="kdock">
+    <button onclick="openFocus()"><span>🎯</span>Focus</button>
+    <button onclick="agSheet()"><span>✅</span>Tâche</button>
+    <button onclick="cPlus()"><span>📨</span>+1 cand.</button>
+    <button onclick="forgeOpen()"><span>${fp&&fp.k==="cali"&&!fp.done?"🛫":"🥊"}</span>FORGE</button>
+    <button onclick="openJournal()"><span>📓</span>Journal</button>
+    <button onclick="openLauncher()"><span>🚀</span>Apps</button></div>`;
+}
+function ritHtml(){
+  const C=acc(), t=today(), r=C.rit[t]||{}, m=hm();
+  if(isSunday()&&m>=15*60&&!C.bilans[weekStart()]) return `<button class="krit bilan" onclick="openBilan()"><span class="ke">📆</span><div><b>Bilan de la semaine</b><small>5 minutes pour ajuster la suivante</small></div><span class="kgo">›</span></button>`;
+  if(m>=20*60+30&&!r.s) return `<button class="krit soir" onclick="openSoir()"><span class="ke">🌙</span><div><b>Fermer la journée</b><small>3 minutes, puis le téléphone se pose</small></div><span class="kgo">›</span></button>`;
+  if(m<13*60&&!r.m) return `<button class="krit" onclick="openMatin()"><span class="ke">☀️</span><div><b>Ton matin</b><small>2 minutes pour poser la journée</small></div><span class="kgo">›</span></button>`;
+  return "";
+}
+function choseHtml(){
+  const C=acc(), t=today(), f=(C.focus[t]||"").trim(), dem=(C.demain[t]||"").trim();
+  if(f) return `<div class="kfocusd" onclick="openMatin()"><span style="font-size:20px">🎯</span><div><i>La chose du jour</i><b>${esc(f)}</b></div></div>`;
+  if(dem) return `<div class="kfocusd" onclick="openMatin()"><span style="font-size:20px">📝</span><div><i>Prévu hier soir</i><b>${esc(dem)}</b></div></div>`;
+  return "";
+}
+
+/* ---- rituel du matin ---- */
+function openMatin(){
+  const C=acc(), t=today(), ch=chaine(), fp=forgePlan(), B=agBuckets(), why=C.why.trim(), dem=(C.demain[t]||"").trim();
+  const AC=catsActives(), ws=C.bilans[dayShift(weekStart(),-7)];
+  sheet(`<h3>☀️ Ton matin</h3>
+    <div class="ksub" style="text-align:left">🔗 Chaîne : <b>${ch.n} j</b> · 🃏 ${ch.left} joker${ch.left>1?"s":""} ce mois-ci${C.minDay[t]?" · 😮‍💨 jour minimum":""}</div>
+    ${why?`<div class="kwhy"><b>Ton pourquoi</b>${esc(why)}</div>`:""}
+    ${ws&&ws.chg?`<div class="kwhy"><b>Ton engagement de la semaine</b>${esc(ws.chg)}</div>`:""}
+    <div class="ksec"><h4>Aujourd'hui, l'indispensable</h4><div class="krows">
+      ${AC.map(c=>{ const ok=catDone(c.id), a=catPicksSafe(c.id)[0]||appsOfCat(c.id)[0];
+        return `<div class="krow"><span class="ke">${c.e}</span><div class="kn">${esc(c.nom)}${a?`<small>${esc(a.name)}</small>`:""}</div><span class="kok ${ok?"on":""}">${ok?"✓ fait":"à faire"}</span></div>`; }).join("")}
+      <div class="krow"><span class="ke">📨</span><div class="kn">${C_OBJ} candidatures<small>${cToday()} envoyée${cToday()>1?"s":""} aujourd'hui</small></div><span class="kok ${cToday()>=C_OBJ?"on":""}">${cToday()>=C_OBJ?"✓":cToday()+"/"+C_OBJ}</span></div>
+      <div class="krow"><span class="ke">🥊</span><div class="kn">FORGE<small>${fp?forgeTxt(fp):"ouvre FORGE une fois dans Safari pour que je voie ton programme"}</small></div><button onclick="forgeOpen()">↗</button></div>
+    </div></div>
+    ${B.now.length||B.late.length?`<div class="ksec"><h4>Dans l'agenda</h4><div class="krows">${B.late.concat(B.now).slice(0,6).map(it=>`<div class="krow"><span class="ke">${it.d<t?"⚠️":it.t?"🕐":"•"}</span><div class="kn">${esc(it.txt)}<small>${it.d<t?"en retard":it.t?it.t:"aujourd'hui"}</small></div></div>`).join("")}</div></div>`:""}
+    <div class="ksec"><h4>🎯 La chose qui rendrait la journée réussie</h4>
+      <p>Une seule. Elle s'affichera en haut toute la journée.</p>
+      <textarea id="mFocus" style="min-height:64px" placeholder="${dem?esc(dem):"Ex : envoyer les 5 candidatures avant midi"}">${esc(C.focus[t]||dem)}</textarea></div>
+    <button class="btn" onclick="matinGo()">C'est parti ☀️</button>
+    <button class="btn ghost" onclick="closeOv();render()">Plus tard</button>`);
+}
+function matinGo(){ const C=acc(), t=today(); C.focus[t]=(document.getElementById("mFocus").value||"").trim();
+  (C.rit[t]=C.rit[t]||{}).m=1; save(); closeOv(); render(); toast("☀️ Journée posée. Une chose à la fois."); }
+
+/* ---- rituel du soir : fermer la journée ---- */
+let sChk={tel:0,rev:0};
+function openSoir(){
+  const C=acc(), t=today(), ch=chaine(), AC=catsActives(), L=C.log[t]||[], tk=L.filter(x=>!x.passe).length, ren=C.ren[t]||0;
+  const ok=dayOk(t), j=jGet(t);
+  sChk={tel:0,rev:0};
+  sheet(`<h3>🌙 Fermer la journée</h3>
+    <div class="kstat"><div><b>${AC.filter(c=>catDone(c.id)).length}/${AC.length}</b><small>priorités</small></div>
+      <div><b>${cToday()}/${C_OBJ}</b><small>candidatures</small></div>
+      <div><b>${tk}</b><small>ticket${tk>1?"s":""} Instagram${ren?" · "+ren+" 💪":""}</small></div></div>
+    <div class="ksub" style="text-align:left">${ok?"✅ Priorités faites : la chaîne passe à <b>"+ch.n+" j</b>.":ch.yMiss?"Aujourd'hui manque après hier : il est encore temps pour une version minimum (5 min par priorité).":"Priorités incomplètes : un joker couvrira ce jour s'il en reste (🃏 "+ch.left+"). Demain, on ne rate pas."}</div>
+    <div class="ksec"><h4>📓 Une ligne sur ta journée</h4><p>${esc(jPrompt())}</p>
+      <textarea id="sLigne" style="min-height:64px" placeholder="Ce qui a marché, ce qui a coincé…"></textarea>
+      ${(j.txt||"").trim()?`<p class="kp" style="margin-top:6px">Elle s'ajoutera à ce que tu as déjà écrit aujourd'hui.</p>`:""}</div>
+    <div class="ksec"><h4>📝 Demain, la première chose</h4><p>Celle par laquelle tu commences en te levant. Tu la retrouveras demain matin.</p>
+      <textarea id="sDemain" style="min-height:56px" placeholder="Ex : 30 min de 990 avant le petit-déj">${esc(C.demain[dayShift(t,1)]||"")}</textarea></div>
+    <div class="ksec"><h4>Avant de dormir</h4>
+      <div class="kcheck" id="sTel" onclick="sTog('tel')"><span class="kb">✓</span>📵 Téléphone en charge hors de la chambre</div>
+      <div class="kcheck" id="sRev" onclick="sTog('rev')"><span class="kb">✓</span>⏰ Réveil réglé</div></div>
+    <button class="btn" onclick="soirGo()">Fermer la journée 🌙</button>
+    <button class="btn ghost" onclick="closeOv();render()">Plus tard</button>`);
+}
+function sTog(k){ sChk[k]=sChk[k]?0:1; document.getElementById(k==="tel"?"sTel":"sRev").classList.toggle("on",!!sChk[k]); }
+function soirGo(){
+  const C=acc(), t=today(), l=(document.getElementById("sLigne").value||"").trim(), dm=(document.getElementById("sDemain").value||"").trim();
+  if(l){ const j=jGet(t), old=(j.txt||"").trim(); jSet(t, old?old+"\n"+l:l, null); }
+  if(dm) C.demain[dayShift(t,1)]=dm;
+  const r=C.rit[t]=C.rit[t]||{}; r.s=1; r.tel=sChk.tel; save(); closeOv(); render();
+  toast(sChk.tel?"🌙 Bonne nuit. Le téléphone dort ailleurs.":"🌙 Journée fermée. Bonne nuit.");
+}
+
+/* ---- bilan du dimanche ---- */
+function weekNums(ws){
+  const C=acc(), out={ok:0,days:0,cands:0,igMin:0,ren:0,passe:0,eff:0,focus:0};
+  for(let i=0;i<7;i++){ const d=dayShift(ws,i); if(d>today()) break; out.days++;
+    if(dayOk(d)) out.ok++;
+    out.cands+=cOn(d);
+    const L=C.log[d]||[]; out.igMin+=L.reduce((a,x)=>a+(x.min||0),0); out.passe+=L.filter(x=>x.passe).length;
+    out.ren+=C.ren[d]||0; out.focus+=C.fs[d]||0;
+    S.apps.forEach(a=>out.eff+=stOf(a.id).min[d]||0); }
+  out.eff=Math.round(out.eff); return out;
+}
+function openBilan(){
+  const C=acc(), ws=weekStart(), N=weekNums(ws), P=weekNums(dayShift(ws,-7)), fw=forgeWeek(ws), prev=C.bilans[dayShift(ws,-7)], cur=C.bilans[ws]||{};
+  const cmp=(a,b,inv)=>b==null||a===b?"":(inv?a<b:a>b)?" ↗":" ↘";
+  sheet(`<h3>📆 Bilan de la semaine</h3>
+    <div class="ksub" style="text-align:left">Du ${new Date(ws+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"long"})} à aujourd'hui. 5 minutes, honnêtes. C'est le seul moment où l'on change les règles à froid.</div>
+    <div class="kstat">
+      <div><b>${N.ok}/${N.days}</b><small>jours priorités faites${cmp(N.ok,P.ok)}</small></div>
+      <div><b>${N.cands}</b><small>candidatures${cmp(N.cands,P.cands)}</small></div>
+      <div><b>${fmtMin(N.eff)}</b><small>de chronos${cmp(N.eff,P.eff)}</small></div>
+      <div><b>${N.igMin} min</b><small>Instagram ouvert${cmp(N.igMin,P.igMin,true)}</small></div>
+      <div><b>${N.ren}</b><small>fois renoncé 💪</small></div>
+      <div><b>${fw?fw.cali:"—"}</b><small>séances cali${fw?" · "+fw.boxe+" boxe":""}</small></div></div>
+    ${prev&&prev.chg?`<div class="kwhy"><b>Ton engagement de la semaine dernière</b>${esc(prev.chg)}</div>`:""}
+    <div class="ksec"><h4>✅ Ce qui a marché</h4><textarea id="bOk" style="min-height:60px">${esc(cur.ok||"")}</textarea></div>
+    <div class="ksec"><h4>🧱 Ce qui a coincé</h4><textarea id="bKo" style="min-height:60px">${esc(cur.ko||"")}</textarea></div>
+    <div class="ksec"><h4>🎯 Le seul changement pour la semaine prochaine</h4><p>Un seul, petit et concret. Il te sera rappelé chaque matin.</p><textarea id="bChg" style="min-height:56px" placeholder="Ex : candidatures avant 11 h, pas après">${esc(cur.chg||"")}</textarea></div>
+    <button class="btn" onclick="bilanGo()">Enregistrer le bilan</button>
+    <button class="klink" onclick="openCadre()">🛡️ Ajuster les règles (assouplir = 48 h)</button>
+    <button class="btn ghost" onclick="closeOv();render()">Plus tard</button>`);
+}
+function bilanGo(){ const C=acc(), ws=weekStart(), v=id=>(document.getElementById(id).value||"").trim();
+  C.bilans[ws]={ok:v("bOk"),ko:v("bKo"),chg:v("bChg"),t:Date.now()}; save(); closeOv(); render(); toast("📆 Bilan enregistré. Bonne semaine."); }
+
+/* ---- le guide : faire du téléphone un outil ---- */
+function telHtml(){
+  return `<p>Le Pointage devient l'écran d'accueil ; le reste du téléphone s'efface. Je n'ai pas pu tester ces réglages sur un vrai iPhone : si un intitulé diffère, prends le plus proche.</p>
+  <details><summary>1 · Un écran d'accueil qui ne tente pas</summary><ol class="kguide">
+    <li>Page 1 : l'icône du Pointage (Safari) en haut à gauche, puis seulement des outils : Téléphone, Messages, Calendrier, Plans, Appareil photo, Notes.</li>
+    <li>Instagram et les jeux hors de l'écran d'accueil : appui long › Retirer l'app › <b>Retirer de l'écran d'accueil</b>. Ils restent dans la Bibliothèque d'apps, à un geste de plus.</li>
+    <li>Masquer les autres pages : appui long sur le fond › touche les points au-dessus du Dock › décoche les pages en trop.</li></ol></details>
+  <details><summary>2 · Les notifications qui t'appellent</summary><ol class="kguide">
+    <li>Réglages › Notifications › Instagram › <b>Autoriser les notifications : désactivé</b>. Pareil pour les jeux et les actus.</li>
+    <li>Réglages › Notifications › <b>Résumé programmé</b> : le reste arrive deux fois par jour (ex. 12 h 30 et 19 h).</li></ol></details>
+  <details><summary>3 · Une Concentration « Travail »</summary><ol class="kguide">
+    <li>Réglages › Concentration › ＋ › Travail. Notifications autorisées : Téléphone et tes proches dans Messages.</li>
+    <li>Écrans › Écran d'accueil : choisis seulement la page avec le Pointage.</li>
+    <li>Programmation : par exemple en semaine de 9 h à 18 h, ou active-la à la main depuis le Centre de contrôle.</li></ol></details>
+  <details><summary>4 · Les rituels qui s'ouvrent tout seuls</summary><ol class="kguide">
+    <li>Raccourcis › Automatisation › ＋ › <b>Alarme</b> › « Est arrêtée » › Exécuter immédiatement › action <b>Ouvrir les URL</b> <code>${PORTE_URL.replace("#porte","#matin")}</code>.</li>
+    <li>＋ › <b>Heure de la journée</b> › 21 h 30, tous les jours › Exécuter immédiatement › Ouvrir les URL <code>${PORTE_URL.replace("#porte","#soir")}</code>.</li>
+    <li>＋ › Heure de la journée › 18 h, chaque semaine le dimanche › Ouvrir les URL <code>${PORTE_URL.replace("#porte","#bilan")}</code>.</li>
+    <li>Si le téléphone est verrouillé à ce moment-là, iOS affiche une notification : touche-la.</li></ol></details>
+  <details><summary>5 · Le gris, pour casser l'attrait</summary><ol class="kguide">
+    <li>Réglages › Accessibilité › Affichage et taille du texte › Filtres de couleur › <b>Niveaux de gris</b>.</li>
+    <li>Réglages › Accessibilité › Raccourci d'accessibilité › coche <b>Filtres de couleur</b> : un triple clic sur le bouton latéral bascule couleur/gris.</li>
+    <li>L'idée : gris par défaut, la couleur pour les photos. Les fils colorés perdent beaucoup de leur pouvoir.</li></ol></details>
+  <details><summary>6 · La nuit</summary><ol class="kguide">
+    <li>Réglages › Concentration › Sommeil : un horaire de coucher, l'écran verrouillé assombri.</li>
+    <li>Le chargeur hors de la chambre — le rituel du soir te le redemande chaque jour. Un vrai réveil sur la table de nuit vaut mieux que le téléphone.</li></ol></details>`;
+}
+function openTel(){ sheet(`<h3>📱 Mon téléphone, un outil</h3>${telHtml().replace(/<details>/,"<details open>")}<button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`); }
+
+/* ---- la synchro des rituels : textes = le local d'abord ; coches = union ---- */
+function accMerge(Rc){
+  if(!Rc) return false; const C=acc(); let ch=false;
+  ["focus","demain"].forEach(k=>Object.keys(Rc[k]||{}).forEach(d=>{ if(!C[k][d]&&Rc[k][d]){ C[k][d]=Rc[k][d]; ch=true; } }));
+  Object.keys(Rc.rit||{}).forEach(d=>{ const a=C.rit[d]=C.rit[d]||{}, b=Rc.rit[d]||{};
+    ["m","s","tel"].forEach(x=>{ if(b[x]&&!a[x]){ a[x]=b[x]; ch=true; } }); });
+  Object.keys(Rc.bilans||{}).forEach(w=>{ const b=Rc.bilans[w]; if(b&&(!C.bilans[w]||(b.t||0)>(C.bilans[w].t||0))){ C.bilans[w]=b; ch=true; } });
+  Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
+  return ch;
+}
+
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }
@@ -3097,16 +3407,21 @@ function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.
 applyTheme();
 rollDay();
 chkPrune();
-cad(); cadPrune(); cfApply();
+cad(); acc(); cadPrune(); cfApply(); focusResume();
 render();
 syncSoon(900);
 /* lien direct : …/pointage/#candidatures ouvre le suivi */
 function cHash(){ if(/^#(candidatures|suivi)$/i.test(location.hash)) cAllSheet();
   else if(/^#porte$/i.test(location.hash)) openPorte();
-  else if(/^#cadre$/i.test(location.hash)) openCadre(); }
+  else if(/^#cadre$/i.test(location.hash)) openCadre();
+  else if(/^#matin$/i.test(location.hash)) openMatin();
+  else if(/^#soir$/i.test(location.hash)) openSoir();
+  else if(/^#bilan$/i.test(location.hash)) openBilan();
+  else if(/^#focus$/i.test(location.hash)) openFocus();
+  else if(/^#tel$/i.test(location.hash)) openTel(); }
 cHash();
 addEventListener("hashchange",cHash);
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); syncSoon(400); } });
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); syncSoon(400); focusResume(); } });
 /* deux onglets ouverts sur le même appareil : on recharge ce que l'autre a écrit */
 addEventListener("storage",e=>{
   if(e.key!==KEY||!e.newValue) return;
