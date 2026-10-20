@@ -601,6 +601,9 @@
   .kcalrow.now i{color:var(--accent)}
   .kcalrow b{display:block;font-weight:800;font-size:14.5px;overflow-wrap:anywhere;line-height:1.3}
   .kcalrow small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+  .kcalh{display:flex;justify-content:space-between;align-items:baseline;padding:12px 0 4px}
+  .kcalh b{font-family:var(--disp);font-size:15px;font-weight:800}
+  .kcalh span{font-size:12px;color:var(--muted);font-weight:700}
   .kcalstale{font-size:11.5px;color:var(--accent);font-weight:700;padding:0 0 10px}
   .kday{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:16px 0 0}
   .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px;margin-top:14px}
@@ -904,6 +907,7 @@ function render(){
     </header>
     <div class="rule"></div>
     ${modeHtml()}
+    ${calHtml()}
     ${ritHtml()}
     ${echHtml()}
     <div class="summary" style="margin-top:14px">
@@ -918,7 +922,6 @@ function render(){
     ${banHtml()}
     ${runHtml}
     ${choseHtml()}
-    ${calHtml()}
     ${appListHtml("prio")}
     <div style="height:14px"></div>
     <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
@@ -3494,7 +3497,7 @@ const POINTAGE_URL="https://niclaeysthomas-ctrl.github.io/pointage/";
 /* ---- l'agenda de l'iPhone ---- */
 const COURS_RE=/\b(cours|td|tp|cm|amphi|partiel|exam|examen|colle|conf[ée]rence|s[ée]minaire|lecture|class)\b/i;
 function calGet(){ if(!S.cal||!Array.isArray(S.cal.ev)) S.cal={at:0,ev:[]}; return S.cal; }
-function isCours(e){ const L=S.calCours; if(Array.isArray(L)&&L.length) return L.includes(e.c); return COURS_RE.test(e.t||""); }
+function isCours(e){ const L=S.calCours; if(Array.isArray(L)&&L.length) return L.includes(e.c); return COURS_RE.test(e.t||"")||/escp|école|ecole|univ|cours/i.test(e.c||""); }
 function calImport(raw){
   const ev=[];
   String(raw||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(l=>{
@@ -3517,15 +3520,18 @@ function calNext(){ const n=Date.now(); return calGet().ev.filter(e=>!e.ad&&e.s>
 function coursNow(){ return calNow().find(isCours)||null; }
 function hhmmOf(ms){ const d=new Date(ms); return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
 function memeJour(a,b){ return new Date(a).toDateString()===new Date(b).toDateString(); }
-function calStale(){ const C=calGet(); return C.at&&Date.now()-C.at>36*36e5; }
+function calStale(){ const C=calGet(); return C.at&&Date.now()-C.at>21*864e5; }
+function calDayLbl(ms){ const n=Date.now(); if(memeJour(ms,n)) return "Aujourd'hui"; if(memeJour(ms,n+864e5)) return "Demain";
+  return new Date(ms).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"short"}); }
 function calHtml(){
   const C=calGet(); if(!C.at) return "";
-  const now=calNow()[0], nx=calNext(), n=Date.now(); let h="";
+  const n=Date.now(), fut=C.ev.filter(e=>!e.ad&&e.e>n), now=fut.find(e=>e.s<=n), next=fut.filter(e=>e.s>n).slice(0,4);
+  let h=`<div class="kcalh"><b>🎓 Mes prochains cours</b><span>tout voir ›</span></div>`;
   if(now) h+=`<div class="kcalrow now"><span>${isCours(now)?"🎓":"📍"}</span><div><i>En ce moment · jusqu'à ${hhmmOf(now.e)}</i><b>${esc(now.t)}</b>${now.l?`<small>${esc(now.l)}</small>`:""}</div></div>`;
-  if(nx&&nx.s-n<16*36e5){ const m=Math.round((nx.s-n)/60000);
-    h+=`<div class="kcalrow"><span>${isCours(nx)?"🎓":"🕐"}</span><div><i>Ensuite · ${memeJour(nx.s,n)?"à "+hhmmOf(nx.s):"demain "+hhmmOf(nx.s)} · ${fmtIn(m)}</i><b>${esc(nx.t)}</b>${nx.l?`<small>${esc(nx.l)}</small>`:""}</div></div>`; }
-  if(!h) h=`<div class="kcalrow"><span>📅</span><div><i>Agenda</i><b>Plus rien de prévu aujourd'hui</b></div></div>`;
-  if(calStale()) h+=`<div class="kcalstale">Agenda lu il y a ${Math.round((n-C.at)/36e5)} h : touche l'icône Pointage pour le rafraîchir.</div>`;
+  next.forEach((e,k)=>{ const m=Math.round((e.s-n)/60000);
+    h+=`<div class="kcalrow ${k===0&&!now?"now":""}"><span>${isCours(e)?"🎓":"🕐"}</span><div><i>${calDayLbl(e.s)} · ${hhmmOf(e.s)}–${hhmmOf(e.e)}${k===0&&m<36*60?" · "+fmtIn(m):""}</i><b>${esc(e.t)}</b>${e.l?`<small>${esc(e.l)}</small>`:""}</div></div>`; });
+  if(!now&&!next.length) h+=`<div class="kcalrow"><span>📅</span><div><i>Agenda</i><b>Aucun cours à venir dans l'agenda importé</b></div></div>`;
+  if(calStale()) h+=`<div class="kcalstale">Agenda importé il y a ${Math.round((n-C.at)/864e5)} jours : pense à le réimporter.</div>`;
   return `<div class="kcal" onclick="openCal()">${h}</div>`;
 }
 let calCals=[];
