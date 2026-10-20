@@ -241,7 +241,7 @@ const KNOWN=new Set(APPS.flatMap(a=>a.keys));
 /* Le jeton GitHub du Pointage vit aussi dans ce stockage. Un coffre se transporte,
    se range dans Fichiers, s'envoie par mail : un secret n'a rien à y faire. Il est
    donc ignoré à l'export, et préservé quand un import efface tout. */
-const SECRET=new Set(["pointage_gh_token"]);
+const SECRET=new Set(["pointage_gh_token","pointage_ecran"]);
 
 /* ---------- utilitaires ---------- */
 function bytes(s){ return s==null?0:new Blob([s]).size; }

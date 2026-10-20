@@ -476,6 +476,83 @@
   .rvdate{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
   .cmore{display:block;width:100%;border:none;background:none;color:var(--accent);font-weight:800;font-size:13.5px;padding:10px 0 2px;cursor:pointer}
   @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+
+  /* ---- LE CADRE : porte Instagram, coffre à code, anti-abandon ---- */
+  .kcard{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:0 0 14px;border:none;border-radius:15px;
+    padding:13px 15px;font-family:var(--disp);font-size:14px;font-weight:800;cursor:pointer;background:var(--card);color:var(--ink);
+    box-shadow:var(--shadow);text-align:left;line-height:1.3}
+  .kcard:active{transform:scale(.98)}
+  .kcard.lock{color:var(--muted)}
+  .kcard.ready{background:var(--good-soft);color:var(--good)}
+  .kcard.open{background:var(--accent-soft);color:var(--accent)}
+  .kdots{display:flex;gap:4px;flex:none}
+  .kdots i,.kdotsbig i{width:9px;height:9px;border-radius:50%;background:var(--line2);display:block}
+  .kdots i.on,.kdotsbig i.on{background:var(--accent)}
+  .kdotsbig{display:flex;gap:7px;justify-content:center;margin:0 0 14px}
+  .kdotsbig i{width:12px;height:12px}
+  .kbig{font-family:var(--disp);font-size:22px;font-weight:800;line-height:1.2;text-align:center;margin:4px 0 8px}
+  .ksub{color:var(--muted);font-size:13.5px;line-height:1.55;text-align:center}
+  .ksub b{color:var(--ink)}
+  .kprog{height:9px;background:var(--card2);border-radius:99px;overflow:hidden;margin:14px 0 8px}
+  .kprog i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .kchips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .kchip{border:2px solid var(--line);background:var(--card2);border-radius:14px;padding:12px 8px;font-weight:800;font-size:14px;
+    cursor:pointer;color:var(--ink);font-family:inherit}
+  .kchip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .krows{margin-top:12px}
+  .krow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .krow:last-child{border-bottom:none}
+  .krow .ke{font-size:18px;width:26px;text-align:center;flex:none}
+  .krow .kn{flex:1;min-width:0;font-weight:750;font-size:14.5px}
+  .krow .kn small{display:block;color:var(--muted);font-weight:600;font-size:12px;margin-top:1px}
+  .krow .kok{font-weight:800;font-size:12px;padding:4px 9px;border-radius:99px;background:var(--card2);color:var(--muted);flex:none}
+  .krow .kok.on{background:var(--good-soft);color:var(--good)}
+  .krow button{border:none;background:var(--accent-soft);color:var(--accent);font-weight:800;border-radius:10px;padding:8px 11px;
+    cursor:pointer;font-size:12.5px;flex:none}
+  .kladder{margin-top:16px;font-size:12px;color:var(--muted);line-height:1.6;text-align:center}
+  .klink{display:block;width:100%;background:none;border:none;color:var(--muted);font-size:12.5px;font-weight:700;padding:12px 0 0;
+    cursor:pointer;text-decoration:underline;font-family:inherit}
+  .kwhy{margin-top:14px;padding:13px 15px;border-radius:14px;background:var(--card2);font-size:14px;line-height:1.55;font-style:italic;
+    white-space:pre-wrap;overflow-wrap:anywhere}
+  .kwhy b{display:block;font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+  .kcount{font-family:var(--disp);font-size:64px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;color:var(--accent);
+    line-height:1;margin:10px 0}
+  .kban{border-radius:16px;padding:13px 15px;margin:4px 0 12px;font-size:13.5px;line-height:1.5;background:var(--accent-soft);
+    border-left:4px solid var(--accent)}
+  .kban b{font-weight:800}
+  .kban.min{background:var(--good-soft);border-left-color:var(--good)}
+  .kban i{display:block;margin-top:6px;opacity:.85;overflow-wrap:anywhere}
+  .kban button{margin-top:9px;border:none;background:var(--card);color:var(--ink);font-weight:800;border-radius:11px;padding:9px 12px;
+    cursor:pointer;font-size:13px;font-family:inherit}
+  .ksec{margin-top:22px}
+  .ksec>h4{font-family:var(--disp);font-size:16px;font-weight:800;margin-bottom:4px}
+  .ksec>p,.ksec p.kp{color:var(--muted);font-size:12.5px;line-height:1.55;margin-bottom:8px}
+  .ksec p b{color:var(--ink)}
+  .kstp{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .kstp .kl{flex:1;min-width:0;font-weight:700;font-size:14px}
+  .kstp .kl small{display:block;color:var(--muted);font-weight:600;font-size:11.5px;margin-top:2px;line-height:1.4}
+  .kstp .kl small.pend{color:var(--accent)}
+  .kstp .kl small.pend a{color:var(--accent);font-weight:800}
+  .kstp .kv{font-family:var(--disp);font-weight:800;font-size:16px;min-width:58px;text-align:center;flex:none}
+  .kstp button{min-width:36px;height:36px;border-radius:11px;border:none;background:var(--card2);color:var(--ink);font-size:17px;
+    font-weight:800;cursor:pointer;flex:none;font-family:inherit;padding:0 10px}
+  .kstp button.t{font-size:13px}
+  .kstp select{background:var(--card2);border:none;border-radius:11px;color:var(--ink);font-weight:800;font-size:14px;padding:9px 10px;font-family:inherit}
+  .kcode{font-family:var(--mono);font-size:46px;font-weight:800;letter-spacing:.3em;text-align:center;margin:12px 0;padding:14px 0 14px .3em;
+    border-radius:16px;background:var(--card2)}
+  .kguide{margin:6px 0 0 18px;font-size:13px;line-height:1.6}
+  .kguide li{margin-bottom:9px}
+  .kguide code{font-family:var(--mono);font-size:11.5px;background:var(--card2);padding:1px 5px;border-radius:6px;overflow-wrap:anywhere}
+  .ksec details{border-radius:13px;background:var(--card2);padding:11px 13px;margin-top:8px}
+  .ksec summary{font-weight:800;font-size:14px;cursor:pointer}
+  .ksec details[open] summary{margin-bottom:6px}
+  .ksec textarea{width:100%;min-height:90px;background:var(--card2);border:2px solid transparent;border-radius:13px;color:var(--ink);
+    padding:12px;font-size:15px;font-family:inherit;line-height:1.5;resize:vertical}
+  .ksec textarea:focus{outline:none;border-color:var(--accent)}
+  .khist{width:100%;border-collapse:collapse;font-size:12.5px}
+  .khist td,.khist th{padding:7px 4px;border-bottom:1px solid var(--line);text-align:center}
+  .khist th{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .khist td:first-child,.khist th:first-child{text-align:left}
 </style>
 </head>
 <body>
@@ -739,6 +816,7 @@ function render(){
      dans le HTML qu'on remplace, et une synchro peut déclencher un rendu. */
   const ae=document.activeElement;
   const keep = ae && ae.id==="agIn" ? {v:ae.value, s:ae.selectionStart} : null;
+  cfApply(); const ch=chaine();
 
   document.getElementById("app").innerHTML=`
     <header>
@@ -753,16 +831,17 @@ function render(){
     <div class="rule"></div>
 
     <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
-
+    ${banHtml()}
     <div class="summary">
       <div class="sumhead">
         <div class="frac">${done}<small>/${total}</small></div>
         <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING + 5 candidatures ✨"}</div>
       </div>
       <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}<i class="${cOk?"on":""}"></i></div>
-      <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
+      <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span><span class="dot"></span><span onclick="openCadre()" style="cursor:pointer">🔗 <b>${ch.n} j</b> de chaîne · 🃏 ${ch.left}</span></div>
       ${briefHeadHtml()}
     </div>
+    ${pCardHtml()}
     ${runHtml}
     ${appListHtml()}
     <div style="height:16px"></div>
@@ -779,6 +858,10 @@ function render(){
       <button onclick="openLauncher()">🚀 Mes apps</button>
       <button onclick="syncOpen()">🔗 Appareils</button>
       <button onclick="bkSheet()">💾 Sauver</button>
+    </div>
+    <div class="fabrow b">
+      <button onclick="openPorte()">🚪 Porte Instagram</button>
+      <button onclick="openCadre()">🛡️ Mon cadre</button>
     </div>
     ${bkNudgeHtml()}
   `;
@@ -2343,7 +2426,7 @@ function syncErr(e){
    le chrono en cours, le thème, le lien lui-même. */
 function syncPayload(){
   return {v:1, ts:Date.now(), dev:syncDevice(), apps:S.apps, appsMod:S.appsMod||0, st:S.st,
-          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs(), cands:cAll()};
+          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs(), cands:cAll(), cadre:cad()};
 }
 /* Deux appareils arrivent au même contenu mais pas au même ordre de clés ni de
    tâches. Sans mise à plat, chacun croirait l'autre différent et republierait
@@ -2439,6 +2522,7 @@ function syncMerge(R){
   const cb=CA.length;
   S.cands=CA.filter(x=>!((T["cand:"+x.id]||0)>=(x.mod||0)));
   if(S.cands.length!==cb) ch=true;
+  if(cadMerge(R.cadre)) ch=true;
   return ch;
 }
 
@@ -2630,7 +2714,376 @@ function bkImport(inp){
 /* un fichier du Coffre contient l'état brut : on le remet au format de la synchro */
 function syncPayloadOf(x){
   return {apps:x.apps||[], appsMod:x.appsMod||0, st:x.st||{}, chk:x.chk||{}, journal:x.journal||{},
-          agenda:x.agenda||[], tomb:x.tomb||{}, cands:x.cands||[]};
+          agenda:x.agenda||[], tomb:x.tomb||{}, cands:x.cands||[], cadre:x.cadre||null};
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE CADRE — le Pointage comme système anti-addiction.
+   • La porte : Instagram se mérite. Le 1er ticket du jour s'ouvre quand
+     les priorités sont faites ; chaque ticket suivant coûte un effort utile
+     deux fois plus long que le précédent ; plafond par jour. Le Pointage
+     ne peut rien bloquer seul : le plafond dur, c'est Temps d'écran.
+   • Le coffre : le code Temps d'écran, inventé ici, montré une fois,
+     rendu seulement après un délai d'attente. Il ne quitte jamais cet
+     appareil (ni synchro, ni Coffre).
+   • Anti-abandon : chaîne avec jokers, « jamais deux fois », jour minimum,
+     et des règles qu'on durcit tout de suite mais qu'on n'assouplit qu'en 48 h.
+   ═══════════════════════════════════════════════════════════════════ */
+const PORTE_WEB="https://www.instagram.com/";
+const PORTE_URL="https://niclaeysthomas-ctrl.github.io/pointage/#porte";
+const SC_NAME="Porte Instagram";
+const DELAI_H=48;
+const CF_DEF={tmin:10, cap:3, base:20, prio:1, sc:0};
+const INTENTS=[{id:"msg",e:"💬",l:"Messages"},{id:"post",e:"📸",l:"Publier"},{id:"precis",e:"🎯",l:"Un truc précis"},{id:"scroll",e:"🌀",l:"Juste scroller"}];
+function intLbl(id){ const x=INTENTS.find(i=>i.id===id); return x?x.e+" "+x.l:(id==="urgence"?"🆘 Urgence":""); }
+
+function cad(){
+  if(!S.cadre) S.cadre={};
+  const C=S.cadre;
+  if(!C.conf) C.conf={...CF_DEF};
+  Object.keys(CF_DEF).forEach(k=>{ if(C.conf[k]==null) C.conf[k]=CF_DEF[k]; });
+  if(!Array.isArray(C.pend)) C.pend=[];
+  if(!C.log) C.log={};
+  if(!Array.isArray(C.passe)) C.passe=[];
+  if(!C.minDay) C.minDay={};
+  if(!C.ren) C.ren={};
+  if(C.why==null) C.why="";
+  if(!C.start) C.start=today();
+  if(!C.mod) C.mod=0;
+  return C;
+}
+function cadTouch(){ cad().mod=Date.now(); }
+function cadPrune(){ const C=cad(), lim=dayShift(today(),-60);
+  ["log","minDay","ren"].forEach(k=>Object.keys(C[k]).forEach(d=>{ if(d<lim) delete C[k][d]; }));
+  C.passe=C.passe.filter(t=>t>Date.now()-60*864e5); }
+
+/* ---- les règles : durcir = tout de suite ; assouplir = dans 48 h ---- */
+const CF_LOOSE={tmin:(a,b)=>b>a, cap:(a,b)=>b>a, base:(a,b)=>b<a, prio:(a,b)=>b<a};
+function fmtCf(k,v){ return k==="tmin"||k==="base"?v+" min":k==="cap"?String(v):k==="prio"?(v?"exigées":"non exigées"):(v?"oui":"non"); }
+function fmtLeft(at){ const m=Math.max(0,Math.ceil((at-Date.now())/60000)); const h=Math.floor(m/60);
+  return h>=24?Math.floor(h/24)+" j "+(h%24)+" h":h?h+" h "+pad2(m%60):m+" min"; }
+function cfSet(k,v){
+  const C=cad(), cur=C.conf[k];
+  C.pend=C.pend.filter(p=>p.k!==k);                      // une nouvelle demande remplace l'ancienne
+  if(v!==cur){
+    if(CF_LOOSE[k]&&CF_LOOSE[k](cur,v)){ C.pend.push({k,v,at:Date.now()+DELAI_H*36e5}); toast("⏳ Assouplissement programmé : effectif dans 48 h"); }
+    else { C.conf[k]=v; toast("✓ Appliqué tout de suite"); }
+  }
+  cadTouch(); save();
+}
+function cfStep(k,delta,min,max){
+  const C=cad(), p=C.pend.find(x=>x.k===k), from=p?p.v:C.conf[k];
+  cfSet(k,Math.max(min,Math.min(max,from+delta))); openCadre(true);
+}
+function cfCancel(k){ const C=cad(); C.pend=C.pend.filter(p=>p.k!==k); cadTouch(); save(); toast("Assouplissement annulé 💪"); }
+function cfApply(){
+  const C=cad(), now=Date.now(); let ch=false;
+  C.pend=C.pend.filter(p=>{ if(p.at<=now){ C.conf[p.k]=p.v; ch=true; return false; } return true; });
+  if(ch){ cadTouch(); save(); }
+}
+
+/* ---- l'effort utile : chronos du Pointage, candidatures, séances FORGE ---- */
+function forgeMin(d){
+  try{ const F=JSON.parse(localStorage.getItem("forge_v2")||"null"); if(!F) return null;
+    let m=0; ["workoutLog","mobLog","boxeLog"].forEach(k=>(F[k]||[]).forEach(x=>{ if(x.date===d) m+=(+x.dur||0); }));
+    return m; }catch(e){ return null; }
+}
+function isForgeApp(a){ return /\/forge\/?$/.test(a.url||""); }
+function effTotal(){
+  const t=today(), fm=forgeMin(t);
+  let m=0;
+  S.apps.forEach(a=>{ if(fm!=null&&isForgeApp(a)) return; m+=stOf(a.id).min[t]||0; });
+  if(S.run){ const a=S.apps.find(x=>x.id===S.run.id); if(a&&!(fm!=null&&isForgeApp(a))) m+=(Date.now()-S.run.t0)/60000; }
+  return m+cToday()*10+(fm||0);
+}
+
+/* ---- la porte ---- */
+function pLog(d){ return cad().log[d||today()]||[]; }
+function pTickets(){ return pLog().filter(x=>!x.passe); }
+function pActive(){ const l=pLog(); const x=l[l.length-1]; if(!x) return null;
+  const end=x.t+x.min*60000; return Date.now()<end?{...x,left:Math.ceil((end-Date.now())/60000)}:null; }
+function prioOk(){ const AC=catsActives(); return AC.every(c=>catDone(c.id)); }
+function pCost(k){ return k<=1?0:cad().conf.base*Math.pow(2,k-2); }
+function pEffSince(){ const tk=pTickets(), last=tk[tk.length-1]; return Math.max(0,effTotal()-(last?(last.eff||0):0)); }
+function pState(){
+  const C=cad(), n=pTickets().length, k=n+1, act=pActive();
+  if(act) return {s:"open",act,n};
+  if(n>=C.conf.cap) return {s:"closed",n};
+  if(k===1&&C.conf.prio&&!prioOk()) return {s:"prio",k,n};
+  const cost=pCost(k), have=Math.floor(pEffSince());
+  if(have<cost) return {s:"effort",k,n,cost,have};
+  return {s:"ready",k,n,cost};
+}
+function pDots(big){ const C=cad(), used=pTickets().length;
+  return `<span class="${big?"kdotsbig":"kdots"}">${Array.from({length:C.conf.cap},(_,i)=>`<i class="${i<used?"on":""}"></i>`).join("")}</span>`; }
+function pCardHtml(){
+  const st=pState(), C=cad(); let cls="lock", txt;
+  if(st.s==="open"){ cls="open"; txt="⏳ Instagram ouvert · encore "+st.act.left+" min"; }
+  else if(st.s==="closed") txt="🚪 Instagram : fermé pour aujourd'hui";
+  else if(st.s==="prio") txt="🔒 Instagram : d'abord tes priorités";
+  else if(st.s==="effort") txt="🔒 Instagram · ticket "+st.k+" : encore "+(st.cost-st.have)+" min d'effort";
+  else { cls="ready"; txt="🎟️ Instagram · ticket "+st.k+" prêt ("+C.conf.tmin+" min)"; }
+  return `<button class="kcard ${cls}" onclick="openPorte()"><span>${txt}</span>${pDots()}</button>`;
+}
+function videIci(){ return !S.apps.some(a=>stOf(a.id).days.length) && !cAll().length; }
+let pIntent="", pTimer=null;
+function openPorte(){
+  cfApply(); clearInterval(pTimer);
+  const C=cad(), cf=C.conf, st=pState();
+  let body="";
+  if(st.s==="open"){
+    body=`<div class="kbig">⏳ Ouvert · encore ${st.act.left} min</div>
+      <div class="ksub">${st.act.passe?"Passe-droit en cours":"Ticket "+st.act.n+" en cours"}${st.act.intent?" · "+intLbl(st.act.intent):""}. Y retourner ne coûte rien tant que le temps n'est pas écoulé.</div>
+      <button class="btn" onclick="pGo()">↗ Retourner sur Instagram</button>`;
+  }else if(st.s==="closed"){
+    const why=C.why.trim();
+    body=`<div class="kbig">🚪 Fermé pour aujourd'hui</div>
+      <div class="ksub">${cf.cap} ticket${cf.cap>1?"s":""} utilisé${cf.cap>1?"s":""} : c'est ton plafond, et Temps d'écran le tient aussi. Demain, ça repart de zéro.</div>
+      ${why?`<div class="kwhy"><b>Ton pourquoi</b>${esc(why)}</div>`:""}`;
+  }else if(st.s==="prio"){
+    const AC=catsActives();
+    body=`<div class="kbig">🔒 D'abord tes priorités</div>
+      <div class="ksub">Le premier ticket du jour s'ouvre quand ${AC.map(c=>esc(c.nom)).join(", ")} ${AC.length>1?"sont faits":"est fait"}.${C.minDay[today()]?" Jour minimum : 5 minutes par priorité suffisent.":""}</div>
+      <div class="krows">${AC.map(c=>{ const ok=catDone(c.id), a=(catPicksSafe(c.id)[0]||appsOfCat(c.id)[0]);
+        return `<div class="krow"><span class="ke">${c.e}</span><div class="kn">${esc(c.nom)}${a?`<small>${esc(a.name)}</small>`:""}</div>
+          ${ok?`<span class="kok on">✓ fait</span>`:a&&a.url?`<button onclick="openById('${a.id}')">↗ Ouvrir</button>`:`<span class="kok">à faire</span>`}</div>`; }).join("")}</div>
+      ${videIci()?`<div class="synote">Aucune donnée dans ce navigateur. Si tes coches sont dans l'app de l'écran d'accueil, c'est normal : sur iPhone, elle ne partage pas ses données avec Safari. Voir 🛡️ Mon cadre › Installer sur l'iPhone, étape 1.</div>`:""}`;
+  }else if(st.s==="effort"){
+    const pct=Math.min(100,Math.round(st.have/st.cost*100));
+    body=`<div class="kbig">🔒 Ticket ${st.k} : ${st.cost} min d'effort utile</div>
+      <div class="kprog"><i style="width:${pct}%"></i></div>
+      <div class="ksub">Tu en as <b>${st.have} min</b> depuis ton dernier ticket. Encore <b>${st.cost-st.have} min</b>.</div>
+      <div class="krows">
+        <div class="krow"><span class="ke">▶️</span><div class="kn">Le chrono d'une app<small>« Commencer » sur n'importe quelle app de ta liste : chaque minute compte</small></div><button onclick="closeOv();render()">Choisir</button></div>
+        <div class="krow"><span class="ke">📋</span><div class="kn">Une candidature<small>chaque candidature envoyée vaut 10 min</small></div><button onclick="closeOv();cPlus()">＋1</button></div>
+        <div class="krow"><span class="ke">🥊</span><div class="kn">Une séance FORGE<small>${forgeMin(today())!=null?"sa durée compte toute seule":"lance le chrono de FORGE dans ta liste pendant la séance"}</small></div></div>
+      </div>`;
+  }else{
+    body=`<div class="kbig">🎟️ Ticket ${st.k} prêt · ${cf.tmin} min</div>
+      <div class="ksub">Tu viens pour quoi ?</div>
+      <div class="kchips">${INTENTS.map(i=>`<button class="kchip" data-i="${i.id}" onclick="pPick('${i.id}')">${i.e} ${i.l}</button>`).join("")}</div>
+      <button class="btn" id="pNext" disabled style="opacity:.45" onclick="pBreathe()">Respirer 10 s, puis ouvrir</button>`;
+  }
+  const lad=Array.from({length:cf.cap},(_,i)=>i===0?(cf.prio?"1 : priorités":"1 : libre"):(i+1)+" : +"+pCost(i+1)+" min").join(" · ");
+  pIntent="";
+  sheet(`<h3>📸 La porte d'Instagram</h3>${pDots(true)}${body}
+    <div class="kladder">Tickets de ${cf.tmin} min — ${lad}<br>Effort utile : chronos des apps, candidatures (10 min chacune), séances FORGE.</div>
+    ${st.s!=="open"?(passeDispo()?`<button class="klink" onclick="pPasse()">🆘 Urgence ? Passe-droit (1 par semaine, 5 min)</button>`:`<button class="klink" style="text-decoration:none;cursor:default">Passe-droit déjà utilisé · de nouveau dans ${fmtLeft(passeNext())}</button>`):""}
+    <button class="klink" onclick="openCadre()">🛡️ Règles, coffre à code, installation</button>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+function pPick(id){ pIntent=id;
+  document.querySelectorAll(".kchip").forEach(b=>b.classList.toggle("on",b.dataset.i===id));
+  const b=document.getElementById("pNext"); if(b){ b.disabled=false; b.style.opacity=""; } }
+function pBreathe(){
+  if(!pIntent) return;
+  const C=cad(), why=C.why.trim(); let n=10;
+  sheet(`<h3>Une respiration</h3>
+    <div class="kcount" id="pCnt">${n}</div>
+    <div class="ksub">Inspire 4 s, expire 6 s. Tu viens pour : <b>${intLbl(pIntent)}</b>, ${C.conf.tmin} min.${pIntent==="scroll"?" C'est permis — mais c'est toi qui choisis, pas le fil.":""}</div>
+    <div class="kwhy"><b>Ton pourquoi</b>${why?esc(why):"Pas encore écrit. Un jour où tu te sens bien, ouvre 🛡️ Mon cadre et écris pourquoi tu fais tout ça."}</div>
+    <button class="btn" id="pOpen" disabled style="opacity:.45" onclick="pUnlock()">↗ Ouvrir Instagram · ${C.conf.tmin} min</button>
+    <button class="btn ghost" onclick="pRenonce()">Finalement non 💪</button>`);
+  clearInterval(pTimer);
+  pTimer=setInterval(()=>{ n--; const el=document.getElementById("pCnt"); if(!el){ clearInterval(pTimer); return; }
+    el.textContent=Math.max(0,n);
+    if(n<=0){ clearInterval(pTimer); const b=document.getElementById("pOpen"); if(b){ b.disabled=false; b.style.opacity=""; } } },1000);
+}
+function pGo(){
+  if(cad().conf.sc) location.href="shortcuts://run-shortcut?name="+encodeURIComponent(SC_NAME);
+  else window.open(PORTE_WEB,"_blank","noopener");
+}
+function pUnlock(passe,raison){
+  clearInterval(pTimer);
+  const C=cad(), t=today(), n=pTickets().length;
+  const e={t:Date.now(), n:passe?0:n+1, intent:pIntent||"", min:passe?5:C.conf.tmin, eff:Math.round(effTotal()*10)/10};
+  if(passe){ e.passe=1; e.why=raison; C.passe.push(e.t); }
+  (C.log[t]=C.log[t]||[]).push(e);
+  save(); closeOv(); render(); pGo();
+}
+function pRenonce(){ clearInterval(pTimer); const C=cad(), t=today(); C.ren[t]=(C.ren[t]||0)+1; save(); closeOv(); render();
+  toast("💪 Bien joué. Le ticket reste dispo pour plus tard."); }
+function passeDispo(){ const lim=Date.now()-7*864e5; return !cad().passe.some(t=>t>lim); }
+function passeNext(){ return Math.max(0,...cad().passe)+7*864e5; }
+function pPasse(){
+  if(!passeDispo()) return;
+  sheet(`<h3>🆘 Passe-droit</h3>
+    <div class="ksub" style="text-align:left">Un seul par semaine, 5 minutes, en dehors des tickets. Pour une vraie urgence : un message à lire, un rendez-vous à confirmer. C'est la soupape qui évite de tout envoyer valser un jour de tension.</div>
+    <div class="fld" style="margin-top:14px"><label>Pourquoi maintenant ?</label><input id="pRaison" placeholder="Ex : répondre à Léa pour ce soir"></div>
+    <button class="btn" onclick="pPasseGo()">Utiliser mon passe-droit</button>
+    <button class="btn ghost" onclick="openPorte()">Retour</button>`);
+}
+function pPasseGo(){ const r=(document.getElementById("pRaison").value||"").trim();
+  if(r.length<8) return toast("Écris en une phrase pourquoi c'est urgent.");
+  pIntent="urgence"; pUnlock(true,r); }
+
+/* ---- la chaîne : un jour compte quand les priorités sont faites ----
+   Un raté isolé est couvert par un joker (2 par mois). Deux ratés de suite
+   cassent la chaîne : c'est la règle « jamais deux fois ». On ne compte qu'à
+   partir du jour où le cadre est arrivé, pour ne punir aucun passé. */
+function dayOk(d){ const AC=catsActives(); return AC.length>0&&AC.every(c=>catDoneDay(c.id,d)); }
+function chaine(){
+  const C=cad(), t=today(); let d=C.start, n=0, prevMiss=false; const used={};
+  while(d<t){
+    if(dayOk(d)){ n++; prevMiss=false; }
+    else { const m=d.slice(0,7);
+      if(!prevMiss&&(used[m]||0)<2){ used[m]=(used[m]||0)+1; }
+      else n=0;
+      prevMiss=true; }
+    d=dayShift(d,1);
+  }
+  const ok=dayOk(t), y=dayShift(t,-1);
+  return {n:n+(ok?1:0), left:Math.max(0,2-(used[t.slice(0,7)]||0)), todayOk:ok, yMiss:C.start<=y&&!dayOk(y)};
+}
+function minDispo(){ const C=cad(), lim=dayShift(today(),-6); return Object.keys(C.minDay).filter(d=>d>=lim).length<2; }
+function setMinDay(){
+  const C=cad(), t=today(); if(C.minDay[t]) return;
+  if(!minDispo()) return toast("Déjà 2 jours minimum cette semaine : aujourd'hui, version normale.");
+  C.minDay[t]=1; save(); render(); toast("😮‍💨 Jour minimum : 5 min par priorité, c'est gagné");
+}
+function banHtml(){
+  const C=cad(), t=today(), ch=chaine(), why=C.why.trim();
+  if(C.minDay[t]) return `<div class="kban min"><b>😮‍💨 Jour minimum.</b> 5 minutes sur chaque priorité suffisent aujourd'hui. Le but n'est pas d'être brillant : c'est de ne pas casser la chaîne.</div>`;
+  if(ch.yMiss&&!ch.todayOk) return `<div class="kban"><b>Hier a manqué — ça arrive à tout le monde.</b> Une seule règle : jamais deux jours de suite. Aujourd'hui, même la version minimum compte.${why?`<i>« ${esc(why)} »</i>`:""}${minDispo()?`<button onclick="setMinDay()">😮‍💨 Passer en jour minimum</button>`:""}</div>`;
+  return "";
+}
+
+/* ---- le coffre à code Temps d'écran (local, jamais synchronisé) ---- */
+const EKEY="pointage_ecran";
+const XK=[23,5,41,17];
+function encC(c){ return btoa(String(c).split("").map((ch,i)=>String.fromCharCode(ch.charCodeAt(0)^XK[i%4])).join("")); }
+function decC(s){ try{ return atob(s).split("").map((ch,i)=>String.fromCharCode(ch.charCodeAt(0)^XK[i%4])).join(""); }catch(e){ return ""; } }
+function ecrGet(){ let E; try{ E=JSON.parse(localStorage.getItem(EKEY)||"null")||{}; }catch(e){ E={}; }
+  if(!E.delay) E.delay=DELAI_H;
+  if(E.pend&&E.pend.at<=Date.now()){ E.delay=E.pend.v; delete E.pend; ecrPut(E); }
+  return E; }
+function ecrPut(E){ try{ localStorage.setItem(EKEY,JSON.stringify(E)); }catch(e){} }
+function rnd4(){ const a=new Uint32Array(1); crypto.getRandomValues(a); return String(a[0]%10000).padStart(4,"0"); }
+function newCode(){ let c; do{ c=rnd4(); }while(/^(\d)\1{3}$/.test(c)||"0123456789".includes(c)||"9876543210".includes(c)||/^(19|20)\d\d$/.test(c)); return c; }
+function dlTxt(h){ return h>=168?"7 jours":h+" h"; }
+function ecrNew(reset){
+  const E=ecrGet();
+  if(reset&&E.c&&!confirm("Le code actuel sera oublié.\n\nContinue seulement si tu as déjà réinitialisé le code Temps d'écran via Apple (« Code oublié ? »).")) return;
+  E.draft=newCode(); delete E.show; delete E.req; ecrPut(E); openCadre(true);
+}
+function ecrHide(){ const E=ecrGet(); if(!E.draft) return; E.c=encC(E.draft); delete E.draft; E.set=Date.now(); delete E.show; delete E.req; ecrPut(E);
+  toast("🔒 Code caché. Il n'existe plus que dans le coffre."); openCadre(true); }
+function ecrReq(){ const E=ecrGet(), why=cad().why.trim();
+  if(!confirm("Demander le code ?\n\nIl sera disponible dans "+dlTxt(E.delay)+". Tu pourras annuler d'ici là."+(why?"\n\nTon pourquoi : « "+why+" »":""))) return;
+  E.req=Date.now(); ecrPut(E); openCadre(true); }
+function ecrCancel(){ const E=ecrGet(); delete E.req; E.cancel=(E.cancel||0)+1; ecrPut(E); toast("💪 Demande annulée. L'envie est passée."); openCadre(true); }
+function ecrShow(){ const E=ecrGet(); if(!E.req||Date.now()<E.req+E.delay*36e5) return; E.show=1; E.reveals=(E.reveals||0)+1; ecrPut(E); openCadre(true); }
+function ecrRehide(){ const E=ecrGet(); delete E.show; delete E.req; ecrPut(E); toast("🔒 Recaché"); openCadre(true); }
+function ecrDelay(v){ const E=ecrGet(); delete E.pend;
+  if(v>=E.delay){ E.delay=v; toast("✓ Délai allongé tout de suite"); }
+  else { E.pend={v,at:Date.now()+DELAI_H*36e5}; toast("⏳ Délai raccourci dans 48 h"); }
+  ecrPut(E); openCadre(true); }
+function coffreHtml(){
+  const E=ecrGet(), now=Date.now(), dl=E.delay;
+  let h=`<p>Personne autour de toi pour garder ton code ? Le coffre le garde. Il l'invente, te le montre une seule fois, puis ne le rend qu'après <b>${dlTxt(dl)}</b> d'attente.</p>`;
+  if(E.draft) h+=`<div class="kcode">${E.draft}</div>
+    <ol class="kguide"><li>Réglages › Temps d'écran › <b>Verrouiller les réglages de Temps d'écran</b> (ou « Modifier le code »).</li>
+    <li>Tape ce code, deux fois. Ne le note nulle part.</li><li>Reviens ici et touche le bouton : il disparaît.</li></ol>
+    <button class="btn" onclick="ecrHide()">✓ C'est fait, cache-le</button><button class="btn ghost" onclick="ecrNew()">Un autre code</button>`;
+  else if(!E.c) h+=`<button class="btn" onclick="ecrNew()">🎲 Créer mon code</button>`;
+  else if(E.show) h+=`<div class="kcode">${decC(E.c)}</div><button class="btn" onclick="ecrRehide()">🔒 Recacher</button>`;
+  else if(E.req){ const at=E.req+dl*36e5;
+    if(now<at) h+=`<div class="kbig" style="font-size:18px">⏳ Disponible dans ${fmtLeft(at)}</div>
+      <div class="ksub">Si l'envie est passée d'ici là, annule : c'est exactement à ça que sert le délai.</div>
+      <button class="btn ghost" onclick="ecrCancel()">Annuler la demande 💪</button>`;
+    else h+=`<button class="btn" onclick="ecrShow()">👁️ Afficher le code</button><button class="btn ghost" onclick="ecrCancel()">Finalement non, il reste caché</button>`; }
+  else{ const j=Math.floor((now-(E.set||now))/864e5);
+    h+=`<div class="kstp"><div class="kl">🔒 Code caché<small>depuis ${j?j+" jour"+(j>1?"s":""):"aujourd'hui"} · ${E.cancel||0} demande${(E.cancel||0)>1?"s":""} annulée${(E.cancel||0)>1?"s":""}</small></div></div>
+      <button class="btn ghost" onclick="ecrReq()">Demander le code (${dlTxt(dl)} d'attente)</button>
+      <button class="klink" onclick="ecrNew(true)">J'ai dû réinitialiser via Apple : créer un nouveau code</button>`; }
+  h+=`<div class="kstp"><div class="kl">Délai d'attente${E.pend?`<small class="pend">⏳ → ${dlTxt(E.pend.v)} dans ${fmtLeft(E.pend.at)}</small>`:"<small>allonger : tout de suite · raccourcir : dans 48 h</small>"}</div>
+    <select onchange="ecrDelay(+this.value)">${[24,48,168].map(v=>`<option value="${v}" ${v===dl?"selected":""}>${dlTxt(v)}</option>`).join("")}</select></div>
+    <p class="kp" style="margin-top:10px">Honnêtement : c'est un frein, pas une prison. Apple permet de réinitialiser le code avec le mot de passe de ton compte Apple (« Code oublié ? »). Et le code ne vit que dans ce navigateur, sur cet appareil : si tu effaces les données de Safari, il disparaît, et tu passeras par la réinitialisation Apple.</p>`;
+  return h;
+}
+
+/* ---- le guide d'installation, là où on en a besoin : sur le téléphone ---- */
+function guideHtml(){
+  const cf=cad().conf;
+  return `<p>Le Pointage ne peut rien bloquer seul. Ces réglages branchent l'iPhone dessus. Je n'ai pas pu les tester sur un vrai iPhone : si un intitulé diffère, cherche le plus proche.</p>
+  <details><summary>1 · Ouvrir le Pointage dans Safari</summary><ol class="kguide">
+    <li>Sur iPhone, l'app de l'écran d'accueil ne partage pas ses données avec Safari, alors que la porte s'ouvre dans Safari. Il faut donc un seul endroit : Safari.</li>
+    <li>Si tu utilises l'app de l'écran d'accueil : 💾 Sauver › Exporter, puis ouvre le Pointage dans Safari et 💾 Sauver › Importer ce fichier. (Ou relie Safari avec 🔗 Appareils.)</li>
+    <li>Dans Safari : ⋯ › Partager › Sur l'écran d'accueil, <b>décoche « Ouvrir comme app web »</b>, puis Ajouter. Supprime l'ancienne icône.</li></ol></details>
+  <details><summary>2 · Le raccourci « ${SC_NAME} »</summary><ol class="kguide">
+    <li>App Raccourcis › ＋ › nomme-le exactement <b>${SC_NAME}</b>.</li>
+    <li>Action <b>Ajuster la date</b> : Ajouter <b>${cf.tmin}</b> minutes à <b>Date actuelle</b>.</li>
+    <li>Action <b>Formater la date</b> : la date ajustée, format <b>ISO 8601</b>, avec l'heure.</li>
+    <li>Action <b>Enregistrer le fichier</b> : la date formatée, dans le dossier <b>Raccourcis</b>, chemin <code>porte.txt</code>, « Demander où enregistrer » désactivé, « Remplacer si le fichier existe » activé.</li>
+    <li>Action <b>Ouvrir l'app</b> : Instagram.</li>
+    <li>Puis ici : 🛡️ Mon cadre › Raccourci installé › Oui.</li></ol></details>
+  <details><summary>3 · L'automatisation « Instagram ouvert »</summary><ol class="kguide">
+    <li>Raccourcis › Automatisation › ＋ › <b>App</b> › Instagram › « Est ouverte » › <b>Exécuter immédiatement</b>.</li>
+    <li>Action <b>Obtenir le fichier</b> : dossier Raccourcis, chemin <code>porte.txt</code>, « Erreur si introuvable » désactivé.</li>
+    <li>Action <b>Obtenir les dates</b> depuis ce fichier.</li>
+    <li>Action <b>Si</b> : Dates · <b>est après</b> · Date actuelle → ne rien mettre ; dans <b>Sinon</b> : action <b>Ouvrir les URL</b> <code>${PORTE_URL}</code>.</li>
+    <li>Résultat : Instagram s'ouvre librement pendant un ticket ; le reste du temps, il te renvoie à la porte.</li></ol></details>
+  <details><summary>4 · Temps d'écran : le plafond dur</summary><ol class="kguide">
+    <li>Temps d'écran › Limites d'apps › Ajouter une limite › Instagram, et dans Sites web : <code>instagram.com</code> › <b>${cf.cap*cf.tmin} min</b> chaque jour (= ton plafond ici), « Bloquer à la fin de la limite » activé.</li>
+    <li>YouTube, blocage total : supprime l'app ; Contenu et confidentialité › Restrictions de contenu › Contenu web › Limiter les sites web pour adultes › Ne jamais autoriser : <code>youtube.com</code>, <code>www.youtube.com</code>, <code>m.youtube.com</code>, <code>youtu.be</code>.</li>
+    <li>Contenu et confidentialité › Achats sur l'App Store › Installation d'apps : <b>Refuser</b> — sinon on réinstalle YouTube en 20 secondes.</li></ol></details>
+  <details><summary>5 · Verrouiller avec le coffre</summary><ol class="kguide">
+    <li>En dernier : section « Coffre à code » ci-dessus › Créer mon code, tape-le dans Temps d'écran, puis « C'est fait, cache-le ».</li>
+    <li>Vérifie : Instagram hors ticket → la porte s'ouvre ; youtube.com dans Safari → bloqué.</li></ol></details>`;
+}
+function histHtml(){
+  const C=cad(), rows=[];
+  for(let i=0;i<7;i++){ const d=dayShift(today(),-i), L=C.log[d]||[];
+    const min=L.reduce((a,x)=>a+(x.min||0),0), tk=L.filter(x=>!x.passe).length, ps=L.filter(x=>x.passe).length, rn=C.ren[d]||0;
+    rows.push(`<tr><td>${i===0?"Aujourd'hui":new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"})}</td><td>${tk}${ps?" +🆘":""}</td><td>${min} min</td><td>${rn?rn+" 💪":"—"}</td><td>${dayOk(d)?"✓":"—"}</td></tr>`); }
+  return `<table class="khist"><tr><th>Jour</th><th>Tickets</th><th>Max</th><th>Renoncé</th><th>Priorités</th></tr>${rows.join("")}</table>
+    <p class="kp" style="margin-top:8px">« Max » = le temps ouvert par les tickets. Le vrai temps passé, c'est Temps d'écran qui le mesure.</p>`;
+}
+
+function openCadre(keep){
+  cfApply();
+  const C=cad(), cf=C.conf, ch=chaine(), t=today();
+  const shEl=document.getElementById("sheet"), y=keep?shEl.scrollTop:0;
+  const pend=k=>{ const p=C.pend.find(x=>x.k===k);
+    return p?`<small class="pend">⏳ → ${fmtCf(k,p.v)} dans ${fmtLeft(p.at)} · <a href="#" onclick="event.preventDefault();cfCancel('${k}');openCadre(true)">annuler</a></small>`:""; };
+  const stp=(k,label,desc,step,min,max)=>`<div class="kstp"><div class="kl">${label}<small>${desc}</small>${pend(k)}</div>
+    <button onclick="cfStep('${k}',${-step},${min},${max})" aria-label="Moins">−</button><div class="kv">${fmtCf(k,cf[k])}</div><button onclick="cfStep('${k}',${step},${min},${max})" aria-label="Plus">＋</button></div>`;
+  sheet(`<h3>🛡️ Mon cadre</h3>
+    <div class="ksub" style="text-align:left">Le Pointage tient le cadre, Temps d'écran tient le plafond. Les règles se durcissent tout de suite ; pour les assouplir, il faut attendre 48 h — le temps que l'envie passe.</div>
+    <div class="ksec"><h4>💭 Mon pourquoi</h4><p>Écris-le un bon jour. Il s'affiche à la porte d'Instagram et les jours où ça flanche.</p>
+      <textarea id="cWhy" placeholder="Ex : décrocher mon stage en janvier, parler espagnol pour de vrai, être fier de mes soirées.">${esc(C.why)}</textarea></div>
+    <div class="ksec"><h4>🔗 La chaîne</h4><p>Un jour compte quand tes priorités sont faites. Un raté isolé est couvert par un joker (2 par mois) ; deux ratés de suite cassent la chaîne.</p>
+      <div class="kstp"><div class="kl">Chaîne actuelle</div><div class="kv">${ch.n} j</div></div>
+      <div class="kstp"><div class="kl">Jokers restants ce mois-ci</div><div class="kv">${ch.left}/2</div></div>
+      <button class="btn ghost" onclick="setMinDay();openCadre(true)" ${C.minDay[t]?"disabled":""}>${C.minDay[t]?"✓ Aujourd'hui est un jour minimum":"😮‍💨 Jour difficile : passer en jour minimum (2 par semaine)"}</button></div>
+    <div class="ksec"><h4>🚪 Règles de la porte</h4><p>Ticket 1 : tes priorités. Ensuite, chaque ticket coûte deux fois plus d'effort utile que le précédent.</p>
+      ${stp("tmin","Durée d'un ticket","minutes d'Instagram par ticket",5,5,30)}
+      ${stp("cap","Plafond par jour","tickets au maximum",1,1,6)}
+      ${stp("base","Effort pour le ticket 2","puis ×2 à chaque ticket",10,10,90)}
+      <div class="kstp"><div class="kl">Priorités avant le 1er ticket${pend("prio")}</div><button class="t" onclick="cfSet('prio',${cf.prio?0:1});openCadre(true)">${cf.prio?"Exigées":"Non exigées"}</button></div>
+      <div class="kstp"><div class="kl">Raccourci « ${SC_NAME} » installé<small>Oui : la porte ouvre l'app via le raccourci. Non : la version web.</small></div><button class="t" onclick="cfSet('sc',${cf.sc?0:1});openCadre(true)">${cf.sc?"Oui":"Non"}</button></div>
+      <p class="kp" style="margin-top:10px">Plafond : ${cf.cap} × ${cf.tmin} min = <b>${cf.cap*cf.tmin} min par jour</b>. Mets la limite Temps d'écran d'Instagram sur la même valeur.</p></div>
+    <div class="ksec"><h4>🔐 Coffre à code Temps d'écran</h4>${coffreHtml()}</div>
+    <div class="ksec"><h4>📱 Installer sur l'iPhone</h4>${guideHtml()}</div>
+    <div class="ksec"><h4>📊 Instagram, 7 derniers jours</h4>${histHtml()}</div>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+  if(keep) shEl.scrollTop=y;
+  const w=document.getElementById("cWhy");
+  w.oninput=()=>{ C.why=w.value; cadTouch(); save0(); clearTimeout(w._t); w._t=setTimeout(save,1500); };
+}
+
+/* ---- la synchro du cadre : réglages = le plus récent gagne ; journaux = union ---- */
+function cadMerge(Rc){
+  if(!Rc) return false;
+  const C=cad(); let ch=false;
+  if((Rc.mod||0)>(C.mod||0)){ C.conf={...CF_DEF,...(Rc.conf||{})}; C.pend=(Rc.pend||[]).slice(); C.why=Rc.why||""; C.mod=Rc.mod; ch=true; }
+  Object.keys(Rc.log||{}).forEach(d=>{ const L=C.log[d]=C.log[d]||[], seen=new Set(L.map(x=>x.t));
+    (Rc.log[d]||[]).forEach(e=>{ if(e&&!seen.has(e.t)){ L.push(e); ch=true; } }); L.sort((a,b)=>a.t-b.t); });
+  (Rc.passe||[]).forEach(x=>{ if(!C.passe.includes(x)){ C.passe.push(x); ch=true; } });
+  Object.keys(Rc.minDay||{}).forEach(d=>{ if(!C.minDay[d]){ C.minDay[d]=1; ch=true; } });
+  Object.keys(Rc.ren||{}).forEach(d=>{ const v=Math.max(C.ren[d]||0,Rc.ren[d]||0); if(v!==(C.ren[d]||0)){ C.ren[d]=v; ch=true; } });
+  if(Rc.start&&Rc.start<C.start){ C.start=Rc.start; ch=true; }
+  return ch;
 }
 
 /* --- overlay & toast --- */
@@ -2644,10 +3097,13 @@ function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.
 applyTheme();
 rollDay();
 chkPrune();
+cad(); cadPrune(); cfApply();
 render();
 syncSoon(900);
 /* lien direct : …/pointage/#candidatures ouvre le suivi */
-function cHash(){ if(/^#(candidatures|suivi)$/i.test(location.hash)) cAllSheet(); }
+function cHash(){ if(/^#(candidatures|suivi)$/i.test(location.hash)) cAllSheet();
+  else if(/^#porte$/i.test(location.hash)) openPorte();
+  else if(/^#cadre$/i.test(location.hash)) openCadre(); }
 cHash();
 addEventListener("hashchange",cHash);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); syncSoon(400); } });
