@@ -646,6 +646,33 @@
   .kwork-r{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
   .kwork-r b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .kwork-r span{color:var(--muted);flex:none;letter-spacing:.05em}
+
+  /* ---- la proposition de journée ---- */
+  .kjp{background:var(--card);border-radius:18px;padding:12px 14px 10px;margin:12px 0 0;box-shadow:var(--shadow-sm)}
+  .kjp-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .kjp-h b{font-family:var(--disp);font-size:15px;font-weight:800}
+  .kjp-t{display:flex;background:var(--card2);border-radius:10px;padding:3px}
+  .kjp-t button{border:none;background:none;font-family:inherit;font-size:12px;font-weight:800;color:var(--muted);padding:5px 9px;border-radius:8px;cursor:pointer}
+  .kjp-t button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow-sm)}
+  .kjp-s{font-size:12px;color:var(--muted);font-weight:600;margin:4px 0 6px}
+  .kjp-r{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+  .kjp-tm{width:42px;flex:none;font-family:var(--mono);font-size:12px;font-weight:700;line-height:1.25;color:var(--ink)}
+  .kjp-tm small{color:var(--faint);font-weight:600}
+  .kjp-e{font-size:19px;width:24px;text-align:center;flex:none}
+  .kjp-n{flex:1;min-width:0;cursor:pointer}
+  .kjp-n b{display:block;font-size:13.5px;font-weight:750;line-height:1.3}
+  .kjp-n small{display:block;font-size:11.5px;color:var(--muted);font-weight:600;line-height:1.35}
+  .kjp-c{width:30px;height:30px;flex:none;border-radius:9px;border:2px solid var(--line2);background:none;color:#fff;font-weight:800;cursor:pointer}
+  .kjp-r.done .kjp-c{background:var(--good);border-color:var(--good)}
+  .kjp-r.done .kjp-n b{text-decoration:line-through;opacity:.6}
+  .kjp-r.passe{opacity:.55}
+  .kjp-r.now{background:var(--accent-soft);margin:0 -14px;padding-left:14px;padding-right:14px}
+  .kjp-r.cours{background:color-mix(in srgb,#3b82f6 12%,transparent);margin:0 -14px;padding-left:14px;padding-right:14px;border-left:4px solid #3b82f6}
+  .kjp-r.cours .kjp-n b{color:#3b82f6}
+  .kjp-r.fix .kjp-n b{font-weight:650;color:var(--muted)}
+  .kjp-x{font-size:12px;color:var(--muted);padding:8px 0 2px;border-top:1px solid var(--line);line-height:1.5}
+  .kcalrow.dem i{color:#3b82f6}
+  .kcalrow.dem b{color:#3b82f6}
 </style>
 </head>
 <body>
@@ -924,6 +951,7 @@ function render(){
     <div class="rule"></div>
     ${modeHtml()}
     ${calHtml()}
+    ${jpHtml()}
     ${ritHtml()}
     ${echHtml()}
     <div class="summary" style="margin-top:14px">
@@ -2869,7 +2897,7 @@ function cad(){
 }
 function cadTouch(){ cad().mod=Date.now(); }
 function cadPrune(){ const C=cad(), lim=dayShift(today(),-60);
-  ["log","minDay","ren","focus","demain","rit","fs","auto"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
+  ["log","minDay","ren","focus","demain","rit","fs","auto","jp"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
   Object.keys(C.bilans||{}).forEach(w=>{ if(w<dayShift(today(),-200)) delete C.bilans[w]; });
   C.passe=C.passe.filter(t=>t>Date.now()-60*864e5); }
 
@@ -3497,6 +3525,7 @@ function accMerge(Rc){
   Object.keys(Rc.rit||{}).forEach(d=>{ const a=C.rit[d]=C.rit[d]||{}, b=Rc.rit[d]||{};
     ["m","s","tel"].forEach(x=>{ if(b[x]&&!a[x]){ a[x]=b[x]; ch=true; } }); });
   Object.keys(Rc.bilans||{}).forEach(w=>{ const b=Rc.bilans[w]; if(b&&(!C.bilans[w]||(b.t||0)>(C.bilans[w].t||0))){ C.bilans[w]=b; ch=true; } });
+  Object.keys(Rc.jp||{}).forEach(d=>{ const a=(acc().jp=acc().jp||{})[d]=(acc().jp[d]||{}); Object.keys(Rc.jp[d]||{}).forEach(k=>{ if(!a[k]){ a[k]=1; ch=true; } }); });
   if(Array.isArray(Rc.work)){ const W=wAll(), ids=new Set(W.map(x=>x.id)); Rc.work.forEach(x=>{ if(x&&!ids.has(x.id)){ W.push(x); ch=true; } }); }
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
   return ch;
@@ -3552,7 +3581,7 @@ function calHtml(){
   let h=`<div class="kcalh"><b>🎓 Mes prochains cours</b><span>tout voir ›</span></div>`;
   if(now) h+=`<div class="kcalrow now"><span>${isCours(now)?"🎓":"📍"}</span><div><i>En ce moment · jusqu'à ${hhmmOf(now.e)}</i><b>${esc(now.t)}</b>${now.l?`<small>${esc(now.l)}</small>`:""}</div></div>`;
   next.forEach((e,k)=>{ const m=Math.round((e.s-n)/60000);
-    h+=`<div class="kcalrow ${k===0&&!now?"now":""}"><span>${isCours(e)?"🎓":"🕐"}</span><div><i>${calDayLbl(e.s)} · ${hhmmOf(e.s)}–${hhmmOf(e.e)}${k===0&&m<36*60?" · "+fmtIn(m):""}</i><b>${esc(e.t)}</b>${e.l?`<small>${esc(e.l)}</small>`:""}</div></div>`; });
+    h+=`<div class="kcalrow ${k===0&&!now?"now":""} ${memeJour(e.s,n+864e5)?"dem":""}"><span>${isCours(e)?"🎓":"🕐"}</span><div><i>${calDayLbl(e.s)} · ${hhmmOf(e.s)}–${hhmmOf(e.e)}${k===0&&m<36*60?" · "+fmtIn(m):""}</i><b>${esc(e.t)}</b>${e.l?`<small>${esc(e.l)}</small>`:""}</div></div>`; });
   if(!now&&!next.length) h+=`<div class="kcalrow"><span>📅</span><div><i>Agenda</i><b>Aucun cours à venir dans l'agenda importé</b></div></div>`;
   if(calStale()) h+=`<div class="kcalstale">Agenda importé il y a ${Math.round((n-C.at)/864e5)} jours : pense à le réimporter.</div>`;
   return `<div class="kcal" onclick="openCal()">${h}</div>`;
@@ -3868,6 +3897,86 @@ function openWorkLog(){
       :`<div class="ksub" style="margin-top:14px">Aucune séance notée sur 14 jours. La prochaine commence maintenant.</div>`}
     <button class="btn" onclick="openWork()">＋ Noter une séance</button>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LA PROPOSITION DE JOURNÉE — une ligne du temps du lever au coucher.
+   Les cours sont fixes ; le reste est proposé dans les trous, dans l'ordre :
+   étirements, sport FORGE, IELTS, candidatures, priorités, puis le soir.
+   On coche ce qu'on a fait ; une séance de travail cochée ouvre le carnet.
+   ═══════════════════════════════════════════════════════════════════ */
+const JP_DEB=8*60+30, JP_FIN=21*60+30, JP_PAUSE=10;
+let jpDay=null;   // "today" | "tomorrow"
+function jpDate(which){ return which==="tomorrow"?dayShift(today(),1):today(); }
+function jpMsOf(ds,min){ const d=new Date(ds+"T00:00:00"); d.setMinutes(min); return d.getTime(); }
+function jpMinOf(ms){ const d=new Date(ms); return d.getHours()*60+d.getMinutes(); }
+function jpHM(min){ return pad2(Math.floor(min/60))+":"+pad2(min%60); }
+function jpDone(ds){ const C=acc(); if(!C.jp) C.jp={}; return C.jp[ds]||{}; }
+/* FORGE : la séance de ce jour-là (un jour sur deux) */
+function forgeFor(ds){
+  const fp=forgePlan(); if(!fp) return {k:"cali",t:"A",guess:1};
+  if(ds===today()) return fp;
+  if(fp.k==="cali"&&fp.done) return {k:"off"};
+  if(fp.k==="cali") return {k:"cali",t:fp.t};
+  return {k:"cali",t:nextTypeGuess()};
+}
+function nextTypeGuess(){ const F=forgeData(); const L=(F&&F.workoutLog||[]).filter(w=>w.cali).pop(); return L?(L.cali==="A"?"B":"A"):"A"; }
+function jpItems(ds){
+  const out=[], E=ech(), P=E?((E.plan||{})[ds]||[]):[];
+  out.push({id:"reveil",e:"🌅",nom:"Réveil + étirements",sub:"FORGE › Réveil du matin",dur:15,go:"forgeOpen()"});
+  const f=forgeFor(ds);
+  if(f.k==="cali") out.push({id:"sport",e:f.t==="B"?"🤸":"🛫",nom:"Calisthénie "+(f.t||"A")+" + étirements",sub:"FORGE, échauffement compris",dur:75,go:"forgeOpen()",work:"Sport"});
+  else out.push({id:"sport",e:"🥊",nom:"Boxe + étirements",sub:"FORGE · ou un footing de 30 min",dur:55,go:"forgeOpen()",work:"Sport"});
+  P.forEach((x,i)=>out.push({id:"ielts"+i,e:"🇬🇧",nom:"IELTS · "+x[1],sub:x[0]+" min",dur:x[0],go:x[2]?"echGo('"+x[2]+"')":"echGo('today')",work:"IELTS",chk:ds===today()?i:null}));
+  out.push({id:"cands",e:"📨",nom:"5 candidatures",sub:"Une offre, une lettre adaptée, envoyée",dur:60,go:"cPlus()",work:"Candidatures"});
+  catsActives().forEach(c=>{ if(E&&c.id==="anglais") return; const a=appsOfCat(c.id)[0]; if(!a) return;
+    out.push({id:"prio-"+c.id,e:c.e,nom:a.name,sub:c.nom+" · version courte si la journée est chargée",dur:c.id==="closing"?30:20,go:"openById('"+a.id+"')",work:a.name}); });
+  const big=x=>x.id.startsWith("ielts")&&x.dur>=30, small=x=>x.id.startsWith("ielts")&&x.dur<30;
+  return out.filter(x=>!x.id.startsWith("ielts")&&x.id!=="cands").slice(0,2)
+    .concat(out.filter(big),out.filter(x=>x.id==="cands"),out.filter(small),out.filter(x=>x.id.startsWith("prio-")));
+}
+function jpBuild(ds){
+  const isT=ds===today(), now=jpMinOf(Date.now());
+  const fixed=calDay(jpMsOf(ds,12*60)).filter(e=>!e.ad).map(e=>({kind:"cours",id:"c"+e.s,s:Math.max(jpMinOf(e.s),0),f:jpMinOf(e.e),e:isCours(e)?"🎓":"📍",nom:e.t,sub:e.l}));
+  /* trajet avant chaque bloc de cours, déjeuner si la journée a des cours l'après-midi */
+  const extra=[];
+  fixed.forEach((c,i)=>{ const prev=fixed[i-1]; if(!prev||c.s-prev.f>60) extra.push({kind:"fix",id:"trajet"+c.s,s:c.s-35,f:c.s,e:"🚇",nom:"Trajet",sub:"Révise tes cartes IELTS dans le métro"}); });
+  const tj=extra.filter(x=>x.s>=12*60).map(x=>x.s), dejF=Math.min(13*60,...tj), dejS=Math.min(12*60+15,dejF-40);
+  if(!fixed.some(c=>c.s<dejF&&c.f>dejS)) extra.push({kind:"fix",id:"dej",s:dejS,f:dejF,e:"🍽️",nom:"Déjeuner",sub:"Loin de l'écran, 10 min de marche après"});
+  extra.push({kind:"fix",id:"soir",s:21*60+30,f:21*60+45,e:"🌙",nom:"Rituel du soir + envoi au coach",sub:"Avant 22 h",go:"openSoir()"});
+  extra.push({kind:"fix",id:"dodo",s:22*60+30,f:22*60+30,e:"😴",nom:"Lit, téléphone hors de la chambre",sub:"Opal bloque jusqu'à 8 h 30"});
+  const busy=fixed.concat(extra).filter(b=>!(b.kind==="fix"&&b.id.startsWith("trajet")&&b.s<JP_DEB)).sort((a,b)=>a.s-b.s);
+  /* les trous de la journée */
+  const gaps=[]; let cur=JP_DEB;
+  busy.forEach(b=>{ if(b.s>cur) gaps.push([cur,b.s]); cur=Math.max(cur,b.f); }); if(cur<JP_FIN) gaps.push([cur,JP_FIN]);
+  const done=jpDone(ds), placed=[], rest=[];
+  jpItems(ds).forEach(it=>{
+    let ok=false;
+    for(const g of gaps){ const need=it.dur; if(g[1]-g[0]>=need){ placed.push({kind:"prop",...it,s:g[0],f:g[0]+need}); g[0]+=need+JP_PAUSE; ok=true; break; } }
+    if(!ok) rest.push(it);
+  });
+  const all=busy.concat(placed).sort((a,b)=>a.s-b.s||(a.kind==="cours"?-1:1));
+  all.forEach(b=>{ b.done=!!done[b.id]||(b.chk!=null&&echDoneList()[b.chk]); b.passe=isT&&b.f<now; b.now=isT&&b.s<=now&&b.f>now; });
+  return {all,rest};
+}
+function jpHtml(){
+  const C=calGet(); if(!jpDay) jpDay=hm()>=18*60?"tomorrow":"today";
+  const ds=jpDate(jpDay), {all,rest}=jpBuild(ds), n=all.filter(b=>b.kind==="prop"), d=n.filter(b=>b.done).length;
+  const tab=w=>`<button class="${jpDay===w?"on":""}" onclick="event.stopPropagation();jpDay='${w}';render()">${w==="today"?"Aujourd'hui":"Demain"}</button>`;
+  return `<div class="kjp"><div class="kjp-h"><b>📅 Proposition de journée</b><div class="kjp-t">${tab("today")}${tab("tomorrow")}</div></div>
+    <div class="kjp-s">${new Date(ds+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}${n.length?" · "+d+"/"+n.length+" fait":""}${C.at?"":" · cours non importés"}</div>
+    ${all.map(b=>`<div class="kjp-r ${b.kind} ${b.done?"done":""} ${b.passe&&!b.done?"passe":""} ${b.now?"now":""}">
+      <span class="kjp-tm">${jpHM(b.s)}${b.f>b.s?"<br><small>"+jpHM(b.f)+"</small>":""}</span>
+      <span class="kjp-e">${b.e}</span>
+      <div class="kjp-n" ${b.go?`onclick="${b.go}"`:""}><b>${esc(b.nom)}</b>${b.sub?`<small>${esc(b.sub)}</small>`:""}</div>
+      ${b.kind!=="cours"&&b.id!=="dodo"?`<button class="kjp-c" onclick="jpTog('${ds}','${b.id}',${b.chk!=null?b.chk:"null"},'${escJs(b.work||"")}',${b.f-b.s},'${escJs(b.nom)}')">${b.done?"✓":""}</button>`:""}</div>`).join("")}
+    ${rest.length?`<div class="kjp-x">Si tu as encore du temps : ${rest.map(x=>esc(x.nom)).join(" · ")}</div>`:""}</div>`;
+}
+function jpTog(ds,id,chk,work,min,nom){
+  const C=acc(); if(!C.jp) C.jp={}; const D=C.jp[ds]=C.jp[ds]||{};
+  if(chk!=null&&ds===today()){ echTog(chk); }
+  const on=!D[id]; if(on) D[id]=1; else delete D[id]; save(); render();
+  if(on&&work&&ds===today()) setTimeout(()=>openWork({sujet:work==="IELTS"?nom.replace(/^IELTS · /,"IELTS · "):work, min}),300);
 }
 
 /* --- overlay & toast --- */
