@@ -673,6 +673,15 @@
   .kjp-x{font-size:12px;color:var(--muted);padding:8px 0 2px;border-top:1px solid var(--line);line-height:1.5}
   .kcalrow.dem i{color:#3b82f6}
   .kcalrow.dem b{color:#3b82f6}
+
+  /* ---- SOS anti-scroll ---- */
+  .ksosbtn{display:flex;justify-content:space-between;align-items:center;width:100%;border:none;background:#e5484d;color:#fff;font:inherit;font-size:14px;font-weight:800;border-radius:14px;padding:11px 15px;cursor:pointer;margin:12px 0 0;box-shadow:var(--shadow-sm)}
+  .ksosbtn span{font-size:12px;opacity:.85}
+  .ksos-eb{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#e5484d;margin-bottom:4px}
+  .ksos-best{font-size:10.5px;font-weight:800;color:var(--good);border:1px solid var(--good);border-radius:999px;padding:1px 6px;margin-left:4px}
+  .ksos-t{font-family:var(--mono);font-size:58px;font-weight:800;text-align:center;margin:14px 0 6px}
+  .ksos-t.over{color:var(--good)}
+  .kjp-k{color:var(--good);font-weight:800}
 </style>
 </head>
 <body>
@@ -949,6 +958,7 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
+    <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
     ${modeHtml()}
     ${calHtml()}
     ${jpHtml()}
@@ -3022,6 +3032,7 @@ function openPorte(){
   const lad=Array.from({length:cf.cap},(_,i)=>i===0?(cf.prio?"1 : priorités":"1 : libre"):(i+1)+" : +"+pCost(i+1)+" min").join(" · ");
   pIntent="";
   sheet(`<h3>📸 La porte d'Instagram</h3>${pDots(true)}${body}
+    ${st.s!=="open"?`<button class="btn" style="background:#e5484d" onclick="openSos()">🆘 L'envie est forte : SOS 10 minutes</button>`:""}
     <div class="kladder">Tickets de ${cf.tmin} min — ${lad}<br>Effort utile : chronos des apps, candidatures (10 min chacune), séances FORGE.</div>
     ${st.s!=="open"&&st.s!=="focus"?(passeDispo()?`<button class="klink" onclick="pPasse()">🆘 Urgence ? Passe-droit (1 par semaine, 5 min)</button>`:`<button class="klink" style="text-decoration:none;cursor:default">Passe-droit déjà utilisé · de nouveau dans ${fmtLeft(passeNext())}</button>`):""}
     <button class="klink" onclick="openCadre()">🛡️ Règles, coffre à code, installation</button>
@@ -3463,6 +3474,7 @@ function openBilan(){
       <div><b>${fmtMin(N.eff)}</b><small>de chronos${cmp(N.eff,P.eff)}</small></div>
       <div><b>${N.igMin} min</b><small>Instagram ouvert${cmp(N.igMin,P.igMin,true)}</small></div>
       <div><b>${N.ren}</b><small>fois renoncé 💪</small></div>
+      <div><b>${sosWeek(ws).win}/${sosWeek(ws).n}</b><small>SOS gagnés${sosWeek(ws).top?" · déclencheur n°1 : "+sosWeek(ws).top.toLowerCase():""}</small></div>
       <div><b>${fw?fw.cali:"—"}</b><small>séances cali${fw?" · "+fw.boxe+" boxe":""}</small></div></div>
     ${prev&&prev.chg?`<div class="kwhy"><b>Ton engagement de la semaine dernière</b>${esc(prev.chg)}</div>`:""}
     <div class="ksec"><h4>✅ Ce qui a marché</h4><textarea id="bOk" style="min-height:60px">${esc(cur.ok||"")}</textarea></div>
@@ -3525,7 +3537,8 @@ function accMerge(Rc){
   Object.keys(Rc.rit||{}).forEach(d=>{ const a=C.rit[d]=C.rit[d]||{}, b=Rc.rit[d]||{};
     ["m","s","tel"].forEach(x=>{ if(b[x]&&!a[x]){ a[x]=b[x]; ch=true; } }); });
   Object.keys(Rc.bilans||{}).forEach(w=>{ const b=Rc.bilans[w]; if(b&&(!C.bilans[w]||(b.t||0)>(C.bilans[w].t||0))){ C.bilans[w]=b; ch=true; } });
-  Object.keys(Rc.jp||{}).forEach(d=>{ const a=(acc().jp=acc().jp||{})[d]=(acc().jp[d]||{}); Object.keys(Rc.jp[d]||{}).forEach(k=>{ if(!a[k]){ a[k]=1; ch=true; } }); });
+  Object.keys(Rc.jp||{}).forEach(d=>{ const a=(acc().jp=acc().jp||{})[d]=(acc().jp[d]||{}); Object.keys(Rc.jp[d]||{}).forEach(k=>{ if(!a[k]){ a[k]=Rc.jp[d][k]; ch=true; } }); });
+  Object.keys(Rc.sos||{}).forEach(d=>{ const A=acc(); if(!A.sos) A.sos={}; const L=A.sos[d]=A.sos[d]||[], seen=new Set(L.map(x=>x.at)); (Rc.sos[d]||[]).forEach(x=>{ if(!seen.has(x.at)){ L.push(x); ch=true; } }); });
   if(Array.isArray(Rc.work)){ const W=wAll(), ids=new Set(W.map(x=>x.id)); Rc.work.forEach(x=>{ if(x&&!ids.has(x.id)){ W.push(x); ch=true; } }); }
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
   return ch;
@@ -3679,6 +3692,8 @@ function claudeSnap(days){
   const ap=S.apps.filter(a=>doneToday(a.id)||todayMin(a.id));
   L.push("- Apps pointées : "+(ap.length?ap.map(a=>a.name+(todayMin(a.id)?" ("+fmtMin(todayMin(a.id))+")":"")).join(", "):"aucune"));
   if(C.fs[t]) L.push("- Focus terminés : "+C.fs[t]);
+  { const so=(C.sos||{})[t]||[]; if(so.length) L.push("- SOS anti-scroll : "+so.filter(x=>x.win).length+" gagné(s) sur "+so.length+" ("+so.map(x=>x.tr+"→"+x.a+(x.win?"":" ✗")).join(", ")+")"); }
+  try{ const J=jpBuild(t).all.filter(b=>b.kind==="prop"); L.push("- Proposition de journée : "+J.filter(b=>b.done).length+"/"+J.length+" fait, dont "+J.filter(b=>b.kept).length+" à l'heure prévue"+(J.filter(b=>!b.done).length?" ; pas fait : "+J.filter(b=>!b.done).map(b=>b.nom).join(", "):"")); }catch(e){}
   { const W=wDay(t); L.push("- Travail noté : "+(W.length?fmtMin(wMin(t))+" en "+W.length+" séance(s)":"aucune séance notée"));
     W.forEach(x=>L.push("    "+x.sujet+" — "+x.min+" min, concentration "+(x.q||"?")+"/5"+(x.fait?" — "+x.fait:"")+(x.next?" → "+x.next:""))); }
   const fp=forgePlan(); if(fp) L.push("- FORGE : "+forgeTxt(fp));
@@ -3957,7 +3972,8 @@ function jpBuild(ds){
     if(!ok) rest.push(it);
   });
   const all=busy.concat(placed).sort((a,b)=>a.s-b.s||(a.kind==="cours"?-1:1));
-  all.forEach(b=>{ b.done=!!done[b.id]||(b.chk!=null&&echDoneList()[b.chk]); b.passe=isT&&b.f<now; b.now=isT&&b.s<=now&&b.f>now; });
+  all.forEach(b=>{ b.done=!!done[b.id]||(b.chk!=null&&echDoneList()[b.chk]);
+    const at=done[b.id]>1?jpMinOf(done[b.id]):null; b.kept=b.kind==="prop"&&at!=null&&new Date(done[b.id]).toISOString().slice(0,10)===ds&&at>=b.s-90&&at<=b.f+60; b.passe=isT&&b.f<now; b.now=isT&&b.s<=now&&b.f>now; });
   return {all,rest};
 }
 function jpHtml(){
@@ -3965,7 +3981,7 @@ function jpHtml(){
   const ds=jpDate(jpDay), {all,rest}=jpBuild(ds), n=all.filter(b=>b.kind==="prop"), d=n.filter(b=>b.done).length;
   const tab=w=>`<button class="${jpDay===w?"on":""}" onclick="event.stopPropagation();jpDay='${w}';render()">${w==="today"?"Aujourd'hui":"Demain"}</button>`;
   return `<div class="kjp"><div class="kjp-h"><b>📅 Proposition de journée</b><div class="kjp-t">${tab("today")}${tab("tomorrow")}</div></div>
-    <div class="kjp-s">${new Date(ds+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}${n.length?" · "+d+"/"+n.length+" fait":""}${C.at?"":" · cours non importés"}</div>
+    <div class="kjp-s">${new Date(ds+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}${n.length?" · "+d+"/"+n.length+" fait":""}${n.some(b=>b.kept)?` · <span class="kjp-k">${n.filter(b=>b.kept).length} à l'heure</span>`:""}${C.at?"":" · cours non importés"}</div>
     ${all.map(b=>`<div class="kjp-r ${b.kind} ${b.done?"done":""} ${b.passe&&!b.done?"passe":""} ${b.now?"now":""}">
       <span class="kjp-tm">${jpHM(b.s)}${b.f>b.s?"<br><small>"+jpHM(b.f)+"</small>":""}</span>
       <span class="kjp-e">${b.e}</span>
@@ -3976,10 +3992,93 @@ function jpHtml(){
 function jpTog(ds,id,chk,work,min,nom){
   const C=acc(); if(!C.jp) C.jp={}; const D=C.jp[ds]=C.jp[ds]||{};
   if(chk!=null&&ds===today()){ echTog(chk); }
-  const on=!D[id]; if(on) D[id]=1; else delete D[id]; save(); render();
+  const on=!D[id]; if(on) D[id]=Date.now(); else delete D[id]; save(); render();
   if(on&&work&&ds===today()) setTimeout(()=>openWork({sujet:work==="IELTS"?nom.replace(/^IELTS · /,"IELTS · "):work, min}),300);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   🆘 SOS ANTI-SCROLL — repris de l'app FORGE d'un ami, adapté.
+   L'envie de scroller monte, culmine, puis retombe en quelques minutes.
+   Le SOS te fait traverser ce pic : sortir de la pièce, nommer le
+   déclencheur, choisir une action, 10 minutes de chrono, victoire.
+   Les déclencheurs sont notés : le bilan de la semaine te montre ton motif.
+   ═══════════════════════════════════════════════════════════════════ */
+const SOS_TRIG=[["ennui","😐","Ennui"],["fatigue","🥱","Fatigue"],["stress","😰","Stress"],["fuite","🏃","Fuir une tâche"],["seul","🫥","Solitude"],["autre","❓","Autre"]];
+const SOS_ACT={
+  dehors:{e:"🚶",t:"Sortir 10 minutes",how:"Dehors ou au moins hors de ta chambre. Téléphone en poche, écran éteint. Regarde autour de toi, respire lentement."},
+  corps:{e:"🔥",t:"Bouger : réveil cardio",how:"Lance le réveil cardio de FORGE (12 min, sans saut) ou 2 tours : 20 squats, 30 s de gainage, 20 fentes arrière, 1 min de shadow boxing."},
+  tache:{e:"🎯",t:"La prochaine tâche de ta journée",how:""},
+  anglais:{e:"🇬🇧",t:"10 cartes IELTS",how:"Le téléphone sert, mais pour toi : la séance de cartes du jour dans 990."},
+  dodo:{e:"😴",t:"Dormir",how:"Téléphone en charge hors de la chambre. Lumière éteinte. Pas endormi dans 20 minutes ? Lève-toi et lis sur papier."}
+};
+let sosTrig="autre", sosAct="dehors", sosEnd=0, sosTick=null;
+function sosLate(){ const h=new Date().getHours(); return h>=22||h<5; }
+function sosOrder(tr){
+  if(sosLate()) return ["dodo","dehors","anglais"];
+  if(tr==="fatigue") return ["dehors","corps","tache","anglais"];
+  if(tr==="fuite") return ["tache","corps","dehors","anglais"];
+  if(tr==="ennui") return ["corps","tache","anglais","dehors"];
+  return ["dehors","corps","tache","anglais"];
+}
+function sosNext(){ try{ const now=hm(); return jpBuild(today()).all.find(b=>b.kind==="prop"&&!b.done&&b.go&&b.f>now); }catch(e){ return null; } }
+function sosLog(win){ const C=acc(); if(!C.sos) C.sos={}; const t=today(); (C.sos[t]=C.sos[t]||[]).push({at:Date.now(),tr:sosTrig,a:sosAct,win:win?1:0}); save(); }
+function openSos(){
+  clearInterval(sosTick); sosTrig="autre";
+  sheet(`<div class="ksos-eb">🆘 Envie de scroller</div>
+    <div class="kbig" style="text-align:left">Sors de ta pièce. Maintenant.</div>
+    <div class="ksub" style="text-align:left">Téléphone en poche, écran éteint. Couloir, cuisine, dehors : n'importe où sauf ici. L'envie monte, culmine, puis retombe. Il suffit de passer le pic.</div>
+    <div class="kwhy"><b>🗣️ Le coach</b>${esc(sosLine())}</div>
+    <button class="btn" onclick="sosStep2()">Je suis sorti de la pièce</button>
+    <button class="btn ghost" onclick="sosStep2()">Je ne peux pas sortir là, tout de suite</button>`);
+}
+function sosLine(){ const L=["Ce n'est pas toi qui veux scroller. C'est ton cerveau qui cherche la solution la plus facile. Tu vaux mieux que la solution facile.",
+  "Les gens qui réussissent ont les mêmes envies que toi. Ils ont juste appris à ne pas obéir dans la minute.",
+  "Dix minutes. Tu as déjà fait plus dur que dix minutes.",
+  "Chaque fois que tu passes le pic, la prochaine envie est plus faible. Tu entraînes un muscle, là.",
+  "Samedi, l'IELTS. Janvier, le stage. Le fil d'Instagram n'a rien pour toi là-dedans."];
+  return L[Math.floor(Date.now()/36e5)%L.length]; }
+function sosStep2(){
+  sheet(`<div class="ksos-eb">🆘 Étape 2 sur 3</div>
+    <div class="kbig" style="text-align:left">Qu'est-ce qui l'a déclenchée ?</div>
+    <div class="ksub" style="text-align:left">Un seul geste. Avec le temps, ça te montre ton motif.</div>
+    <div class="kchips" style="grid-template-columns:1fr 1fr">${SOS_TRIG.map(t=>`<button class="kchip" onclick="sosTrig='${t[0]}';sosStep3()">${t[1]} ${t[2]}</button>`).join("")}</div>`);
+}
+function sosStep3(){
+  const nx=sosNext();
+  sheet(`<div class="ksos-eb">🆘 Étape 3 sur 3</div>
+    <div class="kbig" style="text-align:left">Choisis-en une. Fais-la maintenant.</div>
+    <div class="krows">${sosOrder(sosTrig).map((a,i)=>{ if(a==="tache"&&!nx) return "";
+      const A=SOS_ACT[a], sub=a==="tache"?esc(nx.nom)+" · "+(nx.f-nx.s)+" min":esc(A.how);
+      return `<div class="krow" onclick="sosGo('${a}')" style="cursor:pointer"><span class="ke">${A.e}</span><div class="kn">${A.t}${i===0?' <span class="ksos-best">le mieux</span>':""}<small>${sub}</small></div><button>Go</button></div>`; }).join("")}</div>`);
+}
+function sosGo(a){
+  sosAct=a;
+  if(a==="tache"){ const nx=sosNext(); sosLog(1); closeOv(); render(); toast("💪 Bien joué. Envie battue."); if(nx) setTimeout(()=>{ try{ (new Function(nx.go))(); }catch(e){} },250); return; }
+  if(a==="anglais"){ sosLog(1); closeOv(); render(); toast("💪 Bien joué. Envie battue."); window.open(IELTS_URL+"#go=cards","_blank"); return; }
+  if(a==="corps"&&typeof forgeOpen==="function"){ /* le chrono tourne quand même : on revient cocher la victoire */ }
+  sosEnd=Date.now()+10*60*1000; sosTimer();
+  if(a==="corps"&&typeof forgeOpen==="function") setTimeout(()=>{ try{ forgeOpen(); }catch(e){} },300);
+}
+function sosTimer(){
+  const A=SOS_ACT[sosAct];
+  sheet(`<div class="ksos-eb">${A.e} ${A.t}</div>
+    <div class="ksub" style="text-align:left;font-size:15px;color:var(--ink)">${esc(A.how)}</div>
+    <div class="ksos-t" id="sosT">10:00</div>
+    <div class="kwhy"><b>🗣️ Le coach</b>${esc(sosLine())}</div>
+    <button class="btn" onclick="sosWin()">C'est passé. Victoire.</button>
+    <button class="btn ghost" id="sosMore" style="display:none" onclick="sosEnd=Date.now()+6e5;sosTimer()">Toujours là : 10 minutes de plus</button>
+    <button class="klink" onclick="sosLose()">J'ai craqué (on le note, sans drame)</button>`);
+  clearInterval(sosTick);
+  const up=()=>{ const el=document.getElementById("sosT"); if(!el){ clearInterval(sosTick); return; }
+    const l=Math.max(0,Math.round((sosEnd-Date.now())/1000)); el.textContent=pad2(Math.floor(l/60))+":"+pad2(l%60);
+    if(l===0){ el.classList.add("over"); const m=document.getElementById("sosMore"); if(m) m.style.display=""; } };
+  up(); sosTick=setInterval(up,500);
+}
+function sosWin(){ clearInterval(sosTick); sosLog(1); closeOv(); render(); toast("💪 Envie battue. "+sosWeek().win+" victoire"+(sosWeek().win>1?"s":"")+" cette semaine."); }
+function sosLose(){ clearInterval(sosTick); sosLog(0); closeOv(); render(); toast("Noté. Un raté n'est pas une rechute : la prochaine envie, tu la bats."); }
+function sosWeek(ws){ const C=acc(), w=ws||weekStart(), out={n:0,win:0,trig:{}};
+  for(let i=0;i<7;i++){ (((C.sos||{})[dayShift(w,i)])||[]).forEach(x=>{ out.n++; if(x.win) out.win++; out.trig[x.tr]=(out.trig[x.tr]||0)+1; }); }
+  const top=Object.entries(out.trig).sort((a,b)=>b[1]-a[1])[0]; out.top=top?(SOS_TRIG.find(t=>t[0]===top[0])||[])[2]:null; return out; }
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }

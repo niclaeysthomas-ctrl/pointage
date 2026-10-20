@@ -1,5 +1,5 @@
 // LE POINTAGE — service worker : network-first, repli cache (100 % hors-ligne)
-const CACHE = "pointage-v39-task1";
+const CACHE = "pointage-v40-sos";
 const ASSETS = ["./", "./index.html", "./coffre.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
