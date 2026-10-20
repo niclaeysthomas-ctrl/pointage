@@ -903,6 +903,7 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
+    ${modeHtml()}
     ${ritHtml()}
     ${echHtml()}
     <div class="summary" style="margin-top:14px">
@@ -3723,6 +3724,16 @@ function openPlus(){
     ["📅","Agenda","openCal()"],["📓","Journal","openJournal()"],["✳️","Claude","openClaude()"],["📆","Bilan hebdo","openBilan()"]];
   sheet(`<h3>⋯ Plus</h3><div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:18px" onclick="closeOv();render()">Fermer</button>`);
+}
+
+/* ---- quelle version est ouverte ? L'app d'écran d'accueil (ancienne) ou Safari (la bonne) ---- */
+function isStandalone(){ try{ return window.navigator.standalone===true||matchMedia("(display-mode: standalone)").matches; }catch(e){ return false; } }
+function modeHtml(){
+  if(isStandalone()) return `<div class="kban" style="margin-top:14px"><b>⚠️ Ceci est l'ANCIENNE version du Pointage</b> (l'app d'écran d'accueil, sans Safari).
+    1) Exporte tes données ici. 2) Ouvre la version Safari et importe le fichier (💾 Sauver › Importer). 3) Vérifie tes données, puis supprime cette icône.
+    <button onclick="bkExport()">💾 Exporter mes données</button></div>`;
+  if(today()<="2026-10-31") return `<div class="kban min" style="margin-top:14px"><b>✅ Version Safari : c'est la bonne.</b> Garde cette icône, supprime l'autre une fois tes données importées ici (⋯ Plus › 💾 Sauver › Importer).</div>`;
+  return "";
 }
 
 /* --- overlay & toast --- */
