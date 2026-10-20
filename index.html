@@ -591,6 +591,27 @@
   .fov .fbar{width:min(320px,90%);height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin:14px 0 18px}
   .fov .fbar i{display:block;height:100%;background:var(--accent);border-radius:99px}
   .fov button{margin-top:28px;border:none;background:var(--card2);color:var(--muted);font-weight:800;border-radius:13px;padding:12px 20px;cursor:pointer;font-family:inherit}
+
+  /* ---- LE SYSTÈME : agenda, outils, envoi à Claude ---- */
+  .kcal{background:var(--card);border-radius:18px;padding:3px 15px;margin:12px 0 0;box-shadow:var(--shadow-sm);cursor:pointer}
+  .kcalrow{display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+  .kcalrow:last-child{border-bottom:none}
+  .kcalrow>span{font-size:20px;flex:none;width:26px;text-align:center;line-height:1.3}
+  .kcalrow i{display:block;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .kcalrow.now i{color:var(--accent)}
+  .kcalrow b{display:block;font-weight:800;font-size:14.5px;overflow-wrap:anywhere;line-height:1.3}
+  .kcalrow small{display:block;color:var(--muted);font-size:12px;font-weight:600}
+  .kcalstale{font-size:11.5px;color:var(--accent);font-weight:700;padding:0 0 10px}
+  .kday{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin:16px 0 0}
+  .kgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px;margin-top:14px}
+  .kgrid button{border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;
+    color:var(--ink);font-size:11px;font-weight:700;position:relative;line-height:1.2;text-align:center}
+  .kgrid button span{width:58px;height:58px;border-radius:17px;background:var(--card2);display:grid;place-items:center;font-size:28px;box-shadow:var(--shadow-sm)}
+  .kgrid button:active span{transform:scale(.92)}
+  .kgrid button em{position:absolute;top:-6px;right:4px;width:22px;height:22px;border-radius:50%;background:var(--bad);color:#fff;font-style:normal;
+    font-size:12px;font-weight:800;display:grid;place-items:center}
+  .kpre{white-space:pre-wrap;font-family:var(--mono);font-size:11px;line-height:1.5;max-height:260px;overflow:auto;background:var(--card2);
+    border-radius:12px;padding:10px;margin-top:8px;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -869,6 +890,7 @@ function render(){
     <div class="rule"></div>
     ${ritHtml()}
     ${choseHtml()}
+    ${calHtml()}
     ${dockHtml()}
 
     <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
@@ -1200,6 +1222,14 @@ function agPushTodayR(id){ agPushToday(id); closeOv(); render(); toast("Reporté
 function briefAll(){
   const t=today(), B=agBuckets(), H=new Date().getHours(), out=[], pris={};
   const add=o=>out.push(o);
+
+  /* un trou entre deux événements : le meilleur moment pour un focus */
+  { const nx=calNext(), cn=calNow()[0];
+    if(!cn&&nx){ const m=Math.round((nx.s-Date.now())/60000);
+      if(m>=30&&m<=240){ const c=catsActives().find(c=>!catDone(c.id)), p=c&&catPicksSafe(c.id)[0];
+        add({k:"trou", score:95, e:"⏳", t:fmtMin(m)+" avant "+nx.t,
+          w:(p?"Le créneau parfait pour "+p.name+". ":"")+"Un focus maintenant, et ce trou devient du temps gagné au lieu de temps de scroll.",
+          a:[{l:"🎯 Focus", c:"go", f:"closeOv();"+(p?"fSel.id='"+p.id+"';":"")+"openFocus()"}]}); } } }
 
   if(S.run){
     const mins=Math.round((Date.now()-S.run.t0)/60000);
@@ -2803,7 +2833,7 @@ function cad(){
 }
 function cadTouch(){ cad().mod=Date.now(); }
 function cadPrune(){ const C=cad(), lim=dayShift(today(),-60);
-  ["log","minDay","ren","focus","demain","rit","fs"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
+  ["log","minDay","ren","focus","demain","rit","fs","auto"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
   Object.keys(C.bilans||{}).forEach(w=>{ if(w<dayShift(today(),-200)) delete C.bilans[w]; });
   C.passe=C.passe.filter(t=>t>Date.now()-60*864e5); }
 
@@ -2858,6 +2888,7 @@ function pEffSince(){ const tk=pTickets(), last=tk[tk.length-1]; return Math.max
 function pState(){
   const C=cad(), n=pTickets().length, k=n+1, act=pActive(), fo=focusOn();
   if(fo) return {s:"focus",n,left:Math.ceil((fo.start+fo.dur*60000-Date.now())/60000)};
+  const co=coursNow(); if(co) return {s:"cours",n,co};
   if(act) return {s:"open",act,n};
   if(n>=C.conf.cap) return {s:"closed",n};
   if(k===1&&C.conf.prio&&!prioOk()) return {s:"prio",k,n};
@@ -2871,6 +2902,7 @@ function pCardHtml(){
   const st=pState(), C=cad(); let cls="lock", txt;
   if(st.s==="open"){ cls="open"; txt="⏳ Instagram ouvert · encore "+st.act.left+" min"; }
   else if(st.s==="focus") txt="🎯 Focus en cours · Instagram attend "+st.left+" min";
+  else if(st.s==="cours") txt="🎓 En cours · Instagram attend "+hhmmOf(st.co.e);
   else if(st.s==="closed") txt="🚪 Instagram : fermé pour aujourd'hui";
   else if(st.s==="prio") txt="🔒 Instagram : d'abord tes priorités";
   else if(st.s==="effort") txt="🔒 Instagram · ticket "+st.k+" : encore "+(st.cost-st.have)+" min d'effort";
@@ -2887,6 +2919,9 @@ function openPorte(){
     body=`<div class="kbig">⏳ Ouvert · encore ${st.act.left} min</div>
       <div class="ksub">${st.act.passe?"Passe-droit en cours":"Ticket "+st.act.n+" en cours"}${st.act.intent?" · "+intLbl(st.act.intent):""}. Y retourner ne coûte rien tant que le temps n'est pas écoulé.</div>
       <button class="btn" onclick="pGo()">↗ Retourner sur Instagram</button>`;
+  }else if(st.s==="cours"){
+    body=`<div class="kbig">🎓 Tu es en cours</div>
+      <div class="ksub"><b>${esc(st.co.t)}</b> jusqu'à ${hhmmOf(st.co.e)}${st.co.l?" · "+esc(st.co.l):""}. Instagram attend la fin du cours.</div>`;
   }else if(st.s==="focus"){
     body=`<div class="kbig">🎯 Focus en cours</div>
       <div class="ksub">Encore <b>${st.left} min</b>. Instagram attend la fin : c'est toi qui l'as décidé en lançant le focus.</div>
@@ -3202,6 +3237,7 @@ function openFocus(){
     <div class="ksec"><h4>Combien de temps ?</h4><div class="kchips" style="grid-template-columns:repeat(3,1fr)">
       ${[15,25,50].map(m=>`<button class="kchip ${fSel.dur===m?"on":""}" data-d="${m}" onclick="fDur(${m})">${m} min</button>`).join("")}</div></div>
     <p class="kp" style="margin-top:12px;color:var(--muted);font-size:12px">Le Pointage ne peut pas sonner écran verrouillé. Pour une alarme à la fin, lance aussi le minuteur de l'iPhone.</p>
+    <p class="kp" style="margin-top:8px;color:var(--muted);font-size:12px">🔒 Mode bunker : une fois lancé, triple-clic sur le bouton latéral › Accès guidé › Limite de temps › Début. Impossible de quitter le Pointage avant la fin, sauf avec ton code (réglage : 📱 Téléphone › étape 5).</p>
     <button class="btn" onclick="focusGo()">▶ Commencer le focus</button>
     <button class="btn ghost" onclick="closeOv();render()">Annuler</button>`);
 }
@@ -3250,8 +3286,8 @@ function dockHtml(){
     <button onclick="agSheet()"><span>✅</span>Tâche</button>
     <button onclick="cPlus()"><span>📨</span>+1 cand.</button>
     <button onclick="forgeOpen()"><span>${fp&&fp.k==="cali"&&!fp.done?"🛫":"🥊"}</span>FORGE</button>
-    <button onclick="openJournal()"><span>📓</span>Journal</button>
-    <button onclick="openLauncher()"><span>🚀</span>Apps</button></div>`;
+    <button onclick="openClaude()"><span>✳️</span>Claude</button>
+    <button onclick="openOutils()"><span>📱</span>Outils</button></div>`;
 }
 function ritHtml(){
   const C=acc(), t=today(), r=C.rit[t]||{}, m=hm();
@@ -3282,6 +3318,7 @@ function openMatin(){
       <div class="krow"><span class="ke">🥊</span><div class="kn">FORGE<small>${fp?forgeTxt(fp):"ouvre FORGE une fois dans Safari pour que je voie ton programme"}</small></div><button onclick="forgeOpen()">↗</button></div>
     </div></div>
     ${B.now.length||B.late.length?`<div class="ksec"><h4>Dans l'agenda</h4><div class="krows">${B.late.concat(B.now).slice(0,6).map(it=>`<div class="krow"><span class="ke">${it.d<t?"⚠️":it.t?"🕐":"•"}</span><div class="kn">${esc(it.txt)}<small>${it.d<t?"en retard":it.t?it.t:"aujourd'hui"}</small></div></div>`).join("")}</div></div>`:""}
+    ${calMatinHtml()}
     <div class="ksec"><h4>🎯 La chose qui rendrait la journée réussie</h4>
       <p>Une seule. Elle s'affichera en haut toute la journée.</p>
       <textarea id="mFocus" style="min-height:64px" placeholder="${dem?esc(dem):"Ex : envoyer les 5 candidatures avant midi"}">${esc(C.focus[t]||dem)}</textarea></div>
@@ -3358,30 +3395,44 @@ function bilanGo(){ const C=acc(), ws=weekStart(), v=id=>(document.getElementByI
 
 /* ---- le guide : faire du téléphone un outil ---- */
 function telHtml(){
-  return `<p>Le Pointage devient l'écran d'accueil ; le reste du téléphone s'efface. Je n'ai pas pu tester ces réglages sur un vrai iPhone : si un intitulé diffère, prends le plus proche.</p>
-  <details><summary>1 · Un écran d'accueil qui ne tente pas</summary><ol class="kguide">
-    <li>Page 1 : l'icône du Pointage (Safari) en haut à gauche, puis seulement des outils : Téléphone, Messages, Calendrier, Plans, Appareil photo, Notes.</li>
-    <li>Instagram et les jeux hors de l'écran d'accueil : appui long › Retirer l'app › <b>Retirer de l'écran d'accueil</b>. Ils restent dans la Bibliothèque d'apps, à un geste de plus.</li>
-    <li>Masquer les autres pages : appui long sur le fond › touche les points au-dessus du Dock › décoche les pages en trop.</li></ol></details>
-  <details><summary>2 · Les notifications qui t'appellent</summary><ol class="kguide">
-    <li>Réglages › Notifications › Instagram › <b>Autoriser les notifications : désactivé</b>. Pareil pour les jeux et les actus.</li>
-    <li>Réglages › Notifications › <b>Résumé programmé</b> : le reste arrive deux fois par jour (ex. 12 h 30 et 19 h).</li></ol></details>
-  <details><summary>3 · Une Concentration « Travail »</summary><ol class="kguide">
-    <li>Réglages › Concentration › ＋ › Travail. Notifications autorisées : Téléphone et tes proches dans Messages.</li>
-    <li>Écrans › Écran d'accueil : choisis seulement la page avec le Pointage.</li>
-    <li>Programmation : par exemple en semaine de 9 h à 18 h, ou active-la à la main depuis le Centre de contrôle.</li></ol></details>
-  <details><summary>4 · Les rituels qui s'ouvrent tout seuls</summary><ol class="kguide">
-    <li>Raccourcis › Automatisation › ＋ › <b>Alarme</b> › « Est arrêtée » › Exécuter immédiatement › action <b>Ouvrir les URL</b> <code>${PORTE_URL.replace("#porte","#matin")}</code>.</li>
-    <li>＋ › <b>Heure de la journée</b> › 21 h 30, tous les jours › Exécuter immédiatement › Ouvrir les URL <code>${PORTE_URL.replace("#porte","#soir")}</code>.</li>
-    <li>＋ › Heure de la journée › 18 h, chaque semaine le dimanche › Ouvrir les URL <code>${PORTE_URL.replace("#porte","#bilan")}</code>.</li>
-    <li>Si le téléphone est verrouillé à ce moment-là, iOS affiche une notification : touche-la.</li></ol></details>
-  <details><summary>5 · Le gris, pour casser l'attrait</summary><ol class="kguide">
+  const U=POINTAGE_URL;
+  return `<p>Le but : que tout ce que tu touches mène au Pointage, et que le reste du téléphone s'efface. Je n'ai pas pu tester ces réglages sur un vrai iPhone : si un intitulé diffère, prends le plus proche, et dis-moi ce qui coince.</p>
+  <details><summary>0 · Ce qu'iOS permet, honnêtement</summary><ol class="kguide">
+    <li>Aucune app ne peut remplacer l'écran d'accueil d'iOS, ni s'ouvrir toute seule au déverrouillage : Raccourcis n'a pas de déclencheur « iPhone déverrouillé ».</li>
+    <li>On s'en approche avec trois choses : l'icône Pointage est un raccourci qui charge ton agenda (étape 1) ; la page 1 ne contient que lui et tes outils (étape 2) ; le réveil, le chargeur et les apps distrayantes te renvoient sur le Pointage (étape 3).</li>
+    <li>« Sans pouvoir en sortir » existe : c'est l'Accès guidé (étape 5). Il verrouille l'iPhone dans une seule app jusqu'à ton code — parfait pour un focus, invivable toute la journée (plus de Doctolib, plus de Calendrier).</li></ol></details>
+  <details><summary>1 · L'icône Pointage, qui charge ton agenda</summary><ol class="kguide">
+    <li>Raccourcis › ＋ › nomme-le <b>Pointage</b>.</li>
+    <li>Action <b>Rechercher des événements de calendrier</b> : filtre « Date de fin » <b>est dans les prochains 7 jours</b> ; trier par Date de début, croissant.</li>
+    <li>Action <b>Répéter avec chaque</b> élément (les événements).</li>
+    <li>Dans la boucle, action <b>Texte</b> : Titre | Date de début | Date de fin | Lieu | Calendrier — chaque mot est la variable « Élément répété » dont tu choisis la propriété, séparées par une barre verticale <code>|</code>. Pour les deux dates : touche la variable › Format de date <b>ISO 8601</b>, avec l'heure.</li>
+    <li>Après « Fin de la répétition » : <b>Combiner le texte</b> (Résultats répétés, avec Nouvelle ligne), puis <b>Encoder en URL</b>.</li>
+    <li>Action <b>URL</b> : <code>${U}#cal=</code> suivi du texte encodé, puis <b>Ouvrir les URL</b>.</li>
+    <li>⋯ › Partager › <b>Sur l'écran d'accueil</b>, nom « Pointage ». Il remplace l'ancienne icône Safari. Au premier lancement, autorise l'accès au Calendrier.</li>
+    <li>Tes cours ne sont pas dans ton Google Agenda aujourd'hui (seulement des trains). Si ton école donne un lien iCal (ENT, Hyperplanning, ADE…) : Réglages › Apps › Calendrier › Comptes › Ajouter un compte › Autre › <b>Ajouter un calendrier avec abonnement</b>. Sinon, crée tes cours dans Calendrier en événements récurrents. Puis Pointage › 📅 Agenda › coche l'agenda des cours.</li></ol></details>
+  <details><summary>2 · Un écran d'accueil où tout mène au Pointage</summary><ol class="kguide">
+    <li>Dock : Téléphone, Messages, <b>Pointage</b>, Appareil photo.</li>
+    <li>Page 1 : un widget <b>Raccourcis</b> (taille moyenne) avec Pointage et 3 raccourcis d'une action « Ouvrir les URL » : Focus <code>${U}#focus</code>, Tâche <code>${U}#tache</code>, Claude <code>${U}#claude</code>. À côté, le widget <b>Calendrier « À suivre »</b>.</li>
+    <li>Un seul dossier <b>Outils</b> sur la page 1 : Doctolib, Calendrier, Plans, SNCF Connect, Gmail, Banque, Wallet. (Le Pointage a aussi sa grille 📱 Outils.)</li>
+    <li>Tout le reste dans la Bibliothèque d'apps : appui long › Retirer l'app › Retirer de l'écran d'accueil. Masque les autres pages : appui long sur le fond › points au-dessus du Dock › décoche-les.</li></ol></details>
+  <details><summary>3 · Le Pointage qui s'ouvre tout seul</summary><ol class="kguide">
+    <li>Automatisation › ＋ › <b>Alarme</b> › « Est arrêtée » › Exécuter immédiatement › <b>Exécuter le raccourci</b> Pointage. Le rituel du matin s'ouvre au premier passage.</li>
+    <li>＋ › <b>Chargeur</b> › « Est déconnecté » › Exécuter immédiatement › Exécuter le raccourci Pointage. Chaque fois que tu débranches, tu atterris sur ta journée.</li>
+    <li>＋ › <b>Heure de la journée</b> › 21 h 30, tous les jours › Ouvrir les URL <code>${U}#soir</code>.</li>
+    <li>＋ › <b>App</b> › TikTok, YouTube, jeux… (pas Instagram, qui a déjà sa porte) › « Est ouverte » › Exécuter immédiatement › Ouvrir les URL <code>${U}</code>.</li>
+    <li>Si le téléphone est verrouillé au moment d'une automatisation, iOS affiche une notification : touche-la.</li></ol></details>
+  <details><summary>4 · Les notifications et la Concentration</summary><ol class="kguide">
+    <li>Réglages › Notifications › Instagram, YouTube, jeux, actus › <b>désactivées</b>. Le reste en <b>Résumé programmé</b> (12 h 30 et 19 h).</li>
+    <li>Réglages › Concentration › ＋ Travail : notifications de Téléphone et de tes proches seulement ; Écrans › Écran d'accueil : la page 1 seulement ; programmée sur tes heures de cours et de travail.</li>
+    <li>Concentration Sommeil : un horaire, et le chargeur hors de la chambre — le rituel du soir te le redemande.</li></ol></details>
+  <details><summary>5 · Le mode bunker (Accès guidé)</summary><ol class="kguide">
+    <li>Réglages › Accessibilité › <b>Accès guidé</b> : activé. Réglages du code › <b>Définir le code d'accès guidé</b> (différent de celui du téléphone), et désactive Touch ID pour sortir.</li>
+    <li>Limites de temps : choisis une sonnerie. C'est elle qui te libère à la fin.</li>
+    <li>Pendant un focus dans le Pointage : triple-clic sur le bouton latéral › Options › <b>Limite de temps</b> (25 ou 50 min) › <b>Début</b>. Impossible de quitter le Pointage avant la fin, sauf avec le code.</li>
+    <li>Sécurité : un redémarrage forcé sort toujours de l'Accès guidé. Ce n'est pas un piège.</li></ol></details>
+  <details><summary>6 · Le gris, pour casser l'attrait</summary><ol class="kguide">
     <li>Réglages › Accessibilité › Affichage et taille du texte › Filtres de couleur › <b>Niveaux de gris</b>.</li>
-    <li>Réglages › Accessibilité › Raccourci d'accessibilité › coche <b>Filtres de couleur</b> : un triple clic sur le bouton latéral bascule couleur/gris.</li>
-    <li>L'idée : gris par défaut, la couleur pour les photos. Les fils colorés perdent beaucoup de leur pouvoir.</li></ol></details>
-  <details><summary>6 · La nuit</summary><ol class="kguide">
-    <li>Réglages › Concentration › Sommeil : un horaire de coucher, l'écran verrouillé assombri.</li>
-    <li>Le chargeur hors de la chambre — le rituel du soir te le redemande chaque jour. Un vrai réveil sur la table de nuit vaut mieux que le téléphone.</li></ol></details>`;
+    <li>Raccourci d'accessibilité : coche Filtres de couleur <i>et</i> Accès guidé ; le triple clic propose les deux.</li></ol></details>`;
 }
 function openTel(){ sheet(`<h3>📱 Mon téléphone, un outil</h3>${telHtml().replace(/<details>/,"<details open>")}<button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`); }
 
@@ -3394,6 +3445,198 @@ function accMerge(Rc){
   Object.keys(Rc.bilans||{}).forEach(w=>{ const b=Rc.bilans[w]; if(b&&(!C.bilans[w]||(b.t||0)>(C.bilans[w].t||0))){ C.bilans[w]=b; ch=true; } });
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
   return ch;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE SYSTÈME — le Pointage au centre du téléphone.
+   • L'agenda de l'iPhone arrive ici par un raccourci (#cal=…) : ce qui se
+     passe maintenant, ce qui vient ensuite, les cours, les trous à exploiter.
+     Pendant un cours, la porte d'Instagram est fermée.
+   • Les outils : les apps utiles du téléphone (Doctolib, Calendrier…),
+     lancées d'ici. Les autres n'ont pas leur place sur l'accueil.
+   • Envoyer à Claude : tout le contexte en un geste, sans API — partage
+     vers l'app Claude, copie, ou mail à soi-même (que Claude lit via Gmail).
+   • Les rituels s'ouvrent seuls au premier passage du matin et du soir.
+   ═══════════════════════════════════════════════════════════════════ */
+const POINTAGE_URL="https://niclaeysthomas-ctrl.github.io/pointage/";
+
+/* ---- l'agenda de l'iPhone ---- */
+const COURS_RE=/\b(cours|td|tp|cm|amphi|partiel|exam|examen|colle|conf[ée]rence|s[ée]minaire|lecture|class)\b/i;
+function calGet(){ if(!S.cal||!Array.isArray(S.cal.ev)) S.cal={at:0,ev:[]}; return S.cal; }
+function isCours(e){ const L=S.calCours; if(Array.isArray(L)&&L.length) return L.includes(e.c); return COURS_RE.test(e.t||""); }
+function calImport(raw){
+  const ev=[];
+  String(raw||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(l=>{
+    const p=l.split("|").map(x=>x.trim()); if(p.length<2) return;
+    const t=p[0], s=p[1], e=p[2], loc=p[3], c=p[4];
+    const dOnly=x=>/^\d{4}-\d{2}-\d{2}$/.test(x||"");
+    const ts=Date.parse(dOnly(s)?s+"T00:00:00":s); if(isNaN(ts)) return;
+    let te=e?Date.parse(dOnly(e)?e+"T23:59:00":e):NaN; if(isNaN(te)) te=ts+36e5;
+    ev.push({t:t||"(sans titre)", s:ts, e:te, l:loc||"", c:c||"", ad:(dOnly(s)||te-ts>=23*36e5)?1:0});
+  });
+  ev.sort((a,b)=>a.s-b.s);
+  S.cal={at:Date.now(), ev}; save0();
+  return ev.length;
+}
+function dayBounds(ms){ const d=new Date(ms); d.setHours(0,0,0,0); return [d.getTime(), d.getTime()+864e5]; }
+function calDay(ms){ const [a,b]=dayBounds(ms); return calGet().ev.filter(e=>e.e>a&&e.s<b); }
+function calToday(){ return calDay(Date.now()); }
+function calNow(){ const n=Date.now(); return calGet().ev.filter(e=>!e.ad&&e.s<=n&&e.e>n); }
+function calNext(){ const n=Date.now(); return calGet().ev.filter(e=>!e.ad&&e.s>n)[0]||null; }
+function coursNow(){ return calNow().find(isCours)||null; }
+function hhmmOf(ms){ const d=new Date(ms); return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
+function memeJour(a,b){ return new Date(a).toDateString()===new Date(b).toDateString(); }
+function calStale(){ const C=calGet(); return C.at&&Date.now()-C.at>36*36e5; }
+function calHtml(){
+  const C=calGet(); if(!C.at) return "";
+  const now=calNow()[0], nx=calNext(), n=Date.now(); let h="";
+  if(now) h+=`<div class="kcalrow now"><span>${isCours(now)?"🎓":"📍"}</span><div><i>En ce moment · jusqu'à ${hhmmOf(now.e)}</i><b>${esc(now.t)}</b>${now.l?`<small>${esc(now.l)}</small>`:""}</div></div>`;
+  if(nx&&nx.s-n<16*36e5){ const m=Math.round((nx.s-n)/60000);
+    h+=`<div class="kcalrow"><span>${isCours(nx)?"🎓":"🕐"}</span><div><i>Ensuite · ${memeJour(nx.s,n)?"à "+hhmmOf(nx.s):"demain "+hhmmOf(nx.s)} · ${fmtIn(m)}</i><b>${esc(nx.t)}</b>${nx.l?`<small>${esc(nx.l)}</small>`:""}</div></div>`; }
+  if(!h) h=`<div class="kcalrow"><span>📅</span><div><i>Agenda</i><b>Plus rien de prévu aujourd'hui</b></div></div>`;
+  if(calStale()) h+=`<div class="kcalstale">Agenda lu il y a ${Math.round((n-C.at)/36e5)} h : touche l'icône Pointage pour le rafraîchir.</div>`;
+  return `<div class="kcal" onclick="openCal()">${h}</div>`;
+}
+let calCals=[];
+function openCal(){
+  const C=calGet(), n=Date.now(); calCals=[...new Set(C.ev.map(e=>e.c).filter(Boolean))];
+  const L=Array.isArray(S.calCours)?S.calCours:[];
+  let days="";
+  for(let i=0;i<7;i++){ const ms=n+i*864e5, ev=calDay(ms); if(!ev.length) continue;
+    days+=`<div class="kday">${i===0?"Aujourd'hui":i===1?"Demain":new Date(ms).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric"})}</div><div class="krows" style="margin-top:0">${ev.map(e=>
+      `<div class="krow"><span class="ke">${isCours(e)?"🎓":e.ad?"🗓️":"🕐"}</span><div class="kn">${esc(e.t)}<small>${e.ad?"toute la journée":hhmmOf(e.s)+" – "+hhmmOf(e.e)}${e.l?" · "+esc(e.l):""}</small></div></div>`).join("")}</div>`; }
+  sheet(`<h3>📅 Mon agenda</h3>
+    <div class="ksub" style="text-align:left">${C.at?"Lu depuis l'iPhone il y a "+fmtLeft(n+(n-C.at)).replace(/^0 min$/,"moins d'une minute")+" · "+C.ev.length+" événement"+(C.ev.length>1?"s":"")+" sur 7 jours.":"Pas encore branché. L'agenda arrive par l'icône Pointage, qui est un raccourci : voir 📱 Téléphone › étape 1."}</div>
+    ${days||(C.at?`<div class="ksub" style="margin-top:14px">Rien dans les 7 prochains jours.</div>`:"")}
+    ${calCals.length?`<div class="ksec"><h4>🎓 Où sont tes cours ?</h4><p>Coche l'agenda qui contient ton emploi du temps. Sans choix, je repère les cours au titre (cours, TD, TP, amphi, partiel…). Pendant un cours, Instagram attend.</p>
+      ${calCals.map((c,i)=>`<div class="kcheck ${L.includes(c)?"on":""}" onclick="calTog(${i})"><span class="kb">✓</span>${esc(c)}</div>`).join("")}</div>`:""}
+    <button class="btn ghost" onclick="openTel()">📱 Comment brancher l'agenda</button>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+function calTog(i){ const c=calCals[i]; if(c==null) return; let L=Array.isArray(S.calCours)?S.calCours.slice():[];
+  L=L.includes(c)?L.filter(x=>x!==c):L.concat([c]); S.calCours=L; save0(); openCal(); }
+function calMatinHtml(){ const ev=calToday(); if(!ev.length) return "";
+  return `<div class="ksec"><h4>📅 Tes cours et rendez-vous</h4><div class="krows">${ev.map(e=>`<div class="krow"><span class="ke">${isCours(e)?"🎓":"🕐"}</span><div class="kn">${esc(e.t)}<small>${e.ad?"toute la journée":hhmmOf(e.s)+" – "+hhmmOf(e.e)}${e.l?" · "+esc(e.l):""}</small></div></div>`).join("")}</div></div>`; }
+
+/* ---- les outils : les apps utiles du téléphone ---- */
+const OUTILS_DEF=[
+  {n:"Calendrier",e:"📅",u:"calshow://"},
+  {n:"Doctolib",e:"🩺",u:"https://www.doctolib.fr/"},
+  {n:"Plans",e:"🗺️",u:"maps://"},
+  {n:"SNCF Connect",e:"🚆",u:"https://www.sncf-connect.com/"},
+  {n:"Gmail",e:"📧",u:"googlegmail://"},
+  {n:"Messages",e:"💬",u:"sms:"},
+  {n:"Notes",e:"🗒️",u:"mobilenotes://"},
+  {n:"Rappels",e:"🔔",u:"x-apple-reminderkit://"},
+  {n:"Fichiers",e:"📁",u:"shareddocuments://"},
+  {n:"Musique",e:"🎵",u:"music://"},
+  {n:"Claude",e:"✳️",u:"https://claude.ai/new"}
+];
+function outils(){ if(!Array.isArray(S.outils)) S.outils=OUTILS_DEF.map(x=>({...x})); return S.outils; }
+function outGo(i){ const o=outils()[i]; if(!o) return; if(/^https?:/i.test(o.u)) window.open(o.u,"_blank","noopener"); else location.href=o.u; }
+let outEdit=false;
+function openOutils(){
+  const O=outils();
+  sheet(`<h3>📱 Mes outils</h3>
+    <div class="ksub" style="text-align:left">Les apps utiles, lancées d'ici. Instagram, YouTube et les jeux n'y sont pas : ils vivent dans la Bibliothèque d'apps, à un geste de plus.</div>
+    <div class="kgrid">${O.map((o,i)=>`<button onclick="${outEdit?`outDel(${i})`:`outGo(${i})`}"><span>${esc(o.e)}</span>${esc(o.n)}${outEdit?"<em>✕</em>":""}</button>`).join("")}</div>
+    ${outEdit?`<div class="ksec"><h4>Ajouter un outil</h4><p>Banque, ENT de ton école, Wallet… L'adresse du site suffit souvent : iOS ouvre l'app si elle est installée.</p>
+      <div class="fld"><label>Nom</label><input id="oN" placeholder="Ex : Ma banque"></div>
+      <div class="fld"><label>Emoji</label><input id="oE" placeholder="🏦" maxlength="4"></div>
+      <div class="fld"><label>Lien</label><input id="oU" placeholder="https://… ou schéma d'app (ex : calshow://)"></div>
+      <button class="btn" onclick="outAdd()">＋ Ajouter</button>
+      <button class="klink" onclick="outReset()">Revenir à la liste de départ</button></div>`:""}
+    <button class="btn ghost" onclick="outEdit=!outEdit;openOutils()">${outEdit?"✓ Terminé":"✎ Modifier les outils"}</button>
+    <button class="btn ghost" onclick="openLauncher()">🚀 Mes apps d'entraînement</button>
+    <p class="kp" style="margin-top:12px;color:var(--muted);font-size:12px;line-height:1.5">Safari demande parfois « Ouvrir dans … ? » : c'est normal. Si un outil n'ouvre pas son app, remplace son lien par l'adresse du site.</p>
+    <button class="btn ghost" onclick="outEdit=false;closeOv();render()">Fermer</button>`);
+}
+function outDel(i){ const O=outils(); if(!confirm("Retirer « "+O[i].n+" » ?")) return; O.splice(i,1); save0(); openOutils(); }
+function outAdd(){ const n=(document.getElementById("oN").value||"").trim(), e=(document.getElementById("oE").value||"").trim()||"🔗", u=(document.getElementById("oU").value||"").trim();
+  if(!n||!u) return toast("Il faut un nom et un lien.");
+  outils().push({n,e,u:/^[a-z][a-z0-9+.-]*:/i.test(u)?u:"https://"+u}); save0(); openOutils(); }
+function outReset(){ if(!confirm("Remettre la liste de départ ?")) return; S.outils=null; outils(); save0(); openOutils(); }
+
+/* ---- envoyer à Claude, sans API ---- */
+const MOIKEY="pointage_moi";
+let clDays=1;
+function claudeSnap(days){
+  const t=today(), C=acc(), ch=chaine(), L=[], AC=catsActives();
+  L.push("# Le Pointage → Claude");
+  L.push(new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+", "+hhmmOf(Date.now()));
+  L.push("Contexte : mon tableau de bord quotidien — priorités pour mon stage de janvier, apps d'entraînement, candidatures, garde-fous anti-scroll. Réponds-moi en français.");
+  L.push("");
+  L.push("## Aujourd'hui");
+  L.push("- Priorités : "+(AC.length?AC.map(c=>c.nom+" "+(catDone(c.id)?"✓":"✗")).join(" · "):"aucune définie")+(C.minDay[t]?" (jour minimum)":""));
+  L.push("- Chaîne : "+ch.n+" j · jokers restants ce mois : "+ch.left+"/2");
+  if((C.focus[t]||"").trim()) L.push("- Chose du jour : "+C.focus[t].trim());
+  const sem=cAll().filter(c=>c.d&&c.d>dayShift(t,-7)).length, ent=cAll().filter(c=>c.st==="entretien"||c.st==="offre").length;
+  L.push("- Candidatures : "+cToday()+"/"+C_OBJ+" aujourd'hui · "+sem+" sur 7 jours · "+cAll().length+" au total · "+ent+" entretien(s) ou offre(s) · "+cAll().filter(cARelancer).length+" à relancer · stage dans "+cJours()+" jours");
+  const lg=C.log[t]||[];
+  L.push("- Instagram : "+lg.filter(x=>!x.passe).length+" ticket(s), "+lg.reduce((a,x)=>a+(x.min||0),0)+" min ouvertes, renoncé "+(C.ren[t]||0)+" fois"+(lg.some(x=>x.passe)?", passe-droit utilisé":""));
+  const ap=S.apps.filter(a=>doneToday(a.id)||todayMin(a.id));
+  L.push("- Apps pointées : "+(ap.length?ap.map(a=>a.name+(todayMin(a.id)?" ("+fmtMin(todayMin(a.id))+")":"")).join(", "):"aucune"));
+  if(C.fs[t]) L.push("- Focus terminés : "+C.fs[t]);
+  const fp=forgePlan(); if(fp) L.push("- FORGE : "+forgeTxt(fp));
+  const B=agBuckets();
+  if(B.now.length||B.late.length) L.push("- Tâches : "+B.now.map(x=>(x.t?x.t+" ":"")+x.txt).join(" ; ")+(B.late.length?(B.now.length?" · ":"")+"en retard : "+B.late.map(x=>x.txt).join(" ; "):""));
+  const ev=calToday();
+  if(ev.length) L.push("- Agenda : "+ev.map(e=>(e.ad?"journée":hhmmOf(e.s)+"–"+hhmmOf(e.e))+" "+e.t+(isCours(e)?" (cours)":"")).join(" ; "));
+  const j=(jGet(t).txt||"").trim(); if(j){ L.push(""); L.push("Journal du jour :"); L.push(j); }
+  if(days>1){
+    L.push(""); L.push("## Les "+days+" derniers jours");
+    L.push("jour | priorités | chronos | candidatures | Instagram | journal");
+    for(let i=0;i<days;i++){ const d=dayShift(t,-i);
+      const mins=Math.round(S.apps.reduce((a,x)=>a+(stOf(x.id).min[d]||0),0)), ig=(C.log[d]||[]).reduce((a,x)=>a+(x.min||0),0);
+      const jj=(jGet(d).txt||"").trim().replace(/\s+/g," ");
+      L.push(d+" | "+(dayOk(d)?"✓":"✗")+" | "+mins+" min | "+cOn(d)+" | "+ig+" min | "+(jj?jj.slice(0,160)+(jj.length>160?"…":""):"—")); }
+  }
+  const bl=C.bilans[weekStart()]||C.bilans[dayShift(weekStart(),-7)];
+  if(bl&&(bl.ok||bl.ko||bl.chg)){ L.push(""); L.push("## Dernier bilan de la semaine");
+    if(bl.ok) L.push("- A marché : "+bl.ok); if(bl.ko) L.push("- A coincé : "+bl.ko); if(bl.chg) L.push("- Engagement : "+bl.chg); }
+  if(C.why.trim()){ L.push(""); L.push("Mon pourquoi : "+C.why.trim()); }
+  return L.join("\n");
+}
+function claudeText(){ const q=((document.getElementById("clQ")||{}).value||"").trim();
+  return (q?"## Ma question\n"+q+"\n\n":"")+claudeSnap(clDays); }
+function openClaude(){
+  const moi=(()=>{ try{ return localStorage.getItem(MOIKEY)||""; }catch(e){ return ""; } })();
+  sheet(`<h3>✳️ Envoyer à Claude</h3>
+    <div class="ksub" style="text-align:left">Tout ton contexte en un geste : priorités, chaîne, candidatures, Instagram, FORGE, agenda, journal. Rien de secret ne part : ni code, ni jeton, ni coordonnées de contacts.</div>
+    <div class="ksec"><h4>Ta question (facultatif)</h4><textarea id="clQ" style="min-height:70px" placeholder="Ex : aide-moi à organiser demain autour de mes cours"></textarea></div>
+    <div class="ksec"><h4>Sur quelle période ?</h4><div class="kchips" style="grid-template-columns:repeat(3,1fr)">
+      ${[[1,"Aujourd'hui"],[7,"7 jours"],[30,"30 jours"]].map(([d,l])=>`<button class="kchip ${clDays===d?"on":""}" data-cd="${d}" onclick="clDays=${d};document.querySelectorAll('[data-cd]').forEach(b=>b.classList.toggle('on',+b.dataset.cd===${d}));clPrev()">${l}</button>`).join("")}</div></div>
+    <button class="btn" onclick="clShare()">📤 Partager vers l'app Claude</button>
+    <div class="row2" style="display:flex;gap:8px"><button class="btn ghost" onclick="clCopy()">📋 Copier</button><button class="btn ghost" onclick="window.open('https://claude.ai/new','_blank','noopener')">↗ Ouvrir Claude</button></div>
+    <div class="ksec"><h4>✉️ Ou par mail, à toi-même</h4><p>Claude peut lire ces mails dans une conversation où Gmail est connecté : il suffit de lui dire « lis mes derniers mails Pointage ». L'adresse reste sur cet appareil.</p>
+      <div class="fld"><label>Ton adresse</label><input id="clMoi" type="email" value="${esc(moi)}" placeholder="toi@gmail.com"></div>
+      <button class="btn ghost" onclick="clMail()">✉️ Préparer le mail</button></div>
+    <details class="ksec" style="margin-top:16px"><summary>Voir ce qui part</summary><div class="kpre" id="clPrev"></div></details>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+  clPrev(); const q=document.getElementById("clQ"); if(q) q.oninput=clPrev;
+}
+function clPrev(){ const p=document.getElementById("clPrev"); if(p) p.textContent=claudeText(); }
+function clCopy(){ const txt=claudeText(), done=()=>toast("📋 Copié — colle-le dans Claude");
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>jCopyFallback(txt,done));
+  else jCopyFallback(txt,done); }
+function clShare(){ const txt=claudeText();
+  if(navigator.share) navigator.share({title:"Le Pointage → Claude", text:txt}).catch(()=>{});
+  else { clCopy(); toast("Partage indisponible ici : c'est copié, colle-le dans Claude."); } }
+function clMail(){
+  const a=(document.getElementById("clMoi").value||"").trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a)) return toast("Entre ton adresse mail.");
+  try{ localStorage.setItem(MOIKEY,a); }catch(e){}
+  let body=claudeText(); if(body.length>7000) body=body.slice(0,7000)+"\n…(tronqué — choisis une période plus courte)";
+  location.href="mailto:"+encodeURIComponent(a)+"?subject="+encodeURIComponent("[Pointage → Claude] "+today())+"&body="+encodeURIComponent(body);
+}
+
+/* ---- les rituels s'ouvrent seuls au premier passage ---- */
+function autoRit(){
+  if(location.hash) return;
+  const C=acc(), t=today(); if(!C.auto) C.auto={};
+  const a=C.auto[t]=C.auto[t]||{}, r=C.rit[t]||{}, m=hm();
+  if(m<13*60&&!r.m&&!a.m){ a.m=1; save0(); openMatin(); return; }
+  if(m>=21*60+30&&!r.s&&!a.s){ a.s=1; save0(); openSoir(); }
 }
 
 /* --- overlay & toast --- */
@@ -3418,8 +3661,21 @@ function cHash(){ if(/^#(candidatures|suivi)$/i.test(location.hash)) cAllSheet()
   else if(/^#soir$/i.test(location.hash)) openSoir();
   else if(/^#bilan$/i.test(location.hash)) openBilan();
   else if(/^#focus$/i.test(location.hash)) openFocus();
-  else if(/^#tel$/i.test(location.hash)) openTel(); }
+  else if(/^#tel$/i.test(location.hash)) openTel();
+  else if(/^#claude$/i.test(location.hash)) openClaude();
+  else if(/^#outils$/i.test(location.hash)) openOutils();
+  else if(/^#agenda$/i.test(location.hash)) openCal();
+  else if(/^#tache$/i.test(location.hash)) agSheet();
+  else if(/^#cand$/i.test(location.hash)) cPlus();
+  else if(/^#cal=/i.test(location.hash)){
+    let n=0; try{ n=calImport(decodeURIComponent(location.hash.slice(5))); }catch(e){}
+    try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){}
+    render();
+    toast(n?"📅 Agenda à jour : "+n+" événement"+(n>1?"s":""):"📅 Agenda lu, mais aucun événement compris — vérifie le format ISO 8601 des dates");
+    autoRit();
+  } }
 cHash();
+autoRit();
 addEventListener("hashchange",cHash);
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ rollDay(); render(); syncSoon(400); focusResume(); } });
 /* deux onglets ouverts sur le même appareil : on recharge ce que l'autre a écrit */
