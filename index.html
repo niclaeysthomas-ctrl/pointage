@@ -630,6 +630,22 @@
   .kech .kcheck.on .kb{background:#34d17f;border-color:#34d17f}
   .kech .kfoot{font-size:11.5px;opacity:.7;padding:4px 0 10px}
   .kech .kgo2{flex:none;border:none;background:rgba(255,255,255,.14);color:#fff;font-weight:800;border-radius:9px;width:32px;height:30px;cursor:pointer;font-size:14px}
+
+  /* ---- le coach et le carnet de travail ---- */
+  .ktip,.kwork{background:var(--card);border-radius:18px;padding:12px 15px 14px;margin:12px 0 0;box-shadow:var(--shadow-sm)}
+  .ktip-h{display:flex;justify-content:space-between;align-items:center}
+  .ktip-h b{font-family:var(--disp);font-size:14.5px;font-weight:800}
+  .ktip-h button{border:none;background:none;color:var(--muted);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+  .ktip-b{display:flex;gap:11px;margin-top:8px;align-items:flex-start}
+  .ktip-b>span{font-size:24px;line-height:1.1}
+  .ktip-b b{display:block;font-size:14.5px;font-weight:800;line-height:1.35}
+  .ktip-b small{display:block;color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:3px}
+  .kwork-n{display:flex;align-items:baseline;gap:8px;margin:6px 0 4px}
+  .kwork-n b{font-family:var(--disp);font-size:26px;font-weight:800;white-space:nowrap}
+  .kwork-n span{color:var(--muted);font-size:12.5px;font-weight:600}
+  .kwork-r{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+  .kwork-r b{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kwork-r span{color:var(--muted);flex:none;letter-spacing:.05em}
 </style>
 </head>
 <body>
@@ -920,12 +936,14 @@ function render(){
       ${briefHeadHtml()}
     </div>
     ${banHtml()}
+    ${tipHtml()}
     ${runHtml}
     ${choseHtml()}
     ${appListHtml("prio")}
     <div style="height:14px"></div>
     <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
     ${candCardHtml()}
+    ${workCardHtml()}
     ${pCardHtml()}
     ${dockHtml()}
     <div style="height:6px"></div>
@@ -3293,6 +3311,8 @@ function focusEnd(complete){
   save(); render();
   if(navigator.vibrate) navigator.vibrate([120,60,120]);
   toast(complete?"🎯 Focus terminé : "+F.dur+" min. Bravo.":"Focus arrêté — le temps passé est compté.");
+  const fm=complete?F.dur:Math.round((Date.now()-F.start)/60000), fa=S.apps.find(x=>x.id===F.id);
+  if(fm>=5) setTimeout(()=>openWork({sujet:fa?fa.name:"", min:fm}),500);
 }
 function focusResume(){ const F=S.focusRun; if(!F) return; if(Date.now()>=F.start+F.dur*60000) focusEnd(true); else focusShow(); }
 
@@ -3477,6 +3497,7 @@ function accMerge(Rc){
   Object.keys(Rc.rit||{}).forEach(d=>{ const a=C.rit[d]=C.rit[d]||{}, b=Rc.rit[d]||{};
     ["m","s","tel"].forEach(x=>{ if(b[x]&&!a[x]){ a[x]=b[x]; ch=true; } }); });
   Object.keys(Rc.bilans||{}).forEach(w=>{ const b=Rc.bilans[w]; if(b&&(!C.bilans[w]||(b.t||0)>(C.bilans[w].t||0))){ C.bilans[w]=b; ch=true; } });
+  if(Array.isArray(Rc.work)){ const W=wAll(), ids=new Set(W.map(x=>x.id)); Rc.work.forEach(x=>{ if(x&&!ids.has(x.id)){ W.push(x); ch=true; } }); }
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
   return ch;
 }
@@ -3617,6 +3638,8 @@ function claudeSnap(days){
   const ap=S.apps.filter(a=>doneToday(a.id)||todayMin(a.id));
   L.push("- Apps pointées : "+(ap.length?ap.map(a=>a.name+(todayMin(a.id)?" ("+fmtMin(todayMin(a.id))+")":"")).join(", "):"aucune"));
   if(C.fs[t]) L.push("- Focus terminés : "+C.fs[t]);
+  { const W=wDay(t); L.push("- Travail noté : "+(W.length?fmtMin(wMin(t))+" en "+W.length+" séance(s)":"aucune séance notée"));
+    W.forEach(x=>L.push("    "+x.sujet+" — "+x.min+" min, concentration "+(x.q||"?")+"/5"+(x.fait?" — "+x.fait:"")+(x.next?" → "+x.next:""))); }
   const fp=forgePlan(); if(fp) L.push("- FORGE : "+forgeTxt(fp));
   const B=agBuckets();
   if(B.now.length||B.late.length) L.push("- Tâches : "+B.now.map(x=>(x.t?x.t+" ":"")+x.txt).join(" ; ")+(B.late.length?(B.now.length?" · ":"")+"en retard : "+B.late.map(x=>x.txt).join(" ; "):""));
@@ -3727,7 +3750,7 @@ function echMatinHtml(){ const E=ech(), P=echPlan(); if(!E||!P.length) return ""
 function openPlus(){
   const B=[["✎","Modifier","openManage()"],["📊","Bilan","openStats()"],["🚀","Mes apps","openLauncher()"],["🔗","Appareils","syncOpen()"],
     ["💾","Sauver","bkSheet()"],["🚪","Porte","openPorte()"],["🛡️","Mon cadre","openCadre()"],["📱","Téléphone","openTel()"],
-    ["📅","Agenda","openCal()"],["📓","Journal","openJournal()"],["✳️","Claude","openClaude()"],["📆","Bilan hebdo","openBilan()"]];
+    ["📅","Agenda","openCal()"],["📓","Journal","openJournal()"],["✳️","Claude","openClaude()"],["📆","Bilan hebdo","openBilan()"],["⏱","Travail","openWorkLog()"]];
   sheet(`<h3>⋯ Plus</h3><div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:18px" onclick="closeOv();render()">Fermer</button>`);
 }
@@ -3740,6 +3763,99 @@ function modeHtml(){
     <button onclick="bkExport()">💾 Exporter mes données</button></div>`;
   if(today()<="2026-10-31") return `<div class="kban min" style="margin-top:14px"><b>✅ Version Safari : c'est la bonne.</b> Garde cette icône, supprime l'autre une fois tes données importées ici (⋯ Plus › 💾 Sauver › Importer).</div>`;
   return "";
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE COACH (conseils) et LE CARNET DE TRAVAIL
+   • Un conseil adapté au moment de la journée, avec son pourquoi.
+     Rien de magique : des règles simples, solides, qui tiennent dans le temps.
+   • Chaque séance de travail se note : sujet, durée, concentration, ce qui
+     a été fait, la suite. Un focus terminé ouvre le carnet tout seul.
+   ═══════════════════════════════════════════════════════════════════ */
+const TIPS={
+ matin:[
+  ["☀️","10 minutes de lumière du jour dans la première heure, même par temps gris.","C'est le signal le plus fort pour caler ton horloge interne : réveil plus net, et endormissement plus facile le soir."],
+  ["📵","Pas de téléphone la première demi-heure.","La première chose que tu regardes donne le ton de la journée. Commence par toi, pas par le fil des autres."],
+  ["💧","Un grand verre d'eau au réveil.","Tu sors de 7 ou 8 heures sans boire ; une légère déshydratation suffit à rendre l'esprit plus lent."],
+  ["🐸","La tâche la plus importante en premier, avant 10 h.","Le matin, personne ne te sollicite encore. Ce qui est fait tôt ne peut plus être volé par la journée."],
+  ["⏰","Même heure de lever 7 jours sur 7, week-end compris.","C'est le réglage numéro 1 du sommeil : un lever régulier rend le coucher régulier, pas l'inverse."],
+  ["🛏️","Fais ton lit en te levant.","Une première victoire de 30 secondes. Elle n'a rien d'héroïque, mais elle lance la machine."]],
+ jour:[
+  ["☕","Dernier café vers 14 h.","La caféine met environ 5 heures à perdre la moitié de son effet : un café à 17 h, c'est encore la moitié dans ton sang à 22 h."],
+  ["📱","Téléphone dans une autre pièce pendant que tu travailles.","Même retourné sur la table, il attire une partie de ton attention. Hors de vue, hors de tête."],
+  ["⏱️","Travaille en blocs de 50 minutes, puis 10 de vraie pause.","Une durée courte et fixée rend le démarrage facile, et la pause empêche la fatigue de s'accumuler."],
+  ["🚶","Une pause, c'est bouger, pas scroller.","Cinq minutes debout, dehors, un verre d'eau : le cerveau récupère. Le fil d'actualité, lui, le fatigue encore."],
+  ["🎯","Une seule tâche à la fois.","Chaque bascule entre deux tâches coûte du temps de remise en route. Finis, puis passe à la suite."],
+  ["😴","Sieste : 20 minutes maximum, et avant 15 h.","Au-delà, tu tombes en sommeil profond et tu te réveilles plus fatigué ; trop tard, elle abîme la nuit."],
+  ["🍽️","Déjeuner léger si l'après-midi compte, et 10 minutes de marche après.","Un gros repas appelle la somnolence ; la marche aide à la digestion et réveille."]],
+ soir:[
+  ["🌙","Lumière tamisée et téléphone loin, une heure avant de dormir.","La lumière forte et le contenu stimulant repoussent l'endormissement ; l'heure d'avant sert à redescendre."],
+  ["❄️","Chambre fraîche (18–19 °C), sombre et calme.","Le corps doit baisser sa température pour s'endormir : une pièce fraîche l'aide."],
+  ["🍷","Pas de repas lourd dans les 2–3 heures avant le lit, et pas d'alcool.","L'alcool aide à s'endormir mais fragmente la seconde moitié de la nuit : sommeil moins réparateur."],
+  ["📝","Prépare demain ce soir : la première tâche écrite, les affaires prêtes.","Le matin, tu n'as plus rien à décider : tu exécutes. C'est le rituel du soir du Pointage."],
+  ["🚿","Douche chaude 1 à 2 heures avant le coucher.","La baisse de température qui suit aide à trouver le sommeil."],
+  ["🔄","Pas sommeil après 20 minutes au lit ? Lève-toi, lumière faible, lis, reviens quand ça vient.","Rester au lit éveillé apprend au cerveau que le lit sert à ruminer."]],
+ nuit:[
+  ["🌌","Il est tard. Pose le téléphone.","Chaque heure de sommeil perdue se paie demain en concentration et en humeur. Rien sur cet écran ne vaut ça."]],
+ tete:[
+  ["🔗","Ne rate jamais deux jours de suite.","Un raté, c'est un accident. Deux, c'est le début d'une nouvelle habitude."],
+  ["⚡","La motivation suit l'action, pas l'inverse.","Commence 5 minutes. L'envie arrive souvent pendant, rarement avant."],
+  ["🧱","Tu n'as pas à avoir envie. Tu as juste à commencer.","Les gens disciplinés n'ont pas plus de motivation : ils ont des routines qui ne leur demandent pas de décider."],
+  ["📏","Ce qui se mesure progresse.","Note tes séances : en fin de semaine, les chiffres te diront la vérité que l'humeur cache."],
+  ["🎯","Vise la régularité, pas l'intensité.","Une heure par jour pendant un mois bat une journée de dix heures suivie de trois jours de rien."]]
+};
+let tipOff=0;
+function tipPeriod(){ const h=new Date().getHours(); return h>=23||h<5?"nuit":h<11?"matin":h<18?"jour":"soir"; }
+function tipPick(){ const per=tipPeriod(), L=TIPS[per].concat(per==="nuit"?[]:TIPS.tete);
+  const seed=Math.floor(Date.parse(today())/864e5)+tipOff; return L[((seed%L.length)+L.length)%L.length]; }
+function tipHtml(){ const [e,t,w]=tipPick();
+  return `<div class="ktip"><div class="ktip-h"><b>🗣️ Le coach</b><button onclick="event.stopPropagation();tipOff++;render()">↻ un autre</button></div>
+    <div class="ktip-b"><span>${e}</span><div><b>${esc(t)}</b><small>${esc(w)}</small></div></div></div>`; }
+
+/* ---- le carnet de travail ---- */
+function wAll(){ const C=acc(); if(!Array.isArray(C.work)) C.work=[]; return C.work; }
+function wDay(d){ const k=d||today(); return wAll().filter(x=>x.d===k); }
+function wMin(d){ return wDay(d).reduce((a,x)=>a+(+x.min||0),0); }
+let wDraft={};
+function openWork(pre){
+  wDraft={sujet:"",min:50,q:3,fait:"",next:"",...(pre||{})};
+  const sugg=[...new Set(catsActives().map(c=>(appsOfCat(c.id)[0]||{}).name).filter(Boolean).concat(ech()?["IELTS"]:[],["Candidatures","Cours ESCP"]))];
+  sheet(`<h3>⏱ Noter une séance de travail</h3>
+    <div class="fld"><label>Sur quoi ?</label><input id="wS" value="${esc(wDraft.sujet)}" placeholder="Ex : IELTS Writing Task 2"></div>
+    <div class="jtagrow" style="margin:-4px 0 12px">${sugg.map(x=>`<span class="jtag" onclick="document.getElementById('wS').value='${escJs(x)}'">${esc(x)}</span>`).join("")}</div>
+    <div class="fld"><label>Durée (min)</label><input id="wM" type="number" inputmode="numeric" value="${wDraft.min}"></div>
+    <div class="jtagrow" style="margin:-4px 0 12px">${[25,50,90,120].map(m=>`<span class="jtag" onclick="document.getElementById('wM').value=${m}">${m} min</span>`).join("")}</div>
+    <div class="fld"><label>Concentration</label><div class="kchips" style="grid-template-columns:repeat(5,1fr);margin-top:0">${[1,2,3,4,5].map(q=>`<button class="kchip ${wDraft.q===q?"on":""}" data-q="${q}" onclick="wDraft.q=${q};document.querySelectorAll('[data-q]').forEach(b=>b.classList.toggle('on',+b.dataset.q===${q}))">${q}</button>`).join("")}</div>
+      <p class="kp" style="color:var(--muted);font-size:11.5px;margin-top:6px">1 = dispersé, téléphone sans arrêt · 5 = immergé, le temps a filé</p></div>
+    <div class="fld"><label>Ce que j'ai fait</label><input id="wF" value="${esc(wDraft.fait)}" placeholder="Ex : 1 essai complet + relecture"></div>
+    <div class="fld"><label>La prochaine étape</label><input id="wN" value="${esc(wDraft.next)}" placeholder="Ex : corriger les articles et les prépositions"></div>
+    <button class="btn" onclick="wSave()">Enregistrer la séance</button>
+    <button class="btn ghost" onclick="closeOv();render()">Annuler</button>`);
+}
+function wSave(){
+  const v=id=>(document.getElementById(id).value||"").trim(), min=Math.max(1,Math.round(+v("wM")||0));
+  if(!v("wS")) return toast("Écris sur quoi tu as travaillé.");
+  wAll().push({id:"w"+Date.now().toString(36), d:today(), at:Date.now(), sujet:v("wS"), min, q:wDraft.q, fait:v("wF"), next:v("wN")});
+  save(); closeOv(); render();
+  const tot=wMin(); toast("⏱ Séance notée · "+fmtMin(tot)+" de travail aujourd'hui");
+}
+function wDel(id){ const C=acc(); if(!confirm("Supprimer cette séance ?")) return; C.work=wAll().filter(x=>x.id!==id); save(); openWorkLog(); }
+function workCardHtml(){
+  const L=wDay(), tot=wMin(), wk=Array.from({length:7},(_,i)=>wMin(dayShift(today(),-i))).reduce((a,b)=>a+b,0);
+  return `<div class="kwork"><div class="ktip-h"><b>⏱ Mes séances de travail</b><button onclick="openWorkLog()">historique ›</button></div>
+    <div class="kwork-n"><b>${fmtMin(tot)}</b><span>aujourd'hui${L.length?" · "+L.length+" séance"+(L.length>1?"s":""):""} · ${fmtMin(wk)} sur 7 jours</span></div>
+    ${L.slice(-3).reverse().map(x=>`<div class="kwork-r"><b>${esc(x.sujet)}</b><span>${x.min} min · ${"●".repeat(x.q||0)}${"○".repeat(5-(x.q||0))}</span></div>`).join("")}
+    <div class="row2" style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="margin-top:0" onclick="openWork()">＋ Noter une séance</button><button class="btn ghost" style="margin-top:0" onclick="openFocus()">🎯 Focus</button></div></div>`;
+}
+function openWorkLog(){
+  const days=[]; for(let i=0;i<14;i++){ const d=dayShift(today(),-i), L=wDay(d); if(L.length) days.push([d,L]); }
+  sheet(`<h3>⏱ Mes séances de travail</h3>
+    <div class="ksub" style="text-align:left">${fmtMin(Array.from({length:7},(_,i)=>wMin(dayShift(today(),-i))).reduce((a,b)=>a+b,0))} sur les 7 derniers jours.</div>
+    ${days.length?days.map(([d,L])=>`<div class="kday">${d===today()?"Aujourd'hui":new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric"})} · ${fmtMin(L.reduce((a,x)=>a+x.min,0))}</div>
+      <div class="krows" style="margin-top:0">${L.map(x=>`<div class="krow"><span class="ke">⏱</span><div class="kn">${esc(x.sujet)} · ${x.min} min<small>${"●".repeat(x.q||0)}${"○".repeat(5-(x.q||0))}${x.fait?" · "+esc(x.fait):""}${x.next?" → "+esc(x.next):""}</small></div><button onclick="wDel('${x.id}')" style="background:none;color:var(--faint)">✕</button></div>`).join("")}</div>`).join("")
+      :`<div class="ksub" style="margin-top:14px">Aucune séance notée sur 14 jours. La prochaine commence maintenant.</div>`}
+    <button class="btn" onclick="openWork()">＋ Noter une séance</button>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
 }
 
 /* --- overlay & toast --- */
