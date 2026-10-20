@@ -3545,7 +3545,9 @@ function calStale(){ const C=calGet(); return C.at&&Date.now()-C.at>21*864e5; }
 function calDayLbl(ms){ const n=Date.now(); if(memeJour(ms,n)) return "Aujourd'hui"; if(memeJour(ms,n+864e5)) return "Demain";
   return new Date(ms).toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"short"}); }
 function calHtml(){
-  const C=calGet(); if(!C.at) return "";
+  const C=calGet();
+  if(!C.at) return `<div class="kcal" onclick="calPaste()"><div class="kcalh"><b>🎓 Mes prochains cours</b><span>importer ›</span></div>
+    <div class="kcalrow"><span>📋</span><div><i>Pas encore importés</i><b>Touche ici et colle le texte de tes cours</b></div></div></div>`;
   const n=Date.now(), fut=C.ev.filter(e=>!e.ad&&e.e>n), now=fut.find(e=>e.s<=n), next=fut.filter(e=>e.s>n).slice(0,4);
   let h=`<div class="kcalh"><b>🎓 Mes prochains cours</b><span>tout voir ›</span></div>`;
   if(now) h+=`<div class="kcalrow now"><span>${isCours(now)?"🎓":"📍"}</span><div><i>En ce moment · jusqu'à ${hhmmOf(now.e)}</i><b>${esc(now.t)}</b>${now.l?`<small>${esc(now.l)}</small>`:""}</div></div>`;
@@ -3555,6 +3557,15 @@ function calHtml(){
   if(calStale()) h+=`<div class="kcalstale">Agenda importé il y a ${Math.round((n-C.at)/864e5)} jours : pense à le réimporter.</div>`;
   return `<div class="kcal" onclick="openCal()">${h}</div>`;
 }
+function calPaste(){
+  sheet(`<h3>📋 Importer mes cours</h3>
+    <div class="ksub" style="text-align:left">Colle ici le texte de tes cours (une ligne par cours), tel que Claude te l'a donné.</div>
+    <div class="ksec"><textarea id="calTxt" style="min-height:160px;font-family:var(--mono);font-size:12px" placeholder="Postures de consultants|2026-10-21T13:30:00+02:00|…"></textarea></div>
+    <button class="btn" onclick="calPasteGo()">Importer</button>
+    <button class="btn ghost" onclick="closeOv();render()">Annuler</button>`);
+}
+function calPasteGo(){ const n=calImport(document.getElementById("calTxt").value||""); closeOv(); render();
+  toast(n?"📅 "+n+" cours importés":"Rien compris : vérifie que tu as collé tout le texte"); }
 let calCals=[];
 function openCal(){
   const C=calGet(), n=Date.now(); calCals=[...new Set(C.ev.map(e=>e.c).filter(Boolean))];
@@ -3568,6 +3579,7 @@ function openCal(){
     ${days||(C.at?`<div class="ksub" style="margin-top:14px">Rien dans les 7 prochains jours.</div>`:"")}
     ${calCals.length?`<div class="ksec"><h4>🎓 Où sont tes cours ?</h4><p>Coche l'agenda qui contient ton emploi du temps. Sans choix, je repère les cours au titre (cours, TD, TP, amphi, partiel…). Pendant un cours, Instagram attend.</p>
       ${calCals.map((c,i)=>`<div class="kcheck ${L.includes(c)?"on":""}" onclick="calTog(${i})"><span class="kb">✓</span>${esc(c)}</div>`).join("")}</div>`:""}
+    <button class="btn" onclick="calPaste()">📋 Importer / mettre à jour mes cours</button>
     <button class="btn ghost" onclick="openTel()">📱 Comment brancher l'agenda</button>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
 }
