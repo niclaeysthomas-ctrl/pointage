@@ -626,6 +626,7 @@
   .kech .kcheck.on{opacity:.6}
   .kech .kcheck.on .kb{background:#34d17f;border-color:#34d17f}
   .kech .kfoot{font-size:11.5px;opacity:.7;padding:4px 0 10px}
+  .kech .kgo2{flex:none;border:none;background:rgba(255,255,255,.14);color:#fff;font-weight:800;border-radius:9px;width:32px;height:30px;cursor:pointer;font-size:14px}
 </style>
 </head>
 <body>
@@ -3589,9 +3590,9 @@ function claudeSnap(days){
   L.push("## Aujourd'hui");
   L.push("- Priorités : "+(AC.length?AC.map(c=>c.nom+" "+(catDone(c.id)?"✓":"✗")).join(" · "):"aucune définie")+(C.minDay[t]?" (jour minimum)":""));
   L.push("- Chaîne : "+ch.n+" j · jokers restants ce mois : "+ch.left+"/2");
-  { const E=ech(), P=echPlan(), dn=C.echDone[t]||[];
-    if(E){ L.push("- Échéance : "+E.nom+" le "+E.date+" (J-"+dDiff(t,E.date)+")"+(P.length?" · plan du jour "+dn.length+"/"+P.length:""));
-      P.forEach((x,i)=>L.push("    "+(dn.includes(i)?"✓ ":"✗ ")+x)); } }
+  { const E=ech(), P=echPlan(), dn=echDoneList();
+    if(E){ L.push("- Échéance : "+E.nom+" le "+E.date+" (J-"+dDiff(t,E.date)+")"+(P.length?" · programme du jour "+dn.filter(Boolean).length+"/"+P.length:"")+" · dernière Task 2 notée : band 6 (20/09)");
+      P.forEach((x,i)=>L.push("    "+(dn[i]?"✓ ":"✗ ")+x[1]+" ("+x[0]+" min)")); } }
   if((C.focus[t]||"").trim()) L.push("- Chose du jour : "+C.focus[t].trim());
   const sem=cAll().filter(c=>c.d&&c.d>dayShift(t,-7)).length, ent=cAll().filter(c=>c.st==="entretien"||c.st==="offre").length;
   L.push("- Candidatures : "+cToday()+"/"+C_OBJ+" aujourd'hui · "+sem+" sur 7 jours · "+cAll().length+" au total · "+ent+" entretien(s) ou offre(s) · "+cAll().filter(cARelancer).length+" à relancer · stage dans "+cJours()+" jours");
@@ -3667,40 +3668,44 @@ function autoRit(){
    Le plan du jour se coche depuis l'accueil, part chez le coach chaque soir,
    et la carte disparaît d'elle-même une fois la date passée.
    ═══════════════════════════════════════════════════════════════════ */
-const ECH_DEF={nom:"IELTS", e:"🇬🇧", date:"2026-10-24", plan:{
-  "2026-10-20":["Diagnostic express : 1 section de Listening + 1 passage de Reading, chronométrés",
-    "Writing Task 2 en 40 min, puis envoie-le à Claude pour une note par critère",
-    "Speaking : 2 min de Part 2 enregistrées sur ton téléphone, réécoute-toi"],
-  "2026-10-21":["Matin : examen blanc complet en conditions réelles (Listening, Reading, Writing)",
-    "Après-midi : correction, puis 1 h sur ta partie la plus faible",
-    "Speaking : 20 min enregistrées (Part 2 et Part 3)"],
-  "2026-10-22":["Writing : Task 1 + Task 2 chronométrées, corrigées par Claude",
-    "Reading : 2 passages chronométrés, revois chaque type de question raté",
-    "Listening : sections 3 et 4",
-    "Speaking : 20 min"],
-  "2026-10-23":["Léger : 1 Listening + 1 Reading chronométrés, pas plus",
-    "Relis tes erreurs et tes tournures utiles",
-    "Logistique : pièce d'identité, convocation, adresse, heure, trajet",
-    "Écran coupé à 22 h, coucher tôt"],
-  "2026-10-24":["Jour J : petit-déjeuner, arriver en avance, respirer. Le travail est fait."]
+/* Le programme vient de l'app d'anglais (990 › IELTS) : mêmes tâches, mêmes coches.
+   Les deux apps vivent sur le même domaine : les coches sont partagées tant
+   qu'elles s'ouvrent dans le même navigateur (Safari). Chaque tâche ouvre
+   directement le bon exercice. L'ordre doit rester celui de l'app d'anglais. */
+const IELTS_URL="https://niclaeysthomas-ctrl.github.io/990/ielts.html";
+const ECH_DEF={nom:"IELTS Academic", e:"🇬🇧", date:"2026-10-24", plan:{
+  "2026-10-20":[[160,"Examen blanc complet : un test Cambridge, ou sinon ici L + R + W d'affilée","listening:p1"],
+    [15,"Speaking complet, carte jamais vue","speaking:2"],[10,"Entre les quatre bandes","plan"],[10,"Cartes du jour","cards"]],
+  "2026-10-21":[[60,"Correction de l'examen blanc : seulement les erreurs encore présentes"],
+    [10,"Atelier · Plan en 5 min","atelier:plan"],[45,"Task 2 sur ton type le plus faible, notée","writing:t2f"],[10,"Cartes du jour","cards"]],
+  "2026-10-22":[[40,"Deux simulations complètes du Speaking, cartes jamais vues","speaking:2"],
+    [20,"Listening : une Part 4 Cambridge"],[10,"Atelier · Connecteurs","atelier:connect"],
+    [15,"Relis tes points de vigilance et la Lime","today"],[40,"Une dernière Task 2 jamais vue, 40 min chrono, notée","writing:t2k"],[10,"Cartes du jour","cards"]],
+  "2026-10-23":[[20,"Listening : Part 2 QCM, pour garder l'oreille","listening:p2b"],
+    [10,"Relis « Le jour J » et ta convocation","plan"],[10,"Pièce d'identité, eau, crayons. Coucher tôt."],[10,"Cartes : dernière séance","cards"]],
+  "2026-10-24":[[15,"Le matin : 15 min d'anglais à voix haute, puis départ avec 30 min d'avance"]]
 }};
 function ech(){
   const C=cad();
-  if(C.ech===undefined&&!C.echSeed&&today()<=ECH_DEF.date){ C.ech=JSON.parse(JSON.stringify(ECH_DEF)); C.echSeed=1; save0(); }
-  if(!C.echDone) C.echDone={};
+  if(!C.echSeed2&&today()<=ECH_DEF.date){ C.ech=JSON.parse(JSON.stringify(ECH_DEF)); C.echSeed=1; C.echSeed2=1; save0(); }
   return C.ech&&C.ech.date>=today()?C.ech:null;
 }
 function echPlan(){ const E=ech(); return E?((E.plan||{})[today()]||[]):[]; }
+function ieltsChecks(){ try{ return JSON.parse(localStorage.getItem("ielts:planChecks")||"{}")||{}; }catch(e){ return {}; } }
+function echDoneList(){ const c=ieltsChecks(), t=today(); return echPlan().map((_,i)=>!!c[t+":"+i]); }
+function echTog(i){ const c=ieltsChecks(), k=today()+":"+i; if(c[k]) delete c[k]; else c[k]=1;
+  try{ localStorage.setItem("ielts:planChecks",JSON.stringify(c)); }catch(e){} render(); }
+function echGo(target){ window.open(IELTS_URL+(target?"#go="+encodeURIComponent(target):""),"_blank","noopener"); }
 function echHtml(){
   const E=ech(); if(!E) return "";
-  const t=today(), j=dDiff(t,E.date), P=echPlan(), dn=cad().echDone[t]||[];
+  const t=today(), j=dDiff(t,E.date), P=echPlan(), dn=echDoneList(), n=dn.filter(Boolean).length;
+  const min=P.filter((_,i)=>!dn[i]).reduce((a,x)=>a+x[0],0);
   return `<div class="kech"><div class="kh"><span>${E.e}</span><div><b>${esc(E.nom)}</b><small>${new Date(E.date+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}</small></div><div class="kj">${j===0?"Jour J":"J-"+j}</div></div>
-    ${P.map((x,i)=>`<div class="kcheck ${dn.includes(i)?"on":""}" onclick="echTog(${i})"><span class="kb">✓</span><span>${esc(x)}</span></div>`).join("")}
-    <div class="kfoot">${P.length?dn.length+"/"+P.length+" aujourd'hui · ":""}jusqu'à l'examen, tout le reste passe en version minimum</div></div>`;
+    ${P.map((x,i)=>`<div class="kcheck ${dn[i]?"on":""}"><span class="kb" onclick="echTog(${i})">✓</span><span onclick="echTog(${i})" style="flex:1"><b style="opacity:.7;font-weight:700">${x[0]} min</b> · ${esc(x[1])}</span>${x[2]?`<button class="kgo2" onclick="echGo('${x[2]}')">↗</button>`:""}</div>`).join("")}
+    <div class="kfoot">${P.length?n+"/"+P.length+" fait"+(min?" · reste ~"+fmtMin(min):"")+" · ":""}<a href="#" onclick="event.preventDefault();echGo('today')" style="color:#fff;font-weight:800">↗ ouvrir mon programme</a></div></div>`;
 }
-function echTog(i){ const C=cad(), t=today(), L=C.echDone[t]=C.echDone[t]||[]; const k=L.indexOf(i); if(k>=0) L.splice(k,1); else L.push(i); save(); render(); }
 function echMatinHtml(){ const E=ech(), P=echPlan(); if(!E||!P.length) return "";
-  return `<div class="ksec"><h4>${E.e} ${esc(E.nom)} — J-${dDiff(today(),E.date)} : ton plan du jour</h4><div class="krows">${P.map(x=>`<div class="krow"><span class="ke">•</span><div class="kn" style="font-weight:600">${esc(x)}</div></div>`).join("")}</div></div>`; }
+  return `<div class="ksec"><h4>${E.e} IELTS — J-${dDiff(today(),E.date)} : ton programme du jour</h4><div class="krows">${P.map(x=>`<div class="krow"><span class="ke">•</span><div class="kn" style="font-weight:600">${esc(x[1])}<small>${x[0]} min</small></div></div>`).join("")}</div></div>`; }
 
 /* ---- ⋯ Plus : tout le secondaire, hors de l'accueil ---- */
 function openPlus(){
