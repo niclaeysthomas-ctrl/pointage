@@ -849,11 +849,14 @@ function appListHtml(){
   });
   const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
   const restantes=orphelines.filter(visibleNow);
+  /* « Le reste » n'est plus plié : toutes les apps restent sous les yeux et
+     cochables. Elles ne comptent toujours pas dans la journée — les trois
+     priorités du stage passent devant. */
   if(restantes.length){
-    out+=`<div class="cathead reste" onclick="toggleReste()" style="cursor:pointer">
+    out+=`<div class="cathead reste">
       <span class="ce">📦</span><span class="cn">Le reste</span>
-      <span class="cs todo">${restantes.length} app${restantes.length>1?"s":""} · hors compte ${S.resteOuvert?"▾":"▸"}</span></div>`+
-      (S.resteOuvert?restantes.map(a=>appRowHtml(a,idx[a.id])).join(""):"");
+      <span class="cs todo">${restantes.length} app${restantes.length>1?"s":""} · hors compte</span></div>`+
+      restantes.map(a=>appRowHtml(a,idx[a.id])).join("");
   }
   const faites=S.apps.filter(a=>!visibleNow(a));
   if(!out && faites.length) out+=`<div class="cvide" style="text-align:center;padding:18px 0 4px">Tout est fait pour aujourd'hui 🎉</div>`;
@@ -866,7 +869,6 @@ function appListHtml(){
   return out;
 }
 function toggleFait(){ S.faitOuvert=!S.faitOuvert; save0(); render(); }
-function toggleReste(){ S.resteOuvert=!S.resteOuvert; save0(); render(); }
 function updClock(){
   if(!S.run){ clearInterval(tick); return; }
   const s=Math.floor((Date.now()-S.run.t0)/1000);
