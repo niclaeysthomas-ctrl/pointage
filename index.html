@@ -3923,7 +3923,7 @@ function forgeFor(ds){
 function nextTypeGuess(){ const F=forgeData(); const L=(F&&F.workoutLog||[]).filter(w=>w.cali).pop(); return L?(L.cali==="A"?"B":"A"):"A"; }
 function jpItems(ds){
   const out=[], E=ech(), P=E?((E.plan||{})[ds]||[]):[];
-  out.push({id:"reveil",e:"🌅",nom:"Réveil + étirements",sub:"FORGE › Réveil du matin",dur:15,go:"forgeOpen()"});
+  out.push({id:"reveil",e:"🔥",nom:"Réveil + cardio en musique",sub:"FORGE · réveil 5 min puis 12 min de cardio",dur:20,go:"forgeOpen()"});
   const f=forgeFor(ds);
   if(f.k==="cali") out.push({id:"sport",e:f.t==="B"?"🤸":"🛫",nom:"Calisthénie "+(f.t||"A")+" + étirements",sub:"FORGE, échauffement compris",dur:75,go:"forgeOpen()",work:"Sport"});
   else out.push({id:"sport",e:"🥊",nom:"Boxe + étirements",sub:"FORGE · ou un footing de 30 min",dur:55,go:"forgeOpen()",work:"Sport"});
