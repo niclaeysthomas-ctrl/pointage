@@ -3939,7 +3939,7 @@ function forgeFor(ds){
 function nextTypeGuess(){ const F=forgeData(); const L=(F&&F.workoutLog||[]).filter(w=>w.cali).pop(); return L?(L.cali==="A"?"B":"A"):"A"; }
 function jpItems(ds){
   const out=[], E=ech(), P=E?((E.plan||{})[ds]||[]):[];
-  out.push({id:"reveil",e:"🔥",nom:"Réveil + cardio en musique",sub:"FORGE · réveil 5 min puis 12 min de cardio",dur:20,go:"forgeOpen()"});
+  out.push({id:"reveil",e:"🔥",nom:"Réveil 9 min",sub:"FORGE · 2 min de mobilité + 8 intervalles boxe / corps entier",dur:10,go:"forgeOpen()"});
   const f=forgeFor(ds);
   if(f.k==="cali") out.push({id:"sport",e:f.t==="B"?"🤸":"🛫",nom:"Calisthénie "+(f.t||"A")+" + étirements",sub:"FORGE, échauffement compris",dur:75,go:"forgeOpen()",work:"Sport"});
   else out.push({id:"sport",e:"🥊",nom:"Boxe + étirements",sub:"FORGE · ou un footing de 30 min",dur:55,go:"forgeOpen()",work:"Sport"});
@@ -4006,7 +4006,7 @@ function jpTog(ds,id,chk,work,min,nom){
 const SOS_TRIG=[["ennui","😐","Ennui"],["fatigue","🥱","Fatigue"],["stress","😰","Stress"],["fuite","🏃","Fuir une tâche"],["seul","🫥","Solitude"],["autre","❓","Autre"]];
 const SOS_ACT={
   dehors:{e:"🚶",t:"Sortir 10 minutes",how:"Dehors ou au moins hors de ta chambre. Téléphone en poche, écran éteint. Regarde autour de toi, respire lentement."},
-  corps:{e:"🔥",t:"Bouger : réveil cardio",how:"Lance le réveil cardio de FORGE (12 min, sans saut) ou 2 tours : 20 squats, 30 s de gainage, 20 fentes arrière, 1 min de shadow boxing."},
+  corps:{e:"🔥",t:"Bouger : réveil cardio",how:"Lance le Réveil de FORGE (9 min, sans saut) ou, sans l'app : 4 × (30 s de squats + double direct, 15 s de récup, 30 s de shadow boxing à fond, 15 s de récup)."},
   tache:{e:"🎯",t:"La prochaine tâche de ta journée",how:""},
   anglais:{e:"🇬🇧",t:"10 cartes IELTS",how:"Le téléphone sert, mais pour toi : la séance de cartes du jour dans 990."},
   dodo:{e:"😴",t:"Dormir",how:"Téléphone en charge hors de la chambre. Lumière éteinte. Pas endormi dans 20 minutes ? Lève-toi et lis sur papier."}
