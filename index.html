@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#eef1f6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0f1218" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f4fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#07070e" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pointage">
@@ -700,6 +700,98 @@
   .kco-b .btn{flex:1}
   .kco-next{font-size:12.5px;color:var(--muted);font-weight:650;margin-top:9px}
   .kco-tip{font-size:12px;color:var(--muted);line-height:1.45;margin-top:9px;cursor:pointer}
+
+  /* ═══════════ LOOK « OPAL » : nuit profonde, aurore violette, gemmes ═══════════ */
+  :root{
+    --bg:#f5f4fb; --bg2:#eceaf7; --card:#ffffff; --card2:#f3f1fb; --line:#e7e4f3; --line2:#dcd8ee;
+    --ink:#17152b; --muted:#6b6886; --faint:#a19eb9;
+    --accent:#6d5cff; --accent2:#3fa2ff; --accent-soft:rgba(109,92,255,.12);
+    --good:#10b981; --good-ink:#fff; --good-soft:rgba(16,185,129,.12); --bad:#f43f5e;
+    --gem:linear-gradient(135deg,#8b5cf6 0%,#6d5cff 40%,#3fa2ff 100%);
+    --gem-soft:linear-gradient(135deg,rgba(139,92,246,.16),rgba(63,162,255,.12));
+    --shadow:0 1px 2px rgba(40,30,90,.05),0 12px 32px rgba(60,40,140,.08); --shadow-sm:0 1px 2px rgba(40,30,90,.06);
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#07070e; --bg2:#0d0c18; --card:#12111f; --card2:#1b1a2c; --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+    --ink:#f3f1ff; --muted:#a3a0c2; --faint:#666385;
+    --accent:#8b7bff; --accent2:#4fb3ff; --accent-soft:rgba(139,123,255,.16);
+    --good:#3ee6a6; --good-ink:#04150e; --good-soft:rgba(62,230,166,.14); --bad:#ff5c7a;
+    --gem:linear-gradient(135deg,#a78bfa 0%,#7c6cff 45%,#4fb3ff 100%);
+    --gem-soft:linear-gradient(135deg,rgba(167,139,250,.18),rgba(79,179,255,.10));
+    --shadow:0 0 0 1px rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.45); --shadow-sm:0 0 0 1px rgba(255,255,255,.04);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#07070e; --bg2:#0d0c18; --card:#12111f; --card2:#1b1a2c; --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.12);
+    --ink:#f3f1ff; --muted:#a3a0c2; --faint:#666385;
+    --accent:#8b7bff; --accent2:#4fb3ff; --accent-soft:rgba(139,123,255,.16);
+    --good:#3ee6a6; --good-ink:#04150e; --good-soft:rgba(62,230,166,.14); --bad:#ff5c7a;
+    --gem:linear-gradient(135deg,#a78bfa 0%,#7c6cff 45%,#4fb3ff 100%);
+    --gem-soft:linear-gradient(135deg,rgba(167,139,250,.18),rgba(79,179,255,.10));
+    --shadow:0 0 0 1px rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.45); --shadow-sm:0 0 0 1px rgba(255,255,255,.04);
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f4fb; --bg2:#eceaf7; --card:#ffffff; --card2:#f3f1fb; --line:#e7e4f3; --line2:#dcd8ee;
+    --ink:#17152b; --muted:#6b6886; --faint:#a19eb9;
+    --accent:#6d5cff; --accent2:#3fa2ff; --accent-soft:rgba(109,92,255,.12);
+    --good:#10b981; --good-ink:#fff; --good-soft:rgba(16,185,129,.12); --bad:#f43f5e;
+  }
+  body{background:
+      radial-gradient(60% 34% at 85% -4%, rgba(124,108,255,.30), transparent 70%),
+      radial-gradient(50% 30% at 8% 0%, rgba(79,179,255,.18), transparent 70%),
+      radial-gradient(40% 24% at 50% 100%, rgba(167,139,250,.10), transparent 70%),
+      var(--bg);
+    background-attachment:fixed}
+  /* cartes : bord fin, coins doux, comme Opal */
+  .summary,.kcal,.kjp,.kco,.ktip,.kwork,.kfocusd,.agcard,.jcard,.ccard,.krit,.kech,.kdock{border:1px solid var(--line);border-radius:22px}
+  /* en-tête : plus de chevauchement */
+  header{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;padding:22px 2px 10px}
+  header .brand{position:static;grid-column:2;grid-row:1}
+  header>.eyebrow{grid-column:1;grid-row:1}
+  header>.today{grid-column:1 / -1;grid-row:2;margin-top:6px}
+  .eyebrow{color:var(--accent)} .eyebrow::before{background:var(--gem)}
+  .today{background:linear-gradient(180deg,var(--ink) 30%,color-mix(in srgb,var(--ink) 70%,var(--accent)));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tgl{border:1px solid var(--line)}
+  .rule{display:none}
+  /* boutons et barres : la gemme */
+  .btn:not(.ghost){background:var(--gem);box-shadow:0 8px 24px -10px rgba(109,92,255,.7)}
+  .btn.ghost{background:var(--card2);color:var(--ink);border:1px solid var(--line)}
+  .kprog,.segbar i{background:var(--card2)}
+  .kech{background:radial-gradient(120% 140% at 100% 0%,rgba(79,179,255,.35),transparent 55%),linear-gradient(135deg,#241a5e,#3a2d9c 55%,#2a4fb0);border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 60px -28px rgba(80,70,220,.8)}
+  .kprog i{background:linear-gradient(90deg,#a78bfa,#6d5cff 45%,#3fa2ff 80%,#3ee6a6)}
+  /* le coach : bord en dégradé lumineux */
+  .kco{border:1px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,var(--gem) border-box;
+    box-shadow:0 0 0 1px rgba(124,108,255,.08),0 24px 60px -24px rgba(124,108,255,.55)}
+  .kco-now{background:var(--gem-soft);border:1px solid var(--line)}
+  .kco-now i{color:var(--accent)}
+  .kco-say{font-style:normal;color:var(--ink);opacity:.92}
+  /* SOS : rouge corail doux, pas d'alarme criarde */
+  .ksosbtn{background:linear-gradient(135deg,#ff5c7a,#ff7a59);box-shadow:0 10px 30px -14px rgba(255,92,122,.8)}
+  /* cours : bleu électrique */
+  .kjp-r.cours{background:linear-gradient(90deg,rgba(79,179,255,.14),transparent);border-left-color:#4fb3ff}
+  .kjp-r.cours .kjp-n b,.kcalrow.dem i,.kcalrow.dem b{color:#4fb3ff}
+  .kjp-r.done .kjp-c{background:var(--good);border-color:var(--good);color:var(--good-ink)}
+  .kjp-t{background:var(--card2);border:1px solid var(--line)}
+  /* feuilles (pop-ups) */
+  .sheet{border:1px solid var(--line);border-bottom:none}
+  #ov{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+  /* ═══════════ ORDINATEUR : un vrai tableau de bord sur deux colonnes ═══════════ */
+  .cols{display:block}
+  @media (min-width:980px){
+    #app{max-width:1180px;padding:10px 32px 48px}
+    header{padding:30px 4px 18px}
+    .today{font-size:40px}
+    .cols{display:grid;grid-template-columns:minmax(380px,440px) 1fr;gap:28px;align-items:start}
+    .col-l>:first-child{margin-top:12px}
+    .col-r>:first-child{margin-top:12px}
+    .sheet{border-radius:26px;margin-bottom:4vh}
+    #ov{align-items:center}
+  }
+  @media (min-width:1380px){
+    #app{max-width:1360px}
+    .cols{grid-template-columns:440px 1fr}
+  }
+  @media (max-width:420px){ header .brand .mk{display:none} }
 </style>
 </head>
 <body>
@@ -976,11 +1068,13 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
+    <div class="cols"><div class="col-l">
     ${coachHtml()}
     <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
     ${modeHtml()}
     ${calHtml()}
     ${jpHtml()}
+    </div><div class="col-r">
     ${ritHtml()}
     ${echHtml()}
     <div class="summary" style="margin-top:14px">
@@ -1011,6 +1105,7 @@ function render(){
       <button onclick="openPlus()">⋯ Plus</button>
     </div>
     ${bkNudgeHtml()}
+    </div></div>
   `;
   agBind();
   if(keep){
