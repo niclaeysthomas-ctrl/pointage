@@ -1188,7 +1188,6 @@ function render(){
       </div></div>`;
       if(T==="stage") return `<div class="cols"><div class="col-l">
         ${candCardHtml()}
-        <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
         <div class="ktabnote">Après l'IELTS, cet onglet accueillera aussi tes entraînements aux entretiens.</div>
       </div><div class="col-r">
         ${stageTipsHtml()}
@@ -4439,7 +4438,7 @@ function chainHtml(){
     <div class="kpts-f">14 derniers jours · un raté isolé est couvert par un joker, deux de suite cassent la chaîne</div></div>`;
 }
 function stageTipsHtml(){
-  return `<div class="kcard ktips"><b>💼 La méthode des 5 par jour</b>
+  return `<div class="ktips"><b>💼 La méthode des 5 par jour</b>
     <p>1. Une offre ciblée, pas dix envoyées au hasard.<br>2. Une phrase d'accroche qui cite l'entreprise et le poste.<br>3. Une preuve chiffrée de ce que tu sais faire.<br>4. Tu notes l'envoi ici, et une relance dans 7 jours.<br>5. Tu passes à la suivante sans attendre la réponse.</p></div>`;
 }
 /* --- overlay & toast --- */
