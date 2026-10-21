@@ -792,6 +792,36 @@
     .cols{grid-template-columns:440px 1fr}
   }
   @media (max-width:420px){ header .brand .mk{display:none} }
+
+  /* ═══════════ LOOK OPAL, 2e passe ═══════════ */
+  .applist .row{border:1px solid var(--line);margin-bottom:12px}
+  .applist .row .start{background:var(--gem);color:#fff;box-shadow:0 8px 22px -12px rgba(109,92,255,.8)}
+  .applist .row .open{background:var(--card2);border:1px solid var(--line);color:var(--ink)}
+  .applist .row .iconchip{border:1px solid var(--line)}
+  .heat i.on{background:var(--gem)}
+  .kgem{font-family:var(--mono);font-size:12px;font-weight:800;padding:6px 10px;border-radius:999px;cursor:pointer;
+    background:var(--gem-soft);border:1px solid rgba(139,123,255,.35);color:var(--ink);white-space:nowrap}
+  .kban.min button{margin-left:6px;border:1px solid var(--line2);background:transparent;color:inherit;font:inherit;font-weight:800;font-size:12px;border-radius:999px;padding:3px 10px;cursor:pointer}
+  .kjp-x{padding:9px 0 2px;border-top:1px solid var(--line)}
+  .kjp-x summary{cursor:pointer;font-size:12.5px;font-weight:750;color:var(--muted);list-style:none}
+  .kjp-x summary::-webkit-details-marker{display:none}
+  .kjp-xl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .kjp-xl span{font-size:12px;font-weight:650;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:4px 9px}
+  .kjp-r{transition:background .15s}
+  .kjp-r.now{background:var(--gem-soft)}
+  .kjp-c{transition:transform .12s} .kjp-c:active{transform:scale(.88)}
+  .cgo{border:1px solid rgba(139,123,255,.3)!important}
+  .only-desk{display:none}
+  @media (min-width:980px){
+    .only-desk{display:block} .only-mob{display:none}
+    .applist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start}
+    .applist>.cathead,.applist>.cvide,.applist>.catrows,.applist>div:not(.appgrp):not(.row){grid-column:1/-1;margin:14px 0 -2px}
+    .applist>.catrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+    .applist .appgrp>.cathead{margin-top:6px}
+    .applist .row{margin-bottom:0}
+    .kdock{display:grid;grid-template-columns:repeat(6,1fr)}
+  }
+  .cjx{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1060,6 +1090,7 @@ function render(){
   document.getElementById("app").innerHTML=`
     <header>
       <div class="brand">
+        ${(()=>{ try{ const E=ech(); if(!E) return ""; const j=coJ(); return `<span class="kgem" onclick="echGo('today')">${E.e} J-${j}</span>`; }catch(e){ return ""; } })()}
         <span class="mk">Le Pointage</span>
         ${syncDotHtml()}
         <button class="tgl" onclick="toggleTheme()" aria-label="Changer de thème">${currentDark()?"☀":"☾"}</button>
@@ -1074,6 +1105,7 @@ function render(){
     ${modeHtml()}
     ${calHtml()}
     ${jpHtml()}
+    <div class="only-desk">${candCardHtml()}${workCardHtml()}</div>
     </div><div class="col-r">
     ${ritHtml()}
     ${echHtml()}
@@ -1089,16 +1121,15 @@ function render(){
     ${banHtml()}
     ${runHtml}
     ${choseHtml()}
-    ${appListHtml("prio")}
+    <div class="applist">${appListHtml("prio")}</div>
     <div style="height:14px"></div>
     <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
-    ${candCardHtml()}
-    ${workCardHtml()}
+    <div class="only-mob">${candCardHtml()}${workCardHtml()}</div>
     ${pCardHtml()}
     ${dockHtml()}
     <div style="height:6px"></div>
     ${agCardHtml()}
-    ${appListHtml("reste")}
+    <div class="applist">${appListHtml("reste")}</div>
 
     <div class="fabrow">
       <button onclick="editApp('')">＋ Ajouter</button>
@@ -1171,7 +1202,7 @@ function appListHtml(part){
   if(part!=="reste") CATS.forEach(c=>{
     const liste=appsOfCat(c.id).filter(visibleNow);
     if(!liste.length) return;
-    out+=catHeadHtml(c)+liste.map(a=>appRowHtml(a,idx[a.id])).join("");
+    out+=`<div class="appgrp">`+catHeadHtml(c)+liste.map(a=>appRowHtml(a,idx[a.id])).join("")+`</div>`;
   });
   if(part==="prio") return out;
   const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
@@ -1183,7 +1214,7 @@ function appListHtml(part){
     out+=`<div class="cathead reste">
       <span class="ce">📦</span><span class="cn">Le reste</span>
       <span class="cs todo">${restantes.length} app${restantes.length>1?"s":""} · hors compte</span></div>`+
-      restantes.map(a=>appRowHtml(a,idx[a.id])).join("");
+      `<div class="catrows">`+restantes.map(a=>appRowHtml(a,idx[a.id])).join("")+`</div>`;
   }
   const faites=S.apps.filter(a=>!visibleNow(a));
   if(!out && faites.length && part!=="reste") out+=`<div class="cvide" style="text-align:center;padding:18px 0 4px">Tout est fait pour aujourd'hui 🎉</div>`;
@@ -3931,7 +3962,7 @@ function modeHtml(){
   if(isStandalone()) return `<div class="kban" style="margin-top:14px"><b>⚠️ Ceci est l'ANCIENNE version du Pointage</b> (l'app d'écran d'accueil, sans Safari).
     1) Exporte tes données ici. 2) Ouvre la version Safari et importe le fichier (💾 Sauver › Importer). 3) Vérifie tes données, puis supprime cette icône.
     <button onclick="bkExport()">💾 Exporter mes données</button></div>`;
-  if(today()<="2026-10-31") return `<div class="kban min" style="margin-top:14px"><b>✅ Version Safari : c'est la bonne.</b> Garde cette icône, supprime l'autre une fois tes données importées ici (⋯ Plus › 💾 Sauver › Importer).</div>`;
+  if(today()<="2026-10-31"&&!S.modeOk) return `<div class="kban min" style="margin-top:14px"><b>✅ Version Safari : c'est la bonne.</b> Garde cette icône, supprime l'autre une fois tes données importées ici (⋯ Plus › 💾 Sauver › Importer). <button onclick="S.modeOk=1;save();render()">OK, compris</button></div>`;
   return "";
 }
 
@@ -4111,7 +4142,7 @@ function jpHtml(){
       <span class="kjp-e">${b.e}</span>
       <div class="kjp-n" ${b.go?`onclick="${b.go}"`:""}><b>${esc(b.nom)}</b>${b.sub?`<small>${esc(b.sub)}</small>`:""}</div>
       ${b.kind!=="cours"&&b.id!=="dodo"&&!b.id.startsWith("trajet")&&b.id!=="dej"?`<button class="kjp-c" onclick="jpTog('${ds}','${b.id}',${b.chk!=null?b.chk:"null"},'${escJs(b.work||"")}',${b.f-b.s},'${escJs(b.nom)}')">${b.done?"✓":""}</button>`:""}</div>`).join("")}
-    ${rest.length?`<div class="kjp-x">Si tu as encore du temps : ${rest.map(x=>esc(x.nom)).join(" · ")}</div>`:""}</div>`;
+    ${rest.length?`<details class="kjp-x"><summary>➕ Si tu as encore du temps · ${rest.length} de plus</summary><div class="kjp-xl">${rest.map(x=>`<span>${x.e} ${esc(x.nom)}</span>`).join("")}</div></details>`:""}</div>`;
 }
 function jpTog(ds,id,chk,work,min,nom){
   const C=acc(); if(!C.jp) C.jp={}; const D=C.jp[ds]=C.jp[ds]||{};
