@@ -3791,17 +3791,17 @@ const ECH_DEF={nom:"IELTS Academic", e:"🇬🇧", date:"2026-10-24", plan:{
     [15,"Speaking complet, carte jamais vue","speaking:2"],[10,"Entre les quatre bandes","plan"],[10,"Cartes du jour","cards"]],
   "2026-10-21":[[60,"Correction de l'examen blanc : seulement les erreurs encore présentes"],
     [10,"Atelier · Plan en 5 min","atelier:plan"],[45,"Task 2 sur ton type le plus faible, notée","writing:t2f"],[10,"Cartes du jour","cards"],
-    [10,"Atelier · Task 1 : l'overview (décrire une image)","atelier:overview"],[20,"Task 1 camemberts : intro + overview + 1 paragraphe","writing:t1f"],[10,"Atelier · Ton plan du 21/10 : 6 pièges","atelier:plan21"]],
+    [10,"Atelier · Task 1 : l'overview (décrire une image)","atelier:overview"],[20,"Task 1 camemberts : intro + overview + 1 paragraphe","writing:t1f"],[10,"Atelier · Ton plan du 21/10 : 6 pièges","atelier:plan21"],[10,"Atelier · Ta copie du 21/10 (espace)","atelier:espace21"]],
   "2026-10-22":[[40,"Deux simulations complètes du Speaking, cartes jamais vues","speaking:2"],
     [20,"Listening : une Part 4 Cambridge"],[10,"Atelier · Connecteurs","atelier:connect"],
-    [15,"Relis tes points de vigilance et la Lime","today"],[40,"Une dernière Task 2 jamais vue, 40 min chrono, notée","writing:t2k"],[10,"Cartes du jour","cards"],[20,"Task 1 graphiques combinés, 20 min chrono","writing:t1g"]],
+    [15,"Relis tes points de vigilance et la Lime","today"],[40,"Une dernière Task 2 jamais vue, 40 min chrono, notée","writing:t2k"],[10,"Cartes du jour","cards"],[20,"Task 1 graphiques combinés, 20 min chrono","writing:t1g"],[10,"Atelier · Connecteurs dans ta copie","atelier:liens"],[10,"Atelier · Budget et dépenses publiques","atelier:budget"],[10,"Atelier · Tournures signature","atelier:signature"]],
   "2026-10-23":[[20,"Listening : Part 2 QCM, pour garder l'oreille","listening:p2b"],
     [10,"Relis « Le jour J » et ta convocation","plan"],[10,"Pièce d'identité, eau, crayons. Coucher tôt."],[10,"Cartes : dernière séance","cards"]],
   "2026-10-24":[[15,"Le matin : 15 min d'anglais à voix haute, puis départ avec 30 min d'avance"]]
 }};
 function ech(){
   const C=cad();
-  if(!C.echSeed4&&today()<=ECH_DEF.date){ C.ech=JSON.parse(JSON.stringify(ECH_DEF)); C.echSeed=1; C.echSeed2=1; C.echSeed3=1; C.echSeed4=1; save0(); }
+  if(!C.echSeed5&&today()<=ECH_DEF.date){ C.ech=JSON.parse(JSON.stringify(ECH_DEF)); C.echSeed=1; C.echSeed2=1; C.echSeed3=1; C.echSeed4=1; C.echSeed5=1; save0(); }
   return C.ech&&C.ech.date>=today()?C.ech:null;
 }
 function echPlan(){ const E=ech(); return E?((E.plan||{})[today()]||[]):[]; }
