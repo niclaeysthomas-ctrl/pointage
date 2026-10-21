@@ -822,6 +822,25 @@
     .kdock{display:grid;grid-template-columns:repeat(6,1fr)}
   }
   .cjx{white-space:nowrap}
+
+  /* ---- points ---- */
+  .kpts{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:13px 15px 11px;margin:12px 0 0;cursor:pointer;
+    background:radial-gradient(120% 120% at 100% 0%,rgba(62,230,166,.10),transparent 55%),var(--card)}
+  .kpts-h{display:flex;justify-content:space-between;align-items:center}
+  .kpts-h b{font-family:var(--disp);font-size:15px;font-weight:800}
+  .kpts-g{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;background:var(--gem-soft);border:1px solid rgba(139,123,255,.3)}
+  .kpts-n{display:flex;align-items:baseline;gap:8px;margin-top:6px}
+  .kpts-n b{font-family:var(--disp);font-size:34px;font-weight:800;letter-spacing:-.02em;background:var(--gem);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .kpts-n span{font-size:12.5px;color:var(--muted);font-weight:650}
+  .kpts-w{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:62px}
+  .kpts-w div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%}
+  .kpts-w i{display:block;width:100%;max-width:26px;border-radius:6px;background:var(--card2);border:1px solid var(--line)}
+  .kpts-w i.ok{background:linear-gradient(180deg,#3ee6a6,#2bb57f)}
+  .kpts-w i.t{background:var(--gem);border-color:transparent}
+  .kpts-w small{font-size:10px;color:var(--faint);font-weight:700;text-transform:uppercase}
+  .kpts-f{font-size:12px;color:var(--muted);font-weight:650;margin-top:8px}
+  .kpts-pos{color:var(--good);font-family:var(--mono)} .kpts-neg{color:var(--bad);font-family:var(--mono)}
+  .kgem.pts{background:linear-gradient(135deg,rgba(62,230,166,.18),rgba(79,179,255,.12));border-color:rgba(62,230,166,.35)}
 </style>
 </head>
 <body>
@@ -1091,6 +1110,7 @@ function render(){
     <header>
       <div class="brand">
         ${(()=>{ try{ const E=ech(); if(!E) return ""; const j=coJ(); return `<span class="kgem" onclick="echGo('today')">${E.e} J-${j}</span>`; }catch(e){ return ""; } })()}
+        <span class="kgem pts" onclick="openPts()">⚡ ${ptsDay(today()).tot}</span>
         <span class="mk">Le Pointage</span>
         ${syncDotHtml()}
         <button class="tgl" onclick="toggleTheme()" aria-label="Changer de thème">${currentDark()?"☀":"☾"}</button>
@@ -1101,6 +1121,7 @@ function render(){
     <div class="rule"></div>
     <div class="cols"><div class="col-l">
     ${coachHtml()}
+    ${ptsHtml()}
     <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
     ${modeHtml()}
     ${calHtml()}
@@ -3836,6 +3857,7 @@ function claudeSnap(days){
   const ap=S.apps.filter(a=>doneToday(a.id)||todayMin(a.id));
   L.push("- Apps pointées : "+(ap.length?ap.map(a=>a.name+(todayMin(a.id)?" ("+fmtMin(todayMin(a.id))+")":"")).join(", "):"aucune"));
   if(C.fs[t]) L.push("- Focus terminés : "+C.fs[t]);
+  try{ const P=ptsDay(t), w=ptsWeek(); L.push("- Points du jour : "+P.tot+"/"+PTS_OBJ+" · 7 jours : "+w+" ("+ptsGrade(w).g[1]+")"); }catch(e){}
   { const so=(C.sos||{})[t]||[]; if(so.length) L.push("- SOS anti-scroll : "+so.filter(x=>x.win).length+" gagné(s) sur "+so.length+" ("+so.map(x=>x.tr+"→"+x.a+(x.win?"":" ✗")).join(", ")+")"); }
   try{ const J=jpBuild(t).all.filter(b=>b.kind==="prop"); L.push("- Proposition de journée : "+J.filter(b=>b.done).length+"/"+J.length+" fait, dont "+J.filter(b=>b.kept).length+" à l'heure prévue"+(J.filter(b=>!b.done).length?" ; pas fait : "+J.filter(b=>!b.done).map(b=>b.nom).join(", "):"")); }catch(e){}
   { const W=wDay(t); L.push("- Travail noté : "+(W.length?fmtMin(wMin(t))+" en "+W.length+" séance(s)":"aucune séance notée"));
@@ -4148,7 +4170,9 @@ function jpTog(ds,id,chk,work,min,nom){
   const C=acc(); if(!C.jp) C.jp={}; const D=C.jp[ds]=C.jp[ds]||{};
   if(chk!=null&&ds===today()){ echTog(chk); }
   const on=!D[id]; if(on) D[id]=Date.now(); else delete D[id]; save(); render();
-  if(on) toast(coachReact(id));
+  if(on){ const b=(()=>{ try{ return jpBuild(ds).all.find(x=>x.id===id); }catch(e){ return null; } })();
+    let n=PTS_ITEM[id]; if(n==null) n=id.startsWith("ielts")&&b?Math.max(5,Math.round((b.f-b.s)/2)):10;
+    toast(coachReact(id)+(n?"  ⚡ +"+n+(b&&b.kept?" (+5 à l'heure)":""):"")); }
   if(on&&work&&ds===today()) setTimeout(()=>openWork({sujet:work==="IELTS"?nom.replace(/^IELTS · /,"IELTS · "):work, min}),300);
 }
 
@@ -4292,6 +4316,61 @@ function coachHtml(){
     ${after&&!(H>=23||H<5)?`<div class="kco-next">Ensuite · ${jpHM(after.s)} ${after.e} ${esc(after.nom)}</div>`:""}
     <div class="kprog" style="margin-top:10px"><i style="width:${pct}%"></i></div>
     <div class="kco-tip" onclick="tipOff++;render()">${te} ${esc(tt)} <u>↻</u></div></div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ⚡ LES POINTS — calculés à partir de ce que tu as VRAIMENT fait.
+   Rien n'est stocké à part : les points se recalculent depuis tes coches,
+   donc pas de triche possible, et la synchro entre appareils reste juste.
+   Grade = points des 7 derniers jours (une bonne journée ≈ 200).
+   ═══════════════════════════════════════════════════════════════════ */
+const PTS_OBJ=200;
+const PTS_GRADES=[[0,"Civil","🪨"],[400,"Recrue","🔩"],[700,"Soldat","🛡️"],[1000,"Sergent","⚔️"],[1300,"Commandant","🎖️"],[1600,"Légende","💎"]];
+const PTS_ITEM={eau:5,lit:5,reveil:10,sport:30,ptidej:5,tel:10,soir:0};
+function ptsDay(d){
+  const L=[], add=(e,l,n)=>{ if(n) L.push([e,l,Math.round(n)]); };
+  const A=acc(), C=cad();
+  // la journée proposée
+  try{ jpBuild(d).all.filter(b=>b.done&&(b.kind==="prop"||b.id==="tel")).forEach(b=>{
+      let n=PTS_ITEM[b.id]; if(n==null) n=b.id.startsWith("ielts")?Math.max(5,(b.f-b.s)/2):b.id==="cands"?0:b.id.startsWith("prio-")?0:10;
+      add(b.e,b.nom,n); if(b.kept) add("⏰","À l'heure : "+b.nom,5); }); }catch(e){}
+  // priorités du stage, candidatures
+  catsActives().forEach(c=>{ if(catDoneDay(c.id,d)) add(c.e,c.nom+" fait",15); });
+  const nc=cOn(d); if(nc) add("📨",nc+" candidature"+(nc>1?"s":""),nc*10);
+  if(nc>=5) add("🎯","Objectif 5 candidatures atteint",10);
+  // rituels, focus, carnet de travail, SOS
+  const r=(A.rit||{})[d]||{}; if(r.m) add("☀️","Rituel du matin",10); if(r.s) add("🌙","Rituel du soir",15);
+  const fs=(A.fs||{})[d]||0; if(fs) add("🎯",fs+" focus terminé"+(fs>1?"s":""),fs*15);
+  try{ const wm=wMin(d); if(wm) add("⏱","Travail noté : "+fmtMin(wm),Math.min(60,wm/5)); }catch(e){}
+  const so=((A.sos||{})[d]||[]).filter(x=>x.win).length; if(so) add("🆘",so+" envie de scroller battue"+(so>1?"s":""),so*15);
+  // ce qui coûte
+  const IG=(C.log||{})[d]||[], igm=IG.reduce((a,x)=>a+(x.min||0),0), ps=IG.filter(x=>x.passe).length;
+  if(igm) add("📸","Instagram : "+igm+" min",-igm);
+  if(ps) add("🆘","Passe-droit utilisé",-20*ps);
+  const tot=L.reduce((a,x)=>a+x[2],0);
+  return {tot,L};
+}
+function ptsWeek(){ let n=0; for(let i=0;i<7;i++) n+=ptsDay(dayShift(today(),-i)).tot; return n; }
+function ptsGrade(w){ let g=PTS_GRADES[0], nx=null; PTS_GRADES.forEach((x,i)=>{ if(w>=x[0]){ g=x; nx=PTS_GRADES[i+1]||null; } }); return {g,nx}; }
+function ptsHtml(){
+  const t=today(), D=ptsDay(t), w=ptsWeek(), {g,nx}=ptsGrade(w);
+  const days=Array.from({length:7},(_,i)=>{ const d=dayShift(t,-(6-i)); return [d,ptsDay(d).tot]; }), mx=Math.max(PTS_OBJ,...days.map(x=>x[1]));
+  const pct=Math.max(0,Math.min(100,Math.round(D.tot/PTS_OBJ*100)));
+  return `<div class="kpts" onclick="openPts()">
+    <div class="kpts-h"><b>⚡ Tes points</b><span class="kpts-g">${g[2]} ${g[1]}</span></div>
+    <div class="kpts-n"><b>${D.tot}</b><span>/ ${PTS_OBJ} aujourd'hui${D.tot>=PTS_OBJ?" · objectif atteint 🔥":""}</span></div>
+    <div class="kprog" style="margin:8px 0 10px"><i style="width:${pct}%"></i></div>
+    <div class="kpts-w">${days.map(([d,n])=>`<div title="${d}"><i style="height:${Math.max(3,Math.round(Math.max(0,n)/mx*44))}px" class="${d===t?"t":""} ${n>=PTS_OBJ?"ok":""}"></i><small>${new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"narrow"})}</small></div>`).join("")}</div>
+    <div class="kpts-f">${w} pts sur 7 jours${nx?` · encore <b>${nx[0]-w}</b> pour ${nx[2]} ${nx[1]}`:" · grade maximum"} <u>détail ›</u></div></div>`;
+}
+function openPts(){
+  const t=today(), D=ptsDay(t), w=ptsWeek(), {g,nx}=ptsGrade(w);
+  sheet(`<h3>⚡ Tes points du jour : ${D.tot}</h3>
+    <div class="ksub" style="text-align:left">Grade actuel : <b>${g[2]} ${g[1]}</b> (${w} pts sur 7 jours)${nx?`. Prochain : ${nx[2]} ${nx[1]} à ${nx[0]}.`:"."} Une bonne journée vaut environ ${PTS_OBJ} points.</div>
+    <div class="krows">${D.L.length?D.L.map(x=>`<div class="krow"><span class="ke">${x[0]}</span><div class="kn">${esc(x[1])}</div><b class="${x[2]<0?"kpts-neg":"kpts-pos"}">${x[2]>0?"+":""}${x[2]}</b></div>`).join(""):`<div class="ksub">Rien encore aujourd'hui. Premier geste : un verre d'eau, +5.</div>`}</div>
+    <div class="ksec"><h4>Le barème</h4><p>💧 Eau, 🛏️ lit, 🍳 petit-déj : +5 · 🔥 Réveil : +10 · 🥊 Séance FORGE : +30 · 🇬🇧 IELTS : +1 pt par 2 min · ⏰ fait à l'heure prévue : +5<br>Priorité du stage faite : +15 · 📨 Candidature : +10, et +10 à la 5e · 🎯 Focus terminé : +15 · ⏱ Travail noté : +1 par 5 min (60 max)<br>☀️ Rituel du matin : +10 · 🌙 Rituel du soir : +15 · 📵 Téléphone hors de la chambre : +10 · 🆘 Envie battue : +15<br>📸 Instagram : −1 par minute · Passe-droit : −20</p></div>
+    <div class="ksec"><h4>Les grades (7 derniers jours)</h4><p>${PTS_GRADES.map(x=>`${x[2]} ${x[1]} ${x[0]}+`).join(" · ")}</p></div>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
 }
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
