@@ -791,7 +791,7 @@
     #app{max-width:1360px}
     .cols{grid-template-columns:440px 1fr}
   }
-  @media (max-width:420px){ header .brand .mk{display:none} }
+  @media (max-width:420px){ header .brand .mk{display:none} header>.eyebrow{font-size:10px;letter-spacing:.12em;white-space:nowrap} header>.eyebrow::before{display:none} }
 
   /* ═══════════ LOOK OPAL, 2e passe ═══════════ */
   .applist .row{border:1px solid var(--line);margin-bottom:12px}
@@ -841,6 +841,41 @@
   .kpts-f{font-size:12px;color:var(--muted);font-weight:650;margin-top:8px}
   .kpts-pos{color:var(--good);font-family:var(--mono)} .kpts-neg{color:var(--bad);font-family:var(--mono)}
   .kgem.pts{background:linear-gradient(135deg,rgba(62,230,166,.18),rgba(79,179,255,.12));border-color:rgba(62,230,166,.35)}
+
+  /* ═══════════ ONGLETS ═══════════ */
+  #app{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+  .ktabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom));z-index:40;
+    display:flex;gap:2px;padding:6px;border-radius:24px;width:min(520px,calc(100% - 20px));
+    background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+    border:1px solid var(--line2);box-shadow:0 18px 50px -12px rgba(0,0,0,.45)}
+  .ktabs button{flex:1;position:relative;border:none;background:none;color:var(--muted);font:inherit;cursor:pointer;border-radius:18px;
+    padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .15s,color .15s}
+  .ktabs .ke{font-size:19px;line-height:1;filter:grayscale(.6);opacity:.8}
+  .ktabs .kl{font-size:10.5px;font-weight:750;letter-spacing:.01em}
+  .ktabs button.on{background:var(--gem-soft);color:var(--ink)}
+  .ktabs button.on .ke{filter:none;opacity:1}
+  .ktabs i{position:absolute;top:3px;right:calc(50% - 22px);font-style:normal;font-size:9.5px;font-weight:800;font-family:var(--mono);
+    background:var(--gem);color:#fff;border-radius:999px;padding:1px 5px;min-width:16px;text-align:center}
+  .kchain{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:13px 15px 11px;margin:12px 0 0;cursor:pointer}
+  .kchain-d{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin:10px 0 2px}
+  .kchain-d i{height:22px;border-radius:6px;background:var(--card2);border:1px solid var(--line)}
+  .kchain-d i.ok{background:linear-gradient(180deg,#3ee6a6,#2bb57f);border-color:transparent}
+  .kchain-d i.t{outline:2px solid var(--accent);outline-offset:1px}
+  .kprog-grid{margin-top:12px}
+  .ktips{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:14px 16px;margin-top:12px}
+  .ktips b{font-family:var(--disp);font-size:15px}
+  .ktips p{font-size:13.5px;line-height:1.7;color:var(--muted);margin-top:8px}
+  .ktabnote{font-size:12.5px;color:var(--faint);margin:12px 4px 0;line-height:1.5}
+  @media (min-width:980px){
+    #app{display:flex;flex-direction:column}
+    #app>header{order:-2}
+    .ktabs{order:-1;position:sticky;top:12px;bottom:auto;left:auto;transform:none;align-self:flex-start;width:auto;padding:5px;border-radius:18px;margin:2px 0 6px}
+    .ktabs button{flex-direction:row;gap:7px;padding:8px 14px}
+    .ktabs .ke{font-size:16px}
+    .ktabs .kl{font-size:13px}
+    .ktabs i{position:static;margin-left:2px}
+    #app{padding-bottom:48px}
+  }
 </style>
 </head>
 <body>
@@ -1119,45 +1154,54 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
-    <div class="cols"><div class="col-l">
-    ${coachHtml()}
-    ${ptsHtml()}
-    <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
-    ${modeHtml()}
-    ${calHtml()}
-    ${jpHtml()}
-    <div class="only-desk">${candCardHtml()}${workCardHtml()}</div>
-    </div><div class="col-r">
-    ${ritHtml()}
-    ${echHtml()}
-    <div class="summary" style="margin-top:14px">
-      <div class="sumhead">
-        <div class="frac">${done}<small>/${total}</small></div>
-        <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING + 5 candidatures ✨"}</div>
-      </div>
-      <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}<i class="${cOk?"on":""}"></i></div>
-      <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span><span class="dot"></span><span onclick="openCadre()" style="cursor:pointer">🔗 <b>${ch.n} j</b> de chaîne · 🃏 ${ch.left}</span></div>
-      ${briefHeadHtml()}
-    </div>
-    ${banHtml()}
     ${runHtml}
-    ${choseHtml()}
-    <div class="applist">${appListHtml("prio")}</div>
-    <div style="height:14px"></div>
-    <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
-    <div class="only-mob">${candCardHtml()}${workCardHtml()}</div>
-    ${pCardHtml()}
-    ${dockHtml()}
-    <div style="height:6px"></div>
-    ${agCardHtml()}
-    <div class="applist">${appListHtml("reste")}</div>
-
-    <div class="fabrow">
-      <button onclick="editApp('')">＋ Ajouter</button>
-      <button onclick="openPlus()">⋯ Plus</button>
-    </div>
-    ${bkNudgeHtml()}
-    </div></div>
+    ${(()=>{ const T=S.tab||"jour";
+      if(T==="jour") return `<div class="cols"><div class="col-l">
+        ${modeHtml()}
+        ${coachHtml()}
+        <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
+        ${ritHtml()}
+        ${banHtml()}
+        ${choseHtml()}
+        ${calHtml()}
+      </div><div class="col-r">
+        ${jpHtml()}
+      </div></div>`;
+      if(T==="travail") return `<div class="cols"><div class="col-l">
+        ${echHtml()}
+        <div class="summary" style="margin-top:14px">
+          <div class="sumhead">
+            <div class="frac">${done}<small>/${total}</small></div>
+            <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING + 5 candidatures ✨"}</div>
+          </div>
+          <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}<i class="${cOk?"on":""}"></i></div>
+          <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
+          ${briefHeadHtml()}
+        </div>
+        ${workCardHtml()}
+        ${dockHtml()}
+      </div><div class="col-r">
+        <div class="applist">${appListHtml("prio")}</div>
+        ${agCardHtml()}
+        <div class="applist">${appListHtml("reste")}</div>
+        <div class="fabrow"><button onclick="editApp('')">＋ Ajouter une app</button><button onclick="openManage()">✎ Modifier</button></div>
+      </div></div>`;
+      if(T==="stage") return `<div class="cols"><div class="col-l">
+        ${candCardHtml()}
+        <button class="cgo" onclick="cAllSheet()">📋 Tableau de suivi des candidatures <span>${cAll().length} ›</span></button>
+        <div class="ktabnote">Après l'IELTS, cet onglet accueillera aussi tes entraînements aux entretiens.</div>
+      </div><div class="col-r">
+        ${stageTipsHtml()}
+      </div></div>`;
+      return `<div class="cols"><div class="col-l">
+        ${ptsHtml()}
+        ${chainHtml()}
+        ${pCardHtml()}
+      </div><div class="col-r">
+        <div class="kgrid kprog-grid">${[["📆","Bilan de la semaine","openBilan()"],["⏱","Historique du travail","openWorkLog()"],["📓","Journal","openJournal()"],["📊","Statistiques","openStats()"],["✳️","Envoyer à Claude","openClaude()"],["🛡️","Mon cadre","openCadre()"],["🚪","La porte d'Instagram","openPorte()"],["💾","Sauvegarder","bkSheet()"]].map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
+        ${bkNudgeHtml()}
+      </div></div>`; })()}
+    ${tabbarHtml()}
   `;
   agBind();
   if(keep){
@@ -4371,6 +4415,32 @@ function openPts(){
     <div class="ksec"><h4>Le barème</h4><p>💧 Eau, 🛏️ lit, 🍳 petit-déj : +5 · 🔥 Réveil : +10 · 🥊 Séance FORGE : +30 · 🇬🇧 IELTS : +1 pt par 2 min · ⏰ fait à l'heure prévue : +5<br>Priorité du stage faite : +15 · 📨 Candidature : +10, et +10 à la 5e · 🎯 Focus terminé : +15 · ⏱ Travail noté : +1 par 5 min (60 max)<br>☀️ Rituel du matin : +10 · 🌙 Rituel du soir : +15 · 📵 Téléphone hors de la chambre : +10 · 🆘 Envie battue : +15<br>📸 Instagram : −1 par minute · Passe-droit : −20</p></div>
     <div class="ksec"><h4>Les grades (7 derniers jours)</h4><p>${PTS_GRADES.map(x=>`${x[2]} ${x[1]} ${x[0]}+`).join(" · ")}</p></div>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LES ONGLETS — un onglet par question que tu te poses :
+   ☀️ Aujourd'hui : qu'est-ce que je fais maintenant ?  (coach, SOS, cours, journée)
+   🎯 Travail     : sur quoi je bosse ?                  (IELTS, priorités, apps, agenda)
+   💼 Stage       : où en est ma recherche ?             (candidatures)
+   📈 Progrès     : est-ce que j'avance ?                (points, chaîne, bilans, écran)
+   ═══════════════════════════════════════════════════════════════════ */
+function goTab(t){ S.tab=t; save0(); render(); window.scrollTo({top:0}); }
+function tabbarHtml(){
+  const T=S.tab||"jour", AC=catsActives(), left=AC.filter(c=>!catDone(c.id)).length, nc=cToday();
+  let next=""; try{ const P=jpBuild(today()).all.filter(b=>b.kind==="prop"); next=P.filter(b=>!b.done).length; }catch(e){}
+  const tabs=[["jour","☀️","Aujourd'hui",next?next:""],["travail","🎯","Travail",left?left:""],["stage","💼","Stage",nc<C_OBJ?nc+"/"+C_OBJ:"✓"],["progres","📈","Progrès",""]];
+  return `<nav class="ktabs">${tabs.map(([id,e,l,bd])=>`<button class="${T===id?"on":""}" onclick="goTab('${id}')"><span class="ke">${e}</span><span class="kl">${l}</span>${bd!==""?`<i>${bd}</i>`:""}</button>`).join("")}<button onclick="openPlus()"><span class="ke">⋯</span><span class="kl">Plus</span></button></nav>`;
+}
+function chainHtml(){
+  const ch=chaine(), t=today(), days=Array.from({length:14},(_,i)=>dayShift(t,-(13-i)));
+  return `<div class="kchain" onclick="openCadre()"><div class="kpts-h"><b>🔗 La chaîne</b><span class="kpts-g">🃏 ${ch.left} joker${ch.left>1?"s":""}</span></div>
+    <div class="kpts-n"><b>${ch.n}</b><span>jour${ch.n>1?"s":""} d'affilée avec tes priorités faites</span></div>
+    <div class="kchain-d">${days.map(d=>`<i class="${dayOk(d)?"ok":""} ${d===t?"t":""}" title="${d}"></i>`).join("")}</div>
+    <div class="kpts-f">14 derniers jours · un raté isolé est couvert par un joker, deux de suite cassent la chaîne</div></div>`;
+}
+function stageTipsHtml(){
+  return `<div class="kcard ktips"><b>💼 La méthode des 5 par jour</b>
+    <p>1. Une offre ciblée, pas dix envoyées au hasard.<br>2. Une phrase d'accroche qui cite l'entreprise et le poste.<br>3. Une preuve chiffrée de ce que tu sais faire.<br>4. Tu notes l'envoi ici, et une relance dans 7 jours.<br>5. Tu passes à la suivante sans attendre la réponse.</p></div>`;
 }
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
