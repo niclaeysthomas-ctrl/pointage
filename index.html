@@ -682,6 +682,24 @@
   .ksos-t{font-family:var(--mono);font-size:58px;font-weight:800;text-align:center;margin:14px 0 6px}
   .ksos-t.over{color:var(--good)}
   .kjp-k{color:var(--good);font-weight:800}
+
+  /* ---- le coach de bout en bout ---- */
+  .kco{background:var(--card);border-radius:18px;padding:13px 15px 12px;margin:12px 0 0;box-shadow:var(--shadow-sm);border:2px solid var(--ink)}
+  .kco-h{display:flex;justify-content:space-between;align-items:center}
+  .kco-h b{font-family:var(--disp);font-size:15px;font-weight:800}
+  .kco-h span{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--muted)}
+  .kco-h em{color:#e5484d;font-style:normal}
+  .kco-say{font-size:14px;line-height:1.5;font-weight:650;margin:8px 0 10px;font-style:italic}
+  .kco-now{display:flex;gap:12px;align-items:center;background:var(--card2);border-radius:14px;padding:11px 12px}
+  .kco-now.cours{background:color-mix(in srgb,#3b82f6 14%,transparent)}
+  .kco-now>span{font-size:28px}
+  .kco-now i{display:block;font-style:normal;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+  .kco-now b{display:block;font-size:16px;font-weight:800;line-height:1.3}
+  .kco-now small{display:block;font-size:12px;color:var(--muted);font-weight:600;line-height:1.4}
+  .kco-b{display:flex;gap:8px;margin-top:9px}
+  .kco-b .btn{flex:1}
+  .kco-next{font-size:12.5px;color:var(--muted);font-weight:650;margin-top:9px}
+  .kco-tip{font-size:12px;color:var(--muted);line-height:1.45;margin-top:9px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -958,6 +976,7 @@ function render(){
       <div class="today">${dateStr}</div>
     </header>
     <div class="rule"></div>
+    ${coachHtml()}
     <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
     ${modeHtml()}
     ${calHtml()}
@@ -974,7 +993,6 @@ function render(){
       ${briefHeadHtml()}
     </div>
     ${banHtml()}
-    ${tipHtml()}
     ${runHtml}
     ${choseHtml()}
     ${appListHtml("prio")}
@@ -3939,42 +3957,53 @@ function forgeFor(ds){
 function nextTypeGuess(){ const F=forgeData(); const L=(F&&F.workoutLog||[]).filter(w=>w.cali).pop(); return L?(L.cali==="A"?"B":"A"):"A"; }
 function jpItems(ds){
   const out=[], E=ech(), P=E?((E.plan||{})[ds]||[]):[];
+  out.push({id:"eau",e:"💧",nom:"Un grand verre d'eau",sub:"Avant le téléphone, avant le café",dur:2});
+  out.push({id:"lit",e:"🛏️",nom:"Lit fait + fenêtre ouverte",sub:"Lumière du jour sur le visage : ton horloge interne se cale",dur:3});
   out.push({id:"reveil",e:"🔥",nom:"Réveil 9 min",sub:"FORGE · 2 min de mobilité + 8 intervalles boxe / corps entier",dur:10,go:"forgeOpen()"});
   const f=forgeFor(ds);
-  if(f.k==="cali") out.push({id:"sport",e:f.t==="B"?"🤸":"🛫",nom:"Calisthénie "+(f.t||"A")+" + étirements",sub:"FORGE, échauffement compris",dur:75,go:"forgeOpen()",work:"Sport"});
-  else out.push({id:"sport",e:"🥊",nom:"Boxe + étirements",sub:"FORGE · ou un footing de 30 min",dur:55,go:"forgeOpen()",work:"Sport"});
+  if(f.k==="cali") out.push({id:"sport",e:f.t==="B"?"🤸":"🛫",nom:"Calisthénie "+(f.t||"A")+" + étirements",sub:"FORGE, échauffement compris",dur:75,go:"forgeOpen()"});
+  else out.push({id:"sport",e:"🥊",nom:"Boxe + étirements",sub:"FORGE · ou un footing de 30 min",dur:55,go:"forgeOpen()"});
   P.forEach((x,i)=>out.push({id:"ielts"+i,e:"🇬🇧",nom:"IELTS · "+x[1],sub:x[0]+" min",dur:x[0],go:x[2]?"echGo('"+x[2]+"')":"echGo('today')",work:"IELTS",chk:ds===today()?i:null}));
   out.push({id:"cands",e:"📨",nom:"5 candidatures",sub:"Une offre, une lettre adaptée, envoyée",dur:60,go:"cPlus()",work:"Candidatures"});
   catsActives().forEach(c=>{ if(E&&c.id==="anglais") return; const a=appsOfCat(c.id)[0]; if(!a) return;
     out.push({id:"prio-"+c.id,e:c.e,nom:a.name,sub:c.nom+" · version courte si la journée est chargée",dur:c.id==="closing"?30:20,go:"openById('"+a.id+"')",work:a.name}); });
   const big=x=>x.id.startsWith("ielts")&&x.dur>=30, small=x=>x.id.startsWith("ielts")&&x.dur<30;
-  return out.filter(x=>!x.id.startsWith("ielts")&&x.id!=="cands").slice(0,2)
+  const sp=out.find(x=>x.id==="sport"); out.splice(out.indexOf(sp)+1,0,{id:"ptidej",e:"🍳",nom:"Douche + petit-déjeuner",sub:"Protéines après le sport, pas d'écran à table",dur:25});
+  return out.filter(x=>!x.id.startsWith("ielts")&&x.id!=="cands"&&!x.id.startsWith("prio-"))
     .concat(out.filter(big),out.filter(x=>x.id==="cands"),out.filter(small),out.filter(x=>x.id.startsWith("prio-")));
 }
+function jpStart(ds){ if(ds!==today()) return JP_DEB; const w=(acc().wake||{})[ds]; if(!w) return JP_DEB;
+  return Math.min(11*60,Math.max(6*60+30,Math.round(jpMinOf(w)/5)*5)); }
 function jpBuild(ds){
-  const isT=ds===today(), now=jpMinOf(Date.now());
+  const isT=ds===today(), now=jpMinOf(Date.now()), st=jpStart(ds);
   const fixed=calDay(jpMsOf(ds,12*60)).filter(e=>!e.ad).map(e=>({kind:"cours",id:"c"+e.s,s:Math.max(jpMinOf(e.s),0),f:jpMinOf(e.e),e:isCours(e)?"🎓":"📍",nom:e.t,sub:e.l}));
-  /* trajet avant chaque bloc de cours, déjeuner si la journée a des cours l'après-midi */
   const extra=[];
   fixed.forEach((c,i)=>{ const prev=fixed[i-1]; if(!prev||c.s-prev.f>60) extra.push({kind:"fix",id:"trajet"+c.s,s:c.s-35,f:c.s,e:"🚇",nom:"Trajet",sub:"Révise tes cartes IELTS dans le métro"}); });
   const tj=extra.filter(x=>x.s>=12*60).map(x=>x.s), dejF=Math.min(13*60,...tj), dejS=Math.min(12*60+15,dejF-40);
   if(!fixed.some(c=>c.s<dejF&&c.f>dejS)) extra.push({kind:"fix",id:"dej",s:dejS,f:dejF,e:"🍽️",nom:"Déjeuner",sub:"Loin de l'écran, 10 min de marche après"});
   extra.push({kind:"fix",id:"soir",s:21*60+30,f:21*60+45,e:"🌙",nom:"Rituel du soir + envoi au coach",sub:"Avant 22 h",go:"openSoir()"});
-  extra.push({kind:"fix",id:"dodo",s:22*60+30,f:22*60+30,e:"😴",nom:"Lit, téléphone hors de la chambre",sub:"Opal bloque jusqu'à 8 h 30"});
-  const busy=fixed.concat(extra).filter(b=>!(b.kind==="fix"&&b.id.startsWith("trajet")&&b.s<JP_DEB)).sort((a,b)=>a.s-b.s);
-  /* les trous de la journée */
-  const gaps=[]; let cur=JP_DEB;
-  busy.forEach(b=>{ if(b.s>cur) gaps.push([cur,b.s]); cur=Math.max(cur,b.f); }); if(cur<JP_FIN) gaps.push([cur,JP_FIN]);
-  const done=jpDone(ds), placed=[], rest=[];
-  jpItems(ds).forEach(it=>{
-    let ok=false;
-    for(const g of gaps){ const need=it.dur; if(g[1]-g[0]>=need){ placed.push({kind:"prop",...it,s:g[0],f:g[0]+need}); g[0]+=need+JP_PAUSE; ok=true; break; } }
-    if(!ok) rest.push(it);
-  });
-  const all=busy.concat(placed).sort((a,b)=>a.s-b.s||(a.kind==="cours"?-1:1));
-  all.forEach(b=>{ b.done=!!done[b.id]||(b.chk!=null&&echDoneList()[b.chk]);
-    const at=done[b.id]>1?jpMinOf(done[b.id]):null; b.kept=b.kind==="prop"&&at!=null&&new Date(done[b.id]).toISOString().slice(0,10)===ds&&at>=b.s-90&&at<=b.f+60; b.passe=isT&&b.f<now; b.now=isT&&b.s<=now&&b.f>now; });
-  return {all,rest};
+  extra.push({kind:"fix",id:"tel",s:22*60+15,f:22*60+20,e:"📵",nom:"Téléphone en charge hors de la chambre",sub:"Le geste qui protège ta nuit"});
+  extra.push({kind:"fix",id:"dodo",s:22*60+30,f:22*60+30,e:"😴",nom:"Au lit",sub:"Opal bloque jusqu'à 8 h 30"});
+  const busy=fixed.concat(extra).filter(b=>!(b.kind==="fix"&&b.id.startsWith("trajet")&&b.s<st)).sort((a,b)=>a.s-b.s);
+  const gapsFrom=start=>{ const g=[]; let cur=start; busy.forEach(b=>{ if(b.f>cur&&b.s>cur&&cur<JP_FIN) g.push([cur,Math.min(b.s,JP_FIN)]); if(b.f>cur) cur=Math.max(cur,b.f); }); if(cur<JP_FIN) g.push([cur,JP_FIN]); return g; };
+  const place=(g,it)=>{ for(const x of g){ if(x[1]-x[0]>=it.dur){ const s0=x[0]; x[0]+=it.dur+(it.dur<15?0:JP_PAUSE); return s0; } } return null; };
+  const done=jpDone(ds), items=jpItems(ds), echD=isT?echDoneList():[];
+  const isDone=it=>!!done[it.id]||(it.chk!=null&&!!echD[it.chk]);
+  const nominal={}; { const g=gapsFrom(st); items.forEach(it=>{ const s0=place(g,it); if(s0!=null) nominal[it.id]=s0; }); }
+  const placed=[], rest=[];
+  if(isT){
+    items.filter(isDone).forEach(it=>{ const ts=done[it.id]>1&&new Date(done[it.id]).toISOString().slice(0,10)===ds?done[it.id]:null;
+      const f=ts?jpMinOf(ts):nominal[it.id]!=null?nominal[it.id]+it.dur:st+it.dur;
+      placed.push({kind:"prop",...it,s:Math.max(0,f-it.dur),f,at:ts?f:null}); });
+    const g=gapsFrom(Math.max(st,Math.ceil(now/5)*5));
+    items.filter(it=>!isDone(it)).forEach(it=>{ const s0=place(g,it); if(s0!=null) placed.push({kind:"prop",...it,s:s0,f:s0+it.dur}); else rest.push(it); });
+  } else items.forEach(it=>{ if(nominal[it.id]!=null) placed.push({kind:"prop",...it,s:nominal[it.id],f:nominal[it.id]+it.dur}); else rest.push(it); });
+  const key=b=>b.at!=null?b.at-1:b.s;
+  const all=busy.concat(placed).sort((a,b)=>key(a)-key(b)||(a.kind==="cours"?-1:1));
+  all.forEach(b=>{ b.done=b.kind==="prop"?isDone(b):!!done[b.id]; b.passe=isT&&b.kind!=="prop"&&b.f<now; b.now=isT&&b.s<=now&&b.f>now;
+    b.late=b.kind==="prop"&&!b.done&&nominal[b.id]!=null&&nominal[b.id]+b.dur<now;
+    b.kept=b.kind==="prop"&&b.at!=null&&nominal[b.id]!=null&&b.at>=nominal[b.id]-90&&b.at<=nominal[b.id]+b.dur+60; });
+  return {all,rest,nominal};
 }
 function jpHtml(){
   const C=calGet(); if(!jpDay) jpDay=hm()>=18*60?"tomorrow":"today";
@@ -3983,16 +4012,17 @@ function jpHtml(){
   return `<div class="kjp"><div class="kjp-h"><b>📅 Proposition de journée</b><div class="kjp-t">${tab("today")}${tab("tomorrow")}</div></div>
     <div class="kjp-s">${new Date(ds+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}${n.length?" · "+d+"/"+n.length+" fait":""}${n.some(b=>b.kept)?` · <span class="kjp-k">${n.filter(b=>b.kept).length} à l'heure</span>`:""}${C.at?"":" · cours non importés"}</div>
     ${all.map(b=>`<div class="kjp-r ${b.kind} ${b.done?"done":""} ${b.passe&&!b.done?"passe":""} ${b.now?"now":""}">
-      <span class="kjp-tm">${jpHM(b.s)}${b.f>b.s?"<br><small>"+jpHM(b.f)+"</small>":""}</span>
+      <span class="kjp-tm">${b.at!=null?"✓<br><small>"+jpHM(b.at)+"</small>":jpHM(b.s)+(b.f>b.s?"<br><small>"+jpHM(b.f)+"</small>":"")}</span>
       <span class="kjp-e">${b.e}</span>
       <div class="kjp-n" ${b.go?`onclick="${b.go}"`:""}><b>${esc(b.nom)}</b>${b.sub?`<small>${esc(b.sub)}</small>`:""}</div>
-      ${b.kind!=="cours"&&b.id!=="dodo"?`<button class="kjp-c" onclick="jpTog('${ds}','${b.id}',${b.chk!=null?b.chk:"null"},'${escJs(b.work||"")}',${b.f-b.s},'${escJs(b.nom)}')">${b.done?"✓":""}</button>`:""}</div>`).join("")}
+      ${b.kind!=="cours"&&b.id!=="dodo"&&!b.id.startsWith("trajet")&&b.id!=="dej"?`<button class="kjp-c" onclick="jpTog('${ds}','${b.id}',${b.chk!=null?b.chk:"null"},'${escJs(b.work||"")}',${b.f-b.s},'${escJs(b.nom)}')">${b.done?"✓":""}</button>`:""}</div>`).join("")}
     ${rest.length?`<div class="kjp-x">Si tu as encore du temps : ${rest.map(x=>esc(x.nom)).join(" · ")}</div>`:""}</div>`;
 }
 function jpTog(ds,id,chk,work,min,nom){
   const C=acc(); if(!C.jp) C.jp={}; const D=C.jp[ds]=C.jp[ds]||{};
   if(chk!=null&&ds===today()){ echTog(chk); }
   const on=!D[id]; if(on) D[id]=Date.now(); else delete D[id]; save(); render();
+  if(on) toast(coachReact(id));
   if(on&&work&&ds===today()) setTimeout(()=>openWork({sujet:work==="IELTS"?nom.replace(/^IELTS · /,"IELTS · "):work, min}),300);
 }
 
@@ -4079,6 +4109,64 @@ function sosLose(){ clearInterval(sosTick); sosLog(0); closeOv(); render(); toas
 function sosWeek(ws){ const C=acc(), w=ws||weekStart(), out={n:0,win:0,trig:{}};
   for(let i=0;i<7;i++){ (((C.sos||{})[dayShift(w,i)])||[]).forEach(x=>{ out.n++; if(x.win) out.win++; out.trig[x.tr]=(out.trig[x.tr]||0)+1; }); }
   const top=Object.entries(out.trig).sort((a,b)=>b[1]-a[1])[0]; out.top=top?(SOS_TRIG.find(t=>t[0]===top[0])||[])[2]:null; return out; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   🗣️ LE COACH — du réveil au coucher.
+   Il lit ta journée (cours, plan, ce qui est coché, l'heure) et te dit
+   une seule chose : quoi faire MAINTENANT. Il réagit à chaque coche.
+   Dur sur les actes, jamais sur la personne.
+   ═══════════════════════════════════════════════════════════════════ */
+const CO_REACT={
+  eau:["Bien. Ton corps sort de huit heures sans boire. Suivant : le lit.","Premier geste fait. La journée est lancée, elle ne s'arrête plus."],
+  lit:["Lit fait. Une victoire de trente secondes, et déjà une preuve que tu tiens parole.","Fenêtre ouverte, lumière dedans. Maintenant on bouge."],
+  reveil:["Réveil fait. Le cœur tourne, la tête suit. La suite.","Neuf minutes que 95 % des gens ne font pas. Continue."],
+  sport:["Séance faite. Personne ne te l'a demandé, tu l'as fait quand même. C'est ça, la discipline.","Coché. Tu viens de faire la chose la plus dure de la matinée. Le reste est plus facile."],
+  ptidej:["Recharge faite. On passe au travail.","Mange, douche, et au boulot. Le matin, c'est là que tu gagnes."],
+  cands:["Cinq candidatures. Le stage de janvier se construit exactement comme ça : une par une.","Envoyé. Chaque candidature est un ticket de loterie que les autres n'achètent pas."],
+  soir:["Journée fermée honnêtement. C'est ce qui sépare ceux qui progressent de ceux qui se racontent des histoires."],
+  tel:["Téléphone dehors. Ta nuit t'appartient. Bonne nuit."]
+};
+const CO_GEN=["Coché. Pas de célébration, la suite.","Une de plus. Les journées solides sont faites de petites cases cochées.","Fait. Tu l'avais dit, tu l'as fait. Garde cette réputation auprès de toi-même.","Bien. On ne ralentit pas maintenant."];
+function coachReact(id){ const L=CO_REACT[id]||(id.startsWith("ielts")?["Bloc IELTS fait. J-"+coJ()+". Chaque bloc compte samedi.","IELTS coché. Ton score se construit maintenant, pas samedi."]:CO_GEN);
+  return "🗣️ "+L[Math.floor(Date.now()/1000)%L.length]; }
+function coJ(){ const E=ech(); if(!E) return "?"; return Math.max(0,Math.round((new Date(E.date+"T12:00:00")-new Date(today()+"T12:00:00"))/864e5)); }
+function coLine(c){
+  const h=new Date().getHours(), pick=L=>L[Math.floor(Date.now()/6e5)%L.length];
+  if(h>=23||h<5) return "Il est tard. Rien sur cet écran ne vaut une heure de sommeil avant l'IELTS. Pose le téléphone hors de la chambre.";
+  if(c.allDone) return "Tout est coché. C'est comme ça qu'on devient quelqu'un de fiable : un jour après l'autre. Ferme la journée au rituel du soir, puis repos.";
+  if(c.done===0&&h<11) return pick(["Debout. Un verre d'eau, puis on enchaîne. On ne négocie pas avec le lit.","Le lit est chaud. Tes objectifs ne sont pas dedans. Premier geste : l'eau.","La journée ne t'a pas encore battu. Ne la laisse pas commencer maintenant."]);
+  if(c.cours) return "Tu es en cours. Téléphone retourné, tu écoutes et tu prends des notes. Ce que tu apprends là, c'est ce que tu vendras en entretien en janvier.";
+  if(c.late>=2) return "Tu as "+c.late+" choses en retard sur le plan. Pas de drame, pas d'excuse non plus : je les ai replacées. On attaque la suivante, maintenant.";
+  if(c.sosWin) return "Tu as battu l'envie de scroller "+c.sosWin+" fois aujourd'hui. Ça, c'est de la discipline, pas de la motivation.";
+  if(h>=20) return "La journée se ferme bientôt. Ce qui n'est pas fait à 21 h 30, tu le notes honnêtement au rituel. Pas de rattrapage à minuit.";
+  if(c.next&&c.next.id.startsWith("ielts")) return pick(["J-"+coJ()+" avant l'IELTS. Ce bloc-là, tu le fais à fond ou tu ne le fais pas.","Samedi, personne ne te demandera si tu avais envie. Fais ce bloc."]);
+  if(c.n&&c.done>=c.n/2) return pick([c.done+"/"+c.n+". Tu tiens le rythme. Ne relâche pas : c'est exactement là que les autres s'arrêtent.","Plus de la moitié. Le plus dur est derrière, mais rien n'est gagné tant que ce n'est pas coché."]);
+  return pick(["Une chose à la fois. Celle-là, maintenant.","Tu n'as pas besoin d'avoir envie. Tu as besoin de commencer. Cinq minutes, et l'envie suit.","Personne ne viendra le faire à ta place. Lance."]);
+}
+function coachHtml(){
+  const t=today(), A=acc(), H=new Date().getHours();
+  if(H>=4&&!(A.wake||{})[t]){ if(!A.wake) A.wake={}; A.wake[t]=Date.now(); save0(); }
+  const now=hm(), {all,rest}=jpBuild(t), props=all.filter(b=>b.kind==="prop"), done=props.filter(b=>b.done).length, tot=props.length+rest.length;
+  const cours=all.find(b=>b.kind==="cours"&&b.s<=now&&b.f>now);
+  const fixNow=all.find(b=>b.kind==="fix"&&!b.done&&b.s<=now+5&&b.f>now&&b.id!=="dodo");
+  const next=props.find(b=>!b.done), after=next?all.filter(b=>b.s>=(next.f)&&!(b.kind==="prop"&&b.done)&&b!==next)[0]:null;
+  const late=props.filter(b=>b.late).length, so=((A.sos||{})[t]||[]).filter(x=>x.win).length;
+  const ctx={done,n:tot,late,cours:!!cours,next,allDone:props.length>0&&done===props.length,sosWin:so};
+  let main="";
+  const btns=b=>`${b.go?`<button class="btn" style="margin-top:0" onclick="${b.go}">▶ Lancer</button>`:""}<button class="btn ${b.go?"ghost":""}" style="margin-top:0" onclick="jpTog('${t}','${b.id}',${b.chk!=null?b.chk:"null"},'${escJs(b.work||"")}',${b.f-b.s},'${escJs(b.nom)}')">✓ C'est fait</button>`;
+  if(H>=23||H<5) main=`<div class="kco-now"><span>😴</span><div><i>Maintenant</i><b>Dormir</b><small>Téléphone hors de la chambre</small></div></div>`;
+  else if(cours) main=`<div class="kco-now cours"><span>🎓</span><div><i>En cours jusqu'à ${jpHM(cours.f)}</i><b>${esc(cours.nom)}</b><small>${esc(cours.sub||"")}</small></div></div>`;
+  else if(fixNow) main=`<div class="kco-now"><span>${fixNow.e}</span><div><i>Maintenant</i><b>${esc(fixNow.nom)}</b><small>${esc(fixNow.sub||"")}</small></div></div>${fixNow.go||fixNow.id==="tel"||fixNow.id==="soir"?`<div class="kco-b">${btns(fixNow)}</div>`:""}`;
+  else if(next) main=`<div class="kco-now"><span>${next.e}</span><div><i>${next.s>now+10?"À "+jpHM(next.s):"Maintenant"} · ${next.f-next.s} min</i><b>${esc(next.nom)}</b><small>${esc(next.sub||"")}</small></div></div><div class="kco-b">${btns(next)}</div>`;
+  else main=`<div class="kco-now"><span>🏁</span><div><i>Journée bouclée</i><b>Rituel du soir, puis repos</b></div></div><div class="kco-b"><button class="btn" style="margin-top:0" onclick="openSoir()">🌙 Fermer la journée</button></div>`;
+  const pct=tot?Math.round(done/tot*100):0, [te,tt]=tipPick();
+  return `<div class="kco"><div class="kco-h"><b>🗣️ Ton coach</b><span>${done}/${tot}${late?` · <em>${late} en retard</em>`:""}</span></div>
+    <div class="kco-say">${esc(coLine(ctx))}</div>
+    ${main}
+    ${after&&!(H>=23||H<5)?`<div class="kco-next">Ensuite · ${jpHM(after.s)} ${after.e} ${esc(after.nom)}</div>`:""}
+    <div class="kprog" style="margin-top:10px"><i style="width:${pct}%"></i></div>
+    <div class="kco-tip" onclick="tipOff++;render()">${te} ${esc(tt)} <u>↻</u></div></div>`;
+}
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }
