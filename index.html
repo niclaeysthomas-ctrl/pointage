@@ -3489,15 +3489,16 @@ function forgeData(){ try{ return JSON.parse(localStorage.getItem("forge_v2")||"
 function forgeUrl(){ const a=S.apps.find(isForgeApp); return a&&a.url?a.url:BASE+"forge/"; }
 function forgePlan(){
   const F=forgeData(); if(!F) return null;
-  const t=today(), log=(F.workoutLog||[]).filter(w=>w.cali), L=log[log.length-1];
+  const t=today(), log=(F.workoutLog||[]).filter(w=>w.cali||w.libre), L=log[log.length-1], LL=(F.workoutLog||[]).filter(w=>w.cali).pop();
   const done=!!(L&&L.date===t);
   let info;
-  if(!L||dDiff(L.date,t)>=2) info={k:"cali",t:L?(L.cali==="A"?"B":"A"):"A"};
-  else if(L.date===t) info={k:"cali",t:L.cali};
+  if(!L||dDiff(L.date,t)>=2) info={k:"cali",t:LL?(LL.cali==="A"?"B":"A"):"A"};
+  else if(L.date===t) info={k:"cali",t:L.cali||(LL&&LL.cali==="A"?"B":"A"),libre:L.libre?L.nom:null};
   else info={k:"off"};
-  return {k:info.k, t:info.t, done};
+  return {k:info.k, t:info.t, done, libre:info.libre||null};
 }
 function forgeTxt(p){ if(!p) return null;
+  if(p.k==="cali"&&p.libre) return p.libre+" ✓";
   if(p.k==="cali") return (p.t==="A"?"🛫 Séance A — planche":"🤸 Séance B — HSPU")+(p.done?" ✓":"");
   return "🥊 Récup : boxe ou souplesse"; }
 function forgeOpen(){ window.open(forgeUrl(),"_blank","noopener"); }
@@ -4468,7 +4469,7 @@ function dayReport(d){
       P.forEach((x,i)=>L.push("    "+(ck[d+":"+i]?"✓ ":"✗ ")+x[1]+" ("+x[0]+" min)")); } }
   { const F=forgeData();
     if(F){ const inD=x=>x.date===d, wk=(F.workoutLog||[]).filter(inD), bx=(F.boxeLog||[]).filter(inD), mb=(F.mobLog||[]).filter(inD);
-      const parts=[...wk.map(x=>(x.nom||(x.cali?"Séance "+x.cali:"Séance"))+(x.dur?" ("+Math.round(x.dur/60)+" min)":"")), ...bx.map(()=>"boxe"), ...mb.map(()=>"souplesse")];
+      const parts=[...wk.map(x=>(x.nom||(x.cali?"Séance "+x.cali:"Séance"))+(x.dur?" ("+x.dur+" min)":"")), ...bx.map(()=>"boxe"), ...mb.map(()=>"souplesse")];
       L.push("- Sport (FORGE) : "+(parts.length?parts.join(", "):"rien d'enregistré")); } }
   const nc=cOn(d); L.push("- Candidatures envoyées : "+nc+"/"+C_OBJ);
   const ap=S.apps.filter(a=>stOf(a.id).days.includes(d)||stOf(a.id).min[d]);
