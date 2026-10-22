@@ -882,6 +882,7 @@
 <div id="app"></div>
 <div id="ov"><div class="sheet" id="sheet"></div></div>
 <div id="toast"></div>
+<script src="/forge/forge-sync.js"></script>
 <script>
 const KEY="pointage_v1";
 const DEFAULT_APPS=[
@@ -2921,9 +2922,11 @@ async function syncNow(silent){
   SY.busy=true; syncSetState("work");
   try{
     const R=await syncPull();
-    const ch=R?syncMerge(R):false;
+    let ch=R?syncMerge(R):false;
     const mine=syncPayload();
     if(!R || syncStrip(R)!==syncStrip(mine)) await syncPush(mine);
+    try{ if(window.AppsSync){ const a=await AppsSync.run(); if(a&&a.changed) ch=true; } }catch(e){}
+    try{ await coachPush(); }catch(e){}
     syncCfg().last=Date.now(); syncCfg().peer=(R&&R.dev)||syncCfg().peer;
     save0();
     syncSetState("ok");
@@ -2962,6 +2965,8 @@ function syncOpen(){
       Ce qui reste ici : le chrono en cours et le thème.<br>
       <b>Ton jeton ne quitte jamais cet appareil</b> — et LE COFFRE ne l'embarque pas dans ses exports.</div>
     <button class="btn" onclick="syncNow()">⟳ Synchroniser maintenant</button>
+    <button class="btn ghost" onclick="coachLinkCopy()">🔗 Copier mon lien coach</button>
+    <div class="ksub" style="text-align:left">Le coach du soir lit ce lien tout seul à 22 h : plus besoin d'envoyer le bilan. Tes séances FORGE et tes cases IELTS passent aussi d'un appareil à l'autre.</div>
     ${syncCfg().url?`<button class="btn ghost" onclick="window.open('${syncCfg().url}','_blank','noopener')">↗ Voir le coffre en ligne</button>`:""}
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>
     <button class="btn danger" onclick="syncUnlink()">Délier cet appareil</button>`);
@@ -3486,12 +3491,10 @@ function forgePlan(){
   const F=forgeData(); if(!F) return null;
   const t=today(), log=(F.workoutLog||[]).filter(w=>w.cali), L=log[log.length-1];
   const done=!!(L&&L.date===t);
-  let info=F.cali&&F.cali.days&&F.cali.days[t];
-  if(!info){
-    if(!L||dDiff(L.date,t)>=2) info={k:"cali",t:L?(L.cali==="A"?"B":"A"):"A"};
-    else if(L.date===t) info={k:"cali",t:L.cali};
-    else info={k:"off"};
-  }
+  let info;
+  if(!L||dDiff(L.date,t)>=2) info={k:"cali",t:L?(L.cali==="A"?"B":"A"):"A"};
+  else if(L.date===t) info={k:"cali",t:L.cali};
+  else info={k:"off"};
   return {k:info.k, t:info.t, done};
 }
 function forgeTxt(p){ if(!p) return null;
@@ -3653,6 +3656,7 @@ function soirGo(){
   if(coach){
     try{ localStorage.setItem(MOIKEY,moi); }catch(e){}
     let body="## Ma question\nCoach, voici ma journée.\n\n"+claudeSnap(1); if(body.length>7000) body=body.slice(0,7000);
+    C.coachSent=C.coachSent||{}; C.coachSent[t]=1; save();
     location.href="mailto:"+encodeURIComponent(moi)+"?subject="+encodeURIComponent("[Pointage → Claude] "+t)+"&body="+encodeURIComponent(body);
     toast("✉️ Envoie le mail : ton coach te répond ce soir.");
     return;
@@ -3999,7 +4003,7 @@ function echPlan(){ const E=ech(); return E?((E.plan||{})[today()]||[]):[]; }
 function ieltsChecks(){ try{ return JSON.parse(localStorage.getItem("ielts:planChecks")||"{}")||{}; }catch(e){ return {}; } }
 function echDoneList(){ const c=ieltsChecks(), t=today(); return echPlan().map((_,i)=>!!c[t+":"+i]); }
 function echTog(i){ const c=ieltsChecks(), k=today()+":"+i; if(c[k]) delete c[k]; else c[k]=1;
-  try{ localStorage.setItem("ielts:planChecks",JSON.stringify(c)); }catch(e){} render(); }
+  try{ localStorage.setItem("ielts:planChecks",JSON.stringify(c)); }catch(e){} render(); syncSoon(); }
 function echGo(target){ window.open(IELTS_URL+(target?"#go="+encodeURIComponent(target):""),"_blank","noopener"); }
 function echHtml(){
   const E=ech(); if(!E) return "";
@@ -4358,7 +4362,8 @@ function coachHtml(){
     ${main}
     ${after&&!(H>=23||H<5)?`<div class="kco-next">Ensuite · ${jpHM(after.s)} ${after.e} ${esc(after.nom)}</div>`:""}
     <div class="kprog" style="margin-top:10px"><i style="width:${pct}%"></i></div>
-    <div class="kco-tip" onclick="tipOff++;render()">${te} ${esc(tt)} <u>↻</u></div></div>`;
+    <div class="kco-tip" onclick="tipOff++;render()">${te} ${esc(tt)} <u>↻</u></div>
+    ${(()=>{ if(syncOn()) return ""; let m=[]; try{ m=coachMissed(); }catch(e){} return m.length?`<button class="btn ghost" style="margin-top:10px" onclick="coachSendMissed()">📨 ${m.length} bilan${m.length>1?"s":""} pas envoyé${m.length>1?"s":""} au coach · envoyer</button>`:""; })()}</div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4440,6 +4445,77 @@ function chainHtml(){
 function stageTipsHtml(){
   return `<div class="ktips"><b>💼 La méthode des 5 par jour</b>
     <p>1. Une offre ciblée, pas dix envoyées au hasard.<br>2. Une phrase d'accroche qui cite l'entreprise et le poste.<br>3. Une preuve chiffrée de ce que tu sais faire.<br>4. Tu notes l'envoi ici, et une relance dans 7 jours.<br>5. Tu passes à la suivante sans attendre la réponse.</p></div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   📨 LE COACH AUTOMATIQUE
+   Plus besoin d'envoyer le bilan à la main : à chaque synchro, Le Pointage
+   dépose le rapport des 3 derniers jours dans ton coffre privé
+   (fichier « pointage-coach.json »). Le coach du soir le lit tout seul à 22 h.
+   ═══════════════════════════════════════════════════════════════════ */
+const COACH_FILE="pointage-coach.json";
+function dayReport(d){
+  const C=acc(), AC=catsActives(), L=[];
+  const nomJ=new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  L.push("## "+nomJ+" ("+d+")");
+  const r=(C.rit||{})[d]||{}, w=(C.wake||{})[d];
+  L.push("- Réveil noté : "+(w?(typeof w==="number"?hhmmOf(w):w):"—")+" · rituel matin "+(r.m?"✓":"✗")+" · rituel soir "+(r.s?"✓":"✗")+(r.tel?" · téléphone hors de la chambre ✓":""));
+  try{ const J=jpBuild(d).all.filter(b=>b.kind==="prop");
+    if(J.length) L.push("- Proposition de journée : "+J.filter(b=>b.done).length+"/"+J.length+" fait ("+J.map(b=>b.nom+" "+(b.done?"✓":"✗")).join(", ")+")"); }catch(e){}
+  L.push("- Priorités stage : "+(AC.length?AC.map(c=>c.nom+" "+(catDoneDay(c.id,d)?"✓":"✗")).join(" · "):"aucune")+((C.minDay||{})[d]?" (jour minimum)":""));
+  { const E=ech(), P=E?((E.plan||{})[d]||[]):[], ck=ieltsChecks();
+    if(P.length){ L.push("- IELTS (J-"+dDiff(d,E.date)+") : "+P.filter((_,i)=>ck[d+":"+i]).length+"/"+P.length+" du programme");
+      P.forEach((x,i)=>L.push("    "+(ck[d+":"+i]?"✓ ":"✗ ")+x[1]+" ("+x[0]+" min)")); } }
+  { const F=forgeData();
+    if(F){ const inD=x=>x.date===d, wk=(F.workoutLog||[]).filter(inD), bx=(F.boxeLog||[]).filter(inD), mb=(F.mobLog||[]).filter(inD);
+      const parts=[...wk.map(x=>(x.nom||(x.cali?"Séance "+x.cali:"Séance"))+(x.dur?" ("+Math.round(x.dur/60)+" min)":"")), ...bx.map(()=>"boxe"), ...mb.map(()=>"souplesse")];
+      L.push("- Sport (FORGE) : "+(parts.length?parts.join(", "):"rien d'enregistré")); } }
+  const nc=cOn(d); L.push("- Candidatures envoyées : "+nc+"/"+C_OBJ);
+  const ap=S.apps.filter(a=>stOf(a.id).days.includes(d)||stOf(a.id).min[d]);
+  L.push("- Apps pointées : "+(ap.length?ap.map(a=>a.name+(stOf(a.id).min[d]?" ("+fmtMin(Math.round(stOf(a.id).min[d]))+")":"")).join(", "):"aucune"));
+  try{ const W=wDay(d); L.push("- Travail noté : "+(W.length?fmtMin(wMin(d))+" en "+W.length+" séance(s)":"aucun"));
+    W.forEach(x=>L.push("    "+x.sujet+" — "+x.min+" min, concentration "+(x.q||"?")+"/5"+(x.fait?" — "+x.fait:"")+(x.next?" → "+x.next:""))); }catch(e){}
+  if((C.fs||{})[d]) L.push("- Focus terminés : "+C.fs[d]);
+  const lg=(C.log||{})[d]||[];
+  L.push("- Instagram : "+lg.reduce((a,x)=>a+(x.min||0),0)+" min, "+lg.filter(x=>!x.passe).length+" ticket(s), renoncé "+((C.ren||{})[d]||0)+" fois"+(lg.some(x=>x.passe)?", passe-droit utilisé":""));
+  { const so=(C.sos||{})[d]||[]; if(so.length) L.push("- SOS anti-scroll : "+so.filter(x=>x.win).length+" gagné(s) sur "+so.length); }
+  try{ const P=ptsDay(d); L.push("- Points : "+P.tot+"/"+PTS_OBJ); }catch(e){}
+  if((C.focus||{})[d]) L.push("- Chose du jour : "+C.focus[d]);
+  const j=(jGet(d).txt||"").trim(); if(j) L.push("- Journal : "+j.replace(/\s+/g," ").slice(0,600));
+  if((C.demain||{})[dayShift(d,1)]) L.push("- Prévu pour le lendemain : "+C.demain[dayShift(d,1)]);
+  return L.join("\n");
+}
+function coachDays(n){ return Array.from({length:n},(_,i)=>dayShift(today(),-i)); }
+function coachDoc(){
+  const t=today(), w=(()=>{ try{ const x=ptsWeek(); return x+" pts sur 7 jours ("+ptsGrade(x).g[1]+")"; }catch(e){ return ""; } })();
+  const E=ech(), ch=chaine();
+  const head=["# Le Pointage → Coach", "Contexte : Thomas, étudiant ESCP. Objectifs : IELTS"+(E?" le "+E.date+" (J-"+dDiff(t,E.date)+")":"")+", stage de 6 mois dès janvier 2027 (M&A, TS, conseil), sport quotidien, moins de scroll. Réponds en français.",
+    "Chaîne : "+ch.n+" j · "+w+" · candidatures au total : "+cAll().length, ""].join("\n");
+  const jours={}; coachDays(3).forEach(d=>{ jours[d]=dayReport(d); });
+  return {head, jours};
+}
+let coachLast="";
+async function coachPush(){
+  if(!syncOn()) return;
+  const D=coachDoc(), sig=JSON.stringify(D);
+  if(sig===coachLast) return;
+  const content=JSON.stringify({maj:new Date().toISOString(), aujourdhui:today(), ...D}, null, 1);
+  await gh("/gists/"+syncCfg().gist,{method:"PATCH", body:JSON.stringify({files:{[COACH_FILE]:{content}}})});
+  coachLast=sig;
+}
+function coachLink(){ const g=syncCfg().gist; return g?"https://gist.githubusercontent.com/niclaeysthomas-ctrl/"+g+"/raw/"+COACH_FILE:""; }
+function coachLinkCopy(){ const u=coachLink(); if(!u) return toast("Active d'abord la synchro (Plus → Appareils).");
+  try{ navigator.clipboard.writeText(u).then(()=>toast("🔗 Lien coach copié : colle-le à Claude"),()=>prompt("Ton lien coach :",u)); }catch(e){ prompt("Ton lien coach :",u); } }
+/* filet de secours : les bilans pas envoyés partent en un seul mail */
+function coachMissed(){ const C=acc(), s=C.coachSent||{}; return coachDays(3).slice(1).filter(d=>!s[d]&&!((C.rit||{})[d]||{}).s&&coachActive(d)); }
+function coachActive(d){ try{ if(ptsDay(d).tot>0) return true; }catch(e){} const r=dayReport(d); return /Sport \(FORGE\) : (?!rien)/.test(r)||/IELTS \(J-?\d+\) : [1-9]/.test(r); }
+function coachSendMissed(){
+  const C=acc(), miss=coachMissed(); let moi=""; try{ moi=localStorage.getItem(MOIKEY)||""; }catch(e){}
+  if(!miss.length) return toast("Rien en retard 👍");
+  const D=coachDoc(); let body="## Ma question\nCoach, je n'ai pas fermé ces journées, voici ce que j'ai fait.\n\n"+D.head+"\n"+miss.map(d=>dayReport(d)).join("\n\n");
+  if(body.length>7000) body=body.slice(0,7000);
+  C.coachSent=C.coachSent||{}; miss.forEach(d=>C.coachSent[d]=1); save();
+  location.href="mailto:"+encodeURIComponent(moi)+"?subject="+encodeURIComponent("[Pointage → Claude] "+miss.join(" + "))+"&body="+encodeURIComponent(body);
 }
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
