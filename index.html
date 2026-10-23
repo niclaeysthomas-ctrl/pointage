@@ -894,6 +894,15 @@
   .klire-row button small{color:var(--muted);font-weight:600}
   .klire-row button.on{background:var(--good-soft);color:var(--good)}
   .klire-go{border:none;background:var(--accent);color:#fff;border-radius:50%;width:34px;height:34px;font-size:13px;cursor:pointer;flex:0 0 auto}
+  .klire-aeon{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:8px;border:none;background:transparent;color:var(--ink);
+    font-weight:700;font-size:13.5px;padding:8px 2px 0;cursor:pointer;font-family:inherit}
+  .klire-aeon small{color:var(--muted);font-weight:600}
+  .lr-aeon{display:block;text-decoration:none;color:var(--ink);background:var(--card);border-radius:16px;padding:13px 15px;margin:0 0 10px;box-shadow:var(--shadow-sm)}
+  .lr-aeon i{display:block;font-style:normal;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:800}
+  .lr-aeon b{display:block;font-family:Georgia,'Iowan Old Style','Times New Roman',serif;font-size:17px;line-height:1.3;margin:5px 0 4px}
+  .lr-aeon small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+  .lr-aeon em{display:block;margin-top:4px;font-style:normal;font-weight:600}
+  .ksec .lr-aeon{background:var(--card2);box-shadow:none}
   #lire{position:fixed;inset:0;z-index:80;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;--lfs:16px}
   #lire.on{display:block}
   .lr-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;
@@ -4575,7 +4584,7 @@ function coachSendMissed(){
 const LIREPOS="pointage_lire_pos";
 function lir(){ const C=cad(); if(!C.lire) C.lire={}; const L=C.lire;
   if(!L.lus) L.lus={};
-  ["livres","ses","idees"].forEach(k=>{ if(!Array.isArray(L[k])) L[k]=[]; });
+  ["livres","ses","idees","liens"].forEach(k=>{ if(!Array.isArray(L[k])) L[k]=[]; });
   return L; }
 function lecs(){ return Array.isArray(window.LECTURES)?window.LECTURES:[]; }
 function lecMin(x){ const n=String(x.corps||"").replace(/<[^>]+>/g," ").split(/\s+/).filter(Boolean).length; return Math.max(2,Math.round(n/170)); }
@@ -4607,11 +4616,12 @@ function lireHtml(){
         :b?`<button onclick="livreStart('${b.id}')">▶ ${esc(b.titre)}${b.pages?` <small>p. ${b.page||0}/${b.pages}</small>`:""}</button>`
         :`<button onclick="livreEdit('')">＋ Mon livre en cours</button>`}
       <button onclick="ideeAdd()">✎ Une idée</button>
-    </div></div>`;
+    </div>
+    <button class="klire-aeon" onclick="lireSheet('aeon')">🌐 Sur Aeon <small>${aeons().length+lir().liens.filter(x=>!x.del&&!x.lu).length} à lire ›</small></button></div>`;
 }
 
 /* ---- la fiche complète : lectures, livres, carnet ---- */
-function lireSheet(){
+function lireSheet(go){
   const L=lir(), A=lecs(), B=livresVivants(), I=L.idees.filter(x=>!x.del).sort((a,b)=>(b.mod||0)-(a.mod||0));
   const nonEnv=I.filter(x=>!x.env).length;
   sheet(`<h3>📖 Lire</h3>
@@ -4621,6 +4631,7 @@ function lireSheet(){
     <div class="ksec"><h4>Mes livres</h4><div class="krows">${B.length?B.sort((a,b)=>(a.fini?1:0)-(b.fini?1:0)||(b.mod||0)-(a.mod||0)).map(b=>{ const m=L.ses.filter(s=>s.ref===b.id).reduce((x,s)=>x+s.min,0);
       return `<div class="krow"><span class="ke">${b.fini?"✓":"📕"}</span><div class="kn" onclick="livreEdit('${b.id}')" style="cursor:pointer">${esc(b.titre)}<small style="display:block;color:var(--muted);font-weight:500">${b.auteur?esc(b.auteur)+" · ":""}${b.pages?"p. "+(b.page||0)+"/"+b.pages+" · ":""}${fmtMin(m)}</small></div>${b.fini?"":`<button class="klire-go" onclick="livreStart('${b.id}')">▶</button>`}</div>`; }).join(""):`<div class="ksub">Aucun livre pour l'instant.</div>`}</div>
       <button class="btn ghost" onclick="livreEdit('')">＋ Ajouter un livre</button></div>
+    ${aeonSec()}
     <div class="ksec"><h4>Mon carnet d'idées</h4>
       <p>Une idée entendue dans un podcast, une question qui te résiste. Notée ici, elle peut devenir un texte.</p>
       <button class="btn ghost" onclick="ideeAdd()">✎ Noter une idée</button>
@@ -4628,7 +4639,35 @@ function lireSheet(){
       ${I.length?`<button class="btn" onclick="ideesClaude()">✳️ Envoyer ${nonEnv?nonEnv+" idée"+(nonEnv>1?"s":"")+" nouvelle"+(nonEnv>1?"s":""):"le carnet"} à Claude</button>
       <p style="margin-top:8px">Claude les développera en textes, à ajouter ensuite dans lectures.js.</p>`:""}</div>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+  if(go){ const s=document.getElementById("ls-"+go); if(s) setTimeout(()=>s.scrollIntoView({block:"start"}),60); }
 }
+
+/* ---- 🌐 Aeon : on envoie vers le site (rien n'est recopié ici) ---- */
+function aeons(){ return Array.isArray(window.AEON)?window.AEON:[]; }
+function aeonOpen(u,id){ if(id){ const x=lir().liens.find(l=>l.id===id); if(x&&!x.vu){ x.vu=today(); x.mod=Date.now(); save(); } }
+  window.open(u,"_blank","noopener"); }
+function aeonRow(x){ const lec=lecs().find(l=>l.id===x.lec);
+  return `<a class="lr-aeon" href="${esc(x.url)}" target="_blank" rel="noopener"><i>🌐 Sur Aeon · ${x.min} min · en anglais${x.auteur?" · "+esc(x.auteur):""}</i><b>${esc(x.t)}</b><small>${esc(x.fr)}${lec?` <em>Lié à « ${esc(lec.titre)} »</em>`:""}</small></a>`; }
+function aeonSec(){
+  const M=lir().liens.filter(x=>!x.del).sort((a,b)=>(a.lu?1:0)-(b.lu?1:0)||(b.mod||0)-(a.mod||0));
+  return `<div class="ksec" id="ls-aeon"><h4>🌐 Sur Aeon</h4>
+    <p>Des essais choisis pour prolonger tes textes. Ils s'ouvrent sur aeon.co et demandent du réseau : ouvre-les sur le quai, avant le tunnel.</p>
+    ${aeons().map(aeonRow).join("")}
+    <div class="krows" style="margin-top:6px">${M.map(x=>`<div class="krow"><span class="ke" onclick="aeonLu('${x.id}')" style="cursor:pointer">${x.lu?"✓":"○"}</span><div class="kn" onclick="aeonOpen('${esc(x.url)}','${x.id}')" style="cursor:pointer">${esc(x.t||x.url)}<small style="display:block;color:var(--muted);font-weight:500">${x.lu?"lu":x.vu?"ouvert":"à lire"} · ajouté le ${new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</small></div><button class="klire-go" style="background:var(--card2);color:var(--muted)" onclick="aeonDel('${x.id}')" aria-label="Retirer">✕</button></div>`).join("")}</div>
+    <div class="fld" style="margin-top:10px"><label>Garder un essai pour plus tard</label><input id="aeU" type="url" placeholder="Colle un lien aeon.co (ou d'ailleurs)"></div>
+    <div style="display:flex;gap:8px"><button class="btn ghost" onclick="aeonAdd()">＋ Garder</button><button class="btn ghost" onclick="aeonOpen('https://aeon.co/philosophy')">↗ Ouvrir Aeon</button></div></div>`;
+}
+function aeonTitre(u){ try{ const p=new URL(u), s=p.pathname.split("/").filter(Boolean).pop()||p.hostname;
+  const t=decodeURIComponent(s).replace(/[-_]+/g," ").trim(); return t.charAt(0).toUpperCase()+t.slice(1); }catch(e){ return u; } }
+function aeonAdd(){
+  let u=(document.getElementById("aeU").value||"").trim(); if(!u) return toast("Colle d'abord un lien.");
+  if(!/^https?:\/\//i.test(u)) u="https://"+u;
+  try{ new URL(u); }catch(e){ return toast("Ce lien ne semble pas valide."); }
+  const L=lir(); if(L.liens.some(x=>!x.del&&x.url===u)) return toast("Déjà dans ta liste");
+  L.liens.push({id:lireId(), url:u, t:aeonTitre(u), d:today(), mod:Date.now()}); save(); toast("🌐 Gardé pour plus tard"); lireSheet("aeon");
+}
+function aeonLu(id){ const x=lir().liens.find(l=>l.id===id); if(!x) return; x.lu=x.lu?0:today(); x.mod=Date.now(); save(); lireSheet("aeon"); }
+function aeonDel(id){ const x=lir().liens.find(l=>l.id===id); if(x){ x.del=1; x.mod=Date.now(); save(); } lireSheet("aeon"); }
 
 /* ---- la liseuse ---- */
 let lireCur=null, lireT0=0, lireAcc=0, lireSaveT=null;
@@ -4654,6 +4693,7 @@ function lireOpen(id){
       <div class="lr-corps">${a.corps}</div>
       ${a.question?`<div class="lr-q"><b>❓ À emporter</b>${esc(a.question)}</div>`:""}
       ${a.plus?`<div class="lr-plus"><b>Pour aller plus loin</b>${a.plus}</div>`:""}
+      ${aeons().filter(x=>x.lec===a.id).map(x=>aeonRow(x)).join("")}
       <button class="btn" onclick="lireFini()">${L.lus[id]?"✓ Déjà lu · fermer":"✓ J'ai fini"}</button>
       <button class="btn ghost" onclick="ideeAdd('', '${a.id}')">✎ Une réaction, une idée ?</button>
     </article>`;
@@ -4774,7 +4814,7 @@ function ideesClaude(){
 function lireMerge(R){
   if(!R) return false; const L=lir(); let ch=false;
   Object.keys(R.lus||{}).forEach(k=>{ if(!L.lus[k]||(R.lus[k]<L.lus[k])){ if(L.lus[k]!==R.lus[k]){ L.lus[k]=R.lus[k]; ch=true; } } });
-  ["livres","idees"].forEach(k=>{ const A=L[k], at={}; A.forEach((x,i)=>at[x.id]=i);
+  ["livres","idees","liens"].forEach(k=>{ const A=L[k], at={}; A.forEach((x,i)=>at[x.id]=i);
     (R[k]||[]).forEach(r=>{ if(!r||!r.id) return; const i=at[r.id];
       if(i==null){ A.push(r); ch=true; } else if((r.mod||0)>(A[i].mod||0)){ A[i]=r; ch=true; } }); });
   const ids=new Set(L.ses.map(s=>s.id)); (R.ses||[]).forEach(s=>{ if(s&&s.id&&!ids.has(s.id)){ L.ses.push(s); ch=true; } });

@@ -198,3 +198,23 @@ plus: "Carlo Rovelli, <em>Helgoland</em>, dernier chapitre (il y relie lui-même
 }
 
 ];
+
+/* ═══ 🌐 SUR AEON (aeon.co) — liens vers le site, rien n'est copié.
+   Essais en anglais, choisis pour prolonger tes textes (lec = id du texte lié). ═══ */
+window.AEON = [
+{ lec:"petit", auteur:"Philip Goff", min:5, url:"https://aeon.co/ideas/panpsychism-is-crazy-but-its-also-most-probably-true",
+  t:"Panpsychism is crazy, but it's also most probably true",
+  fr:"Court. La physique dit comment la matière se comporte, pas ce qu'elle est ; Goff en tire que l'expérience vécue pourrait être partout." },
+{ lec:"petit", auteur:"Philip Goff", min:17, url:"https://aeon.co/essays/cosmopsychism-explains-why-the-universe-is-fine-tuned-for-life",
+  t:"Is the Universe a conscious mind?",
+  fr:"Exactement ton « expliquer par le dessus » : l'univers entier comme sujet conscient. À lire avec l'esprit critique du texte." },
+{ lec:"petit", auteur:"Heinrich Päs", min:19, url:"https://aeon.co/essays/monist-philosophy-and-quantum-physics-agree-that-all-is-one",
+  t:"Monist philosophy and quantum physics agree that all is One",
+  fr:"Un physicien défend que l'intrication donne raison au tout plutôt qu'aux parties." },
+{ lec:"electron", auteur:"Philip Ball", min:19, url:"https://aeon.co/essays/the-quantum-view-of-reality-might-not-be-so-weird-after-all",
+  t:"The quantum view of reality might not be so weird after all",
+  fr:"Pourquoi la chaise a une « fiche » et pas l'électron : les propriétés se fixent par l'interaction avec l'environnement." },
+{ lec:"proposer", auteur:"Joe Boswell", min:6, url:"https://aeon.co/ideas/we-must-recognise-that-single-events-have-multiple-causes",
+  t:"We must recognise that single events have multiple causes",
+  fr:"Chercher LA cause d'une rupture ou d'une crise est souvent arbitraire. Proche de « qui propose ? »." }
+];
