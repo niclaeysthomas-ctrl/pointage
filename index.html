@@ -876,6 +876,46 @@
     .ktabs i{position:static;margin-left:2px}
     #app{padding-bottom:48px}
   }
+  /* ─── 📖 LIRE ─── */
+  .klire{background:var(--card);border-radius:22px;padding:16px 18px;margin:14px 0;box-shadow:var(--shadow)}
+  .klire .kpts-g{cursor:pointer}
+  .klire-ok{font-size:12.5px;color:var(--good);font-weight:700;margin:8px 0 0}
+  .klire-lec{display:block;width:100%;text-align:left;border:none;cursor:pointer;margin-top:10px;padding:14px 15px;border-radius:16px;
+    background:linear-gradient(135deg,var(--accent-soft),transparent 70%),var(--card2);color:var(--ink);font-family:inherit}
+  .klire-lec i{display:block;font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800}
+  .klire-lec b{display:block;font-family:Georgia,'Iowan Old Style','Times New Roman',serif;font-size:19px;line-height:1.25;margin:5px 0 3px}
+  .klire-lec small{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+  .klire-bar{display:block;height:4px;border-radius:4px;background:var(--line2);margin-top:10px;overflow:hidden}
+  .klire-bar em{display:block;height:100%;background:var(--accent)}
+  .klire-row{display:flex;gap:8px;margin-top:10px}
+  .klire-row button{flex:1;border:none;border-radius:13px;padding:12px 10px;background:var(--card2);color:var(--ink);font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .klire-row button:first-child{flex:1.6}
+  .klire-row button small{color:var(--muted);font-weight:600}
+  .klire-row button.on{background:var(--good-soft);color:var(--good)}
+  .klire-go{border:none;background:var(--accent);color:#fff;border-radius:50%;width:34px;height:34px;font-size:13px;cursor:pointer;flex:0 0 auto}
+  #lire{position:fixed;inset:0;z-index:80;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;--lfs:16px}
+  #lire.on{display:block}
+  .lr-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;
+    background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .lr-top button{border:none;background:var(--card);color:var(--ink);border-radius:12px;min-width:40px;height:38px;font-weight:800;font-size:14px;cursor:pointer;box-shadow:var(--shadow-sm)}
+  .lr-t{flex:1;font-size:13px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+  .lr-prog{position:sticky;top:calc(env(safe-area-inset-top) + 54px);z-index:2;height:3px;background:var(--line)}
+  .lr-prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+  .lr-art,.lr-livre{max-width:640px;margin:0 auto;padding:22px 20px calc(env(safe-area-inset-bottom) + 40px)}
+  .lr-art h1,.lr-livre h1{font-family:Georgia,'Iowan Old Style','Times New Roman',serif;font-size:calc(var(--lfs) * 1.75);line-height:1.15;margin:10px 0 8px;font-weight:700}
+  .lr-sous{color:var(--muted);font-size:calc(var(--lfs) * .95);line-height:1.45;margin:0 0 18px}
+  .lr-note{background:var(--card);border-radius:16px;padding:14px 16px;margin:0 0 24px;font-size:calc(var(--lfs) * .88);line-height:1.5;color:var(--muted);font-style:italic;
+    box-shadow:inset 3px 0 0 var(--accent),var(--shadow-sm)}
+  .lr-note b,.lr-q b,.lr-plus b{display:block;font-style:normal;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:800}
+  .lr-corps{font-family:Georgia,'Iowan Old Style','Times New Roman',serif;font-size:var(--lfs);line-height:1.68;color:var(--ink)}
+  .lr-corps p{margin:0 0 1em}
+  .lr-corps h4{font-family:var(--disp);font-size:calc(var(--lfs) * 1.08);margin:1.7em 0 .55em;color:var(--ink)}
+  .lr-corps em{font-style:italic}
+  .lr-q{background:var(--accent-soft);border-radius:16px;padding:16px;margin:26px 0 14px;font-size:calc(var(--lfs) * .98);line-height:1.55}
+  .lr-plus{font-size:calc(var(--lfs) * .85);line-height:1.55;color:var(--muted);margin:0 0 20px}
+  .lr-livre{text-align:center;padding-top:40px}
+  .lr-clock{font-family:var(--mono);font-size:56px;font-weight:700;margin:26px 0 10px;font-variant-numeric:tabular-nums;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -883,6 +923,7 @@
 <div id="ov"><div class="sheet" id="sheet"></div></div>
 <div id="toast"></div>
 <script src="/forge/forge-sync.js"></script>
+<script src="lectures.js"></script>
 <script>
 const KEY="pointage_v1";
 const DEFAULT_APPS=[
@@ -1164,6 +1205,7 @@ function render(){
         ${ritHtml()}
         ${banHtml()}
         ${choseHtml()}
+        ${lireHtml()}
         ${calHtml()}
       </div><div class="col-r">
         ${jpHtml()}
@@ -3754,6 +3796,7 @@ function accMerge(Rc){
   Object.keys(Rc.sos||{}).forEach(d=>{ const A=acc(); if(!A.sos) A.sos={}; const L=A.sos[d]=A.sos[d]||[], seen=new Set(L.map(x=>x.at)); (Rc.sos[d]||[]).forEach(x=>{ if(!seen.has(x.at)){ L.push(x); ch=true; } }); });
   if(Array.isArray(Rc.work)){ const W=wAll(), ids=new Set(W.map(x=>x.id)); Rc.work.forEach(x=>{ if(x&&!ids.has(x.id)){ W.push(x); ch=true; } }); }
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
+  if(lireMerge(Rc.lire)) ch=true;
   return ch;
 }
 
@@ -4021,7 +4064,7 @@ function echMatinHtml(){ const E=ech(), P=echPlan(); if(!E||!P.length) return ""
 function openPlus(){
   const B=[["✎","Modifier","openManage()"],["📊","Bilan","openStats()"],["🚀","Mes apps","openLauncher()"],["🔗","Appareils","syncOpen()"],
     ["💾","Sauver","bkSheet()"],["🚪","Porte","openPorte()"],["🛡️","Mon cadre","openCadre()"],["📱","Téléphone","openTel()"],
-    ["📅","Agenda","openCal()"],["📓","Journal","openJournal()"],["✳️","Claude","openClaude()"],["📆","Bilan hebdo","openBilan()"],["⏱","Travail","openWorkLog()"]];
+    ["📅","Agenda","openCal()"],["📓","Journal","openJournal()"],["✳️","Claude","openClaude()"],["📆","Bilan hebdo","openBilan()"],["⏱","Travail","openWorkLog()"],["📖","Lire","lireSheet()"]];
   sheet(`<h3>⋯ Plus</h3><div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:18px" onclick="closeOv();render()">Fermer</button>`);
 }
@@ -4518,6 +4561,226 @@ function coachSendMissed(){
   C.coachSent=C.coachSent||{}; miss.forEach(d=>C.coachSent[d]=1); save();
   location.href="mailto:"+encodeURIComponent(moi)+"?subject="+encodeURIComponent("[Pointage → Claude] "+miss.join(" + "))+"&body="+encodeURIComponent(body);
 }
+/* ═══════════════════════════════════════════════════════════════════
+   📖 LIRE — pour le RER (marche hors-ligne, tunnels compris)
+   • Les lectures : tes idées de philo, développées en textes de quelques
+     minutes (fichier lectures.js). La liseuse retient où tu t'es arrêté.
+   • Mes livres : un chrono de lecture et la page atteinte, livre par livre.
+   • Le carnet d'idées : ce que tu entends dans un podcast, noté en deux
+     secondes ; un bouton l'envoie à Claude pour en faire les textes suivants.
+   La lecture ne rapporte pas de points : c'est voulu, elle reste un plaisir.
+   Tout vit dans S.cadre.lire, donc suit la synchro entre appareils, sauf la
+   position de lecture (propre à l'appareil, gardée à part).
+   ═══════════════════════════════════════════════════════════════════ */
+const LIREPOS="pointage_lire_pos";
+function lir(){ const C=cad(); if(!C.lire) C.lire={}; const L=C.lire;
+  if(!L.lus) L.lus={};
+  ["livres","ses","idees"].forEach(k=>{ if(!Array.isArray(L[k])) L[k]=[]; });
+  return L; }
+function lecs(){ return Array.isArray(window.LECTURES)?window.LECTURES:[]; }
+function lecMin(x){ const n=String(x.corps||"").replace(/<[^>]+>/g," ").split(/\s+/).filter(Boolean).length; return Math.max(2,Math.round(n/170)); }
+function lecPos(id,v){ let P={}; try{ P=JSON.parse(localStorage.getItem(LIREPOS)||"{}")||{}; }catch(e){}
+  if(v===undefined) return P[id]||0;
+  P[id]=v; try{ localStorage.setItem(LIREPOS,JSON.stringify(P)); }catch(e){} }
+function lecNext(){ const L=lir(), A=lecs(); return A.find(a=>!L.lus[a.id])||null; }
+function livresVivants(){ return lir().livres.filter(b=>!b.del); }
+function livreCourant(){ return livresVivants().filter(b=>!b.fini).sort((a,b)=>(b.mod||0)-(a.mod||0))[0]||null; }
+function lireMinJours(n){ const t=today(), from=dayShift(t,-(n-1)); return lir().ses.filter(s=>s.d>=from&&s.d<=t).reduce((a,s)=>a+(s.min||0),0); }
+function lireId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function lireSes(kind,ref,min,extra){ if(min<1) return; const L=lir();
+  L.ses.push({id:lireId(), d:today(), kind, ref, min:Math.min(180,Math.round(min)), ...(extra||{})}); save(); }
+
+/* ---- la carte sur l'onglet Aujourd'hui ---- */
+function lireHtml(){
+  const L=lir(), nx=lecNext(), b=livreCourant(), w=lireMinJours(7), run=L.run;
+  const luAuj=lecs().filter(a=>L.lus[a.id]===today());
+  let lec;
+  if(nx){ const p=lecPos(nx.id);
+    lec=`<button class="klire-lec" onclick="lireOpen('${nx.id}')"><i>${p>0.03?"Reprendre":"Lecture du jour"} · ${lecMin(nx)} min</i><b>${esc(nx.titre)}</b><small>${esc(nx.sous||"")}</small>${p>0.03?`<span class="klire-bar"><em style="width:${Math.round(p*100)}%"></em></span>`:""}</button>`; }
+  else lec=`<button class="klire-lec" onclick="lireSheet()"><i>Tout est lu ✓</i><b>Note de nouvelles idées</b><small>Le carnet les enverra à Claude pour les prochains textes.</small></button>`;
+  return `<div class="klire">
+    <div class="kpts-h"><b>📖 Lire</b><span class="kpts-g" onclick="lireSheet()">${w?fmtMin(w)+" sur 7 j":"hors points"} ›</span></div>
+    ${luAuj.length&&nx?`<div class="klire-ok">✓ Déjà lu aujourd'hui : ${esc(luAuj.map(a=>a.titre).join(", "))}</div>`:""}
+    ${lec}
+    <div class="klire-row">
+      ${run?`<button class="on" onclick="livreOpen()">⏱ Lecture en cours…</button>`
+        :b?`<button onclick="livreStart('${b.id}')">▶ ${esc(b.titre)}${b.pages?` <small>p. ${b.page||0}/${b.pages}</small>`:""}</button>`
+        :`<button onclick="livreEdit('')">＋ Mon livre en cours</button>`}
+      <button onclick="ideeAdd()">✎ Une idée</button>
+    </div></div>`;
+}
+
+/* ---- la fiche complète : lectures, livres, carnet ---- */
+function lireSheet(){
+  const L=lir(), A=lecs(), B=livresVivants(), I=L.idees.filter(x=>!x.del).sort((a,b)=>(b.mod||0)-(a.mod||0));
+  const nonEnv=I.filter(x=>!x.env).length;
+  sheet(`<h3>📖 Lire</h3>
+    <div class="ksub" style="text-align:left">${fmtMin(lireMinJours(7))} de lecture sur 7 jours · ${fmtMin(lireMinJours(30))} sur 30. Hors points, juste pour toi.</div>
+    <div class="ksec"><h4>Mes lectures</h4><div class="krows">${A.map(a=>{ const lu=L.lus[a.id], p=lecPos(a.id);
+      return `<div class="krow" onclick="lireOpen('${a.id}')" style="cursor:pointer"><span class="ke">${lu?"✓":p>0.03?"◐":"○"}</span><div class="kn">${esc(a.titre)}<small style="display:block;color:var(--muted);font-weight:500">${lecMin(a)} min${lu?" · lu le "+new Date(lu+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):p>0.03?" · "+Math.round(p*100)+" %":""}</small></div><b>›</b></div>`; }).join("")}</div></div>
+    <div class="ksec"><h4>Mes livres</h4><div class="krows">${B.length?B.sort((a,b)=>(a.fini?1:0)-(b.fini?1:0)||(b.mod||0)-(a.mod||0)).map(b=>{ const m=L.ses.filter(s=>s.ref===b.id).reduce((x,s)=>x+s.min,0);
+      return `<div class="krow"><span class="ke">${b.fini?"✓":"📕"}</span><div class="kn" onclick="livreEdit('${b.id}')" style="cursor:pointer">${esc(b.titre)}<small style="display:block;color:var(--muted);font-weight:500">${b.auteur?esc(b.auteur)+" · ":""}${b.pages?"p. "+(b.page||0)+"/"+b.pages+" · ":""}${fmtMin(m)}</small></div>${b.fini?"":`<button class="klire-go" onclick="livreStart('${b.id}')">▶</button>`}</div>`; }).join(""):`<div class="ksub">Aucun livre pour l'instant.</div>`}</div>
+      <button class="btn ghost" onclick="livreEdit('')">＋ Ajouter un livre</button></div>
+    <div class="ksec"><h4>Mon carnet d'idées</h4>
+      <p>Une idée entendue dans un podcast, une question qui te résiste. Notée ici, elle peut devenir un texte.</p>
+      <button class="btn ghost" onclick="ideeAdd()">✎ Noter une idée</button>
+      <div class="krows" style="margin-top:10px">${I.map(x=>`<div class="krow"><span class="ke">${x.env?"✳️":"💭"}</span><div class="kn" onclick="ideeAdd('${x.id}')" style="cursor:pointer">${esc(x.txt.length>140?x.txt.slice(0,140)+"…":x.txt)}<small style="display:block;color:var(--muted);font-weight:500">${x.src?esc(x.src)+" · ":""}${new Date(x.d+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}${x.env?" · envoyée":""}</small></div></div>`).join("")}</div>
+      ${I.length?`<button class="btn" onclick="ideesClaude()">✳️ Envoyer ${nonEnv?nonEnv+" idée"+(nonEnv>1?"s":"")+" nouvelle"+(nonEnv>1?"s":""):"le carnet"} à Claude</button>
+      <p style="margin-top:8px">Claude les développera en textes, à ajouter ensuite dans lectures.js.</p>`:""}</div>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+
+/* ---- la liseuse ---- */
+let lireCur=null, lireT0=0, lireAcc=0, lireSaveT=null;
+function lireEl(){ let el=document.getElementById("lire");
+  if(!el){ el=document.createElement("div"); el.id="lire"; document.body.appendChild(el);
+    el.addEventListener("scroll",()=>{ if(!lireCur) return; clearTimeout(lireSaveT); lireSaveT=setTimeout(lireTrack,250); lireBar(); },{passive:true}); }
+  return el; }
+function lireFs(d){ let f=16+((S.lireFs||0)); if(d){ f=Math.max(14,Math.min(24,f+d)); S.lireFs=f-16; save0(); }
+  const el=document.getElementById("lire"); if(el) el.style.setProperty("--lfs",f+"px"); }
+function lireOpen(id){
+  const a=lecs().find(x=>x.id===id); if(!a) return;
+  closeOv(); lireCur=id; lireT0=Date.now(); lireAcc=0;
+  const L=lir(); L.jour={d:today(),id}; save0();
+  const el=lireEl();
+  el.innerHTML=`<div class="lr-top"><button onclick="lireClose()" aria-label="Fermer">✕</button><div class="lr-t">${esc(a.titre)}</div>
+      <button onclick="lireFs(-1)" aria-label="Texte plus petit">A−</button><button onclick="lireFs(1)" aria-label="Texte plus grand">A+</button></div>
+    <div class="lr-prog"><i id="lrBar"></i></div>
+    <article class="lr-art">
+      <div class="eyebrow">${lecMin(a)} min de lecture</div>
+      <h1>${esc(a.titre)}</h1>
+      ${a.sous?`<p class="lr-sous">${esc(a.sous)}</p>`:""}
+      ${a.note?`<div class="lr-note"><b>Ta note${a.src?" · "+esc(a.src):""}</b>${esc(a.note)}</div>`:""}
+      <div class="lr-corps">${a.corps}</div>
+      ${a.question?`<div class="lr-q"><b>❓ À emporter</b>${esc(a.question)}</div>`:""}
+      ${a.plus?`<div class="lr-plus"><b>Pour aller plus loin</b>${a.plus}</div>`:""}
+      <button class="btn" onclick="lireFini()">${L.lus[id]?"✓ Déjà lu · fermer":"✓ J'ai fini"}</button>
+      <button class="btn ghost" onclick="ideeAdd('', '${a.id}')">✎ Une réaction, une idée ?</button>
+    </article>`;
+  lireFs(0); el.classList.add("on"); document.body.style.overflow="hidden";
+  const p=lecPos(id); requestAnimationFrame(()=>{ el.scrollTop=p>0.03&&p<0.97?p*(el.scrollHeight-el.clientHeight):0; lireBar(); });
+}
+function lireRatio(){ const el=document.getElementById("lire"); if(!el) return 0; const h=el.scrollHeight-el.clientHeight; return h>0?Math.min(1,el.scrollTop/h):0; }
+function lireBar(){ const b=document.getElementById("lrBar"); if(b) b.style.width=Math.round(lireRatio()*100)+"%"; }
+function lireTrack(){ if(lireCur) lecPos(lireCur,lireRatio()); }
+function lireElapsed(){ return lireAcc+(lireT0?Date.now()-lireT0:0); }
+function lireStop(){ /* temps réellement passé, écran allumé seulement */
+  const m=Math.min(60,lireElapsed()/6e4); lireT0=0; lireAcc=0; return m; }
+function lireClose(silent){
+  if(!lireCur) return; lireTrack(); const id=lireCur, m=lireStop(); lireCur=null;
+  lireSes("texte",id,m);
+  const el=document.getElementById("lire"); if(el){ el.classList.remove("on"); el.innerHTML=""; }
+  document.body.style.overflow=""; if(!silent){ render(); if(m>=1) toast("📖 "+Math.round(m)+" min de lecture notées"); }
+}
+function lireFini(){
+  const id=lireCur, L=lir(), deja=!!L.lus[id];
+  if(!deja){ L.lus[id]=today(); lecPos(id,1); }
+  lireClose(true); render(); save();
+  if(!deja){ const nx=lecNext(); toast(nx?"✓ Lu. Le suivant : « "+nx.titre+" »":"✓ Tout est lu. Place au carnet d'idées !"); }
+}
+document.addEventListener("visibilitychange",()=>{
+  if(lireCur){ if(document.hidden){ lireAcc+=lireT0?Date.now()-lireT0:0; lireT0=0; lireTrack(); } else lireT0=Date.now(); }
+});
+
+/* ---- mes livres : fiche + chrono ---- */
+function livreEdit(id){
+  const b=livresVivants().find(x=>x.id===id)||{};
+  sheet(`<h3>${id?"📕 Mon livre":"＋ Un livre"}</h3>
+    <div class="fld"><label>Titre</label><input id="lvT" value="${esc(b.titre||"")}" placeholder="Ex : Helgoland"></div>
+    <div class="fld"><label>Auteur (facultatif)</label><input id="lvA" value="${esc(b.auteur||"")}" placeholder="Carlo Rovelli"></div>
+    <div style="display:flex;gap:10px"><div class="fld" style="flex:1"><label>Page actuelle</label><input id="lvP" type="number" inputmode="numeric" value="${b.page||""}" placeholder="0"></div>
+    <div class="fld" style="flex:1"><label>Nombre de pages</label><input id="lvN" type="number" inputmode="numeric" value="${b.pages||""}" placeholder="250"></div></div>
+    <button class="btn" onclick="livreSave('${id||""}')">Enregistrer</button>
+    ${id?`<button class="btn ghost" onclick="livreFin('${id}')">${b.fini?"↺ Je le relis":"✓ Je l'ai fini"}</button><button class="btn danger" onclick="livreDel('${id}')">Retirer ce livre</button>`:""}
+    <button class="btn ghost" onclick="lireSheet()">Retour</button>`);
+  setTimeout(()=>{ const t=document.getElementById("lvT"); if(t&&!id) t.focus(); },50);
+}
+function livreSave(id){
+  const v=k=>(document.getElementById(k).value||"").trim(), t=v("lvT"); if(!t) return toast("Donne au moins un titre.");
+  const L=lir(); let b=L.livres.find(x=>x.id===id);
+  if(!b){ b={id:lireId()}; L.livres.push(b); }
+  b.titre=t; b.auteur=v("lvA"); b.page=Math.max(0,parseInt(v("lvP"))||0); b.pages=Math.max(0,parseInt(v("lvN"))||0); b.mod=Date.now();
+  save(); toast("📕 Livre enregistré"); lireSheet();
+}
+function livreFin(id){ const b=lir().livres.find(x=>x.id===id); if(!b) return; b.fini=b.fini?0:today(); if(b.fini&&b.pages) b.page=b.pages; b.mod=Date.now(); save(); toast(b.fini?"🎉 Livre terminé !":"↺ De retour sur ta pile"); lireSheet(); }
+function livreDel(id){ if(!confirm("Retirer ce livre ? Ses minutes restent dans ton historique.")) return; const b=lir().livres.find(x=>x.id===id); if(b){ b.del=1; b.mod=Date.now(); save(); } lireSheet(); }
+function livreStart(id){ const L=lir(); if(L.run&&L.run.ref!==id){ return livreOpen(); } if(!L.run){ L.run={ref:id,t0:Date.now()}; save0(); } livreOpen(); }
+let livreTick=null;
+function livreOpen(){
+  const L=lir(), r=L.run; if(!r) return render();
+  const b=L.livres.find(x=>x.id===r.ref)||{titre:"Lecture"};
+  closeOv(); const el=lireEl();
+  el.innerHTML=`<div class="lr-top"><button onclick="livreHide()" aria-label="Réduire">✕</button><div class="lr-t">Lecture</div></div>
+    <div class="lr-livre"><div class="eyebrow">Tu lis</div><h1>${esc(b.titre)}</h1>${b.auteur?`<p class="lr-sous">${esc(b.auteur)}</p>`:""}
+      <div class="lr-clock" id="lvClk">00:00</div>
+      <p class="lr-sous">Pose le téléphone, lis. Le chrono tourne même écran éteint.${b.pages?`<br>Tu en étais page ${b.page||0} sur ${b.pages}.`:""}</p>
+      <div class="fld" style="text-align:left;margin-top:22px"><label>Page atteinte en fermant le livre</label><input id="lvTo" type="number" inputmode="numeric" placeholder="${b.page||""}"></div>
+      <button class="btn" onclick="livreStop()">✓ Terminer la lecture</button>
+      <button class="btn ghost" onclick="livreCancel()">Annuler ce chrono</button></div>`;
+  el.classList.add("on"); document.body.style.overflow="hidden"; el.scrollTop=0;
+  clearInterval(livreTick); const up=()=>{ const c=document.getElementById("lvClk"); if(!c||!lir().run){ clearInterval(livreTick); return; }
+    const s=Math.floor((Date.now()-lir().run.t0)/1000), h=Math.floor(s/3600);
+    c.textContent=(h?h+":":"")+String(Math.floor(s/60)%60).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); };
+  up(); livreTick=setInterval(up,1000);
+}
+function livreHide(){ clearInterval(livreTick); const el=document.getElementById("lire"); if(el){ el.classList.remove("on"); el.innerHTML=""; } document.body.style.overflow=""; render(); }
+function livreStop(){
+  const L=lir(), r=L.run; if(!r) return livreHide();
+  const m=(Date.now()-r.t0)/6e4, b=L.livres.find(x=>x.id===r.ref), to=parseInt((document.getElementById("lvTo")||{}).value);
+  const ex={}; if(b&&to>=0){ ex.p0=b.page||0; ex.p1=to; b.page=to; if(b.pages&&to>=b.pages) b.fini=today(); b.mod=Date.now(); }
+  if(m>180&&!confirm("Ce chrono tourne depuis "+fmtMin(Math.round(m))+". Tu l'as sans doute oublié : on note quand même 3 h maximum ?")){ return; }
+  delete L.run; lireSes("livre",r.ref,m,ex); save(); livreHide();
+  toast(m>=1?"📕 "+fmtMin(Math.min(180,Math.round(m)))+" de lecture"+(ex.p1!=null&&ex.p1>ex.p0?" · "+(ex.p1-ex.p0)+" pages":""):"Moins d'une minute : rien de noté");
+}
+function livreCancel(){ if(!confirm("Annuler ce chrono sans rien noter ?")) return; delete lir().run; save0(); livreHide(); }
+
+/* ---- le carnet d'idées ---- */
+function ideeAdd(id,from){
+  const x=lir().idees.find(i=>i.id===id)||{}, a=from?lecs().find(l=>l.id===from):null;
+  if(lireCur) lireClose(true);
+  sheet(`<h3>${id?"💭 Ton idée":"✎ Une idée"}</h3>
+    <div class="fld"><label>L'idée, comme elle vient</label><textarea id="idT" style="min-height:120px" placeholder="Pas besoin que ce soit clair : c'est le travail du texte.">${esc(x.txt||"")}</textarea></div>
+    <div class="fld"><label>D'où elle vient (facultatif)</label><input id="idS" value="${esc(x.src||(a?"Réaction à « "+a.titre+" »":""))}" placeholder="Ex : Alex O'Connor #170"></div>
+    <button class="btn" onclick="ideeSave('${id||""}')">Enregistrer</button>
+    ${id?`<button class="btn danger" onclick="ideeDel('${id}')">Supprimer</button>`:""}
+    <button class="btn ghost" onclick="lireSheet()">Voir le carnet</button>`);
+  setTimeout(()=>{ const t=document.getElementById("idT"); if(t) t.focus(); },50);
+}
+function ideeSave(id){
+  const t=(document.getElementById("idT").value||"").trim(); if(!t) return toast("Écris au moins quelques mots.");
+  const L=lir(); let x=L.idees.find(i=>i.id===id);
+  if(!x){ x={id:lireId(), d:today()}; L.idees.push(x); }
+  if(x.txt!==t) x.env=0;
+  x.txt=t; x.src=(document.getElementById("idS").value||"").trim(); x.mod=Date.now();
+  save(); toast("💭 Idée notée"); closeOv(); render();
+}
+function ideeDel(id){ const x=lir().idees.find(i=>i.id===id); if(x){ x.del=1; x.mod=Date.now(); save(); } lireSheet(); }
+function ideesTexte(){
+  const L=lir(), I=L.idees.filter(x=>!x.del), neuves=I.filter(x=>!x.env), liste=neuves.length?neuves:I;
+  const deja=lecs().map(a=>"« "+a.titre+" »").join(", ");
+  return ["Claude, voici des idées notées dans mon carnet (Le Pointage → Lire). J'écoute des philosophes et je note leurs idées de façon brouillonne.",
+    "Développe chacune en un texte de 8 à 10 minutes de lecture, à lire dans le RER : clair, concret, avec des exemples, en me disant honnêtement où l'idée est fragile, et une question à emporter à la fin. Fais des liens avec mes textes précédents quand il y en a : "+deja+".",
+    "Ensuite, ajoute-les à lectures.js dans le dépôt GitHub niclaeysthomas-ctrl/pointage (même format que les textes existants).","",
+    ...liste.map((x,i)=>(i+1)+". "+x.txt+(x.src?" (source : "+x.src+")":""))].join("\n");
+}
+function ideesClaude(){
+  const txt=ideesTexte(), L=lir(), mark=()=>{ L.idees.forEach(x=>{ if(!x.del&&!x.env){ x.env=1; x.mod=Date.now(); } }); save(); lireSheet(); };
+  if(navigator.share) navigator.share({title:"Mes idées → Claude", text:txt}).then(()=>{ mark(); toast("✳️ Envoyé"); }).catch(()=>{});
+  else { const done=()=>{ mark(); toast("📋 Copié — colle-le dans Claude"); };
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>jCopyFallback(txt,done)); else jCopyFallback(txt,done); }
+}
+
+/* ---- synchro : on fusionne sans jamais perdre une séance ou une idée ---- */
+function lireMerge(R){
+  if(!R) return false; const L=lir(); let ch=false;
+  Object.keys(R.lus||{}).forEach(k=>{ if(!L.lus[k]||(R.lus[k]<L.lus[k])){ if(L.lus[k]!==R.lus[k]){ L.lus[k]=R.lus[k]; ch=true; } } });
+  ["livres","idees"].forEach(k=>{ const A=L[k], at={}; A.forEach((x,i)=>at[x.id]=i);
+    (R[k]||[]).forEach(r=>{ if(!r||!r.id) return; const i=at[r.id];
+      if(i==null){ A.push(r); ch=true; } else if((r.mod||0)>(A[i].mod||0)){ A[i]=r; ch=true; } }); });
+  const ids=new Set(L.ses.map(s=>s.id)); (R.ses||[]).forEach(s=>{ if(s&&s.id&&!ids.has(s.id)){ L.ses.push(s); ch=true; } });
+  return ch;
+}
+
 /* --- overlay & toast --- */
 function sheet(html){ const sh=document.getElementById("sheet"); sh.classList.remove("wide"); sh.innerHTML=html; document.getElementById("ov").classList.add("on"); }
 function closeOv(){ document.getElementById("ov").classList.remove("on"); }
@@ -4542,6 +4805,8 @@ function cHash(){ if(/^#(candidatures|suivi)$/i.test(location.hash)) cAllSheet()
   else if(/^#focus$/i.test(location.hash)) openFocus();
   else if(/^#tel$/i.test(location.hash)) openTel();
   else if(/^#claude$/i.test(location.hash)) openClaude();
+  else if(/^#lire$/i.test(location.hash)) { const nx=lecNext(); nx?lireOpen(nx.id):lireSheet(); }
+  else if(/^#idee$/i.test(location.hash)) ideeAdd();
   else if(/^#outils$/i.test(location.hash)) openOutils();
   else if(/^#agenda$/i.test(location.hash)) openCal();
   else if(/^#tache$/i.test(location.hash)) agSheet();
