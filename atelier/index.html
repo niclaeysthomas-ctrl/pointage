@@ -40,10 +40,42 @@ Ouvre les pièces une par une. Le bouton en bas fait la priorité suivante ; au 
   <textarea id="m-t2-06-cretes-couleur" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
   <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
 </article>
+<article class="carte" data-id="t2-07-pierre">
+  <div class="tete"><span class="num">02</span><h2>LA PIERRE DES LANGUES</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : une stèle de pierre grise, comme la pierre de Rosette, vue de face, plein cadre : grain, cristaux, veines de calcite, éclats aux bords, coin supérieur cassé. Au repos elle est vierge, éclairée en biais, quatre registres à peine marqués au ciseau. Chaque priorité faite grave SON registre, lettre après lettre (on voit le ciseau, la poussière) : 990 une maxime angl…</p>
+  <a class="ouvrir" href="t2-07-pierre.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t2-07-pierre">Tes mots</label>
+  <textarea id="m-t2-07-pierre" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
+<article class="carte" data-id="t2-08-enluminure">
+  <div class="tete"><span class="num">03</span><h2>L&#x27;ENLUMINURE</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : une page de manuscrit plein cadre, sur un vélin gris-beige (marbrures, fibres, follicules, taches et lignes de marée), réglée à la pointe sèche et piquée en marge. Le texte du jour est copié à la plume, en gris ; un espace est réservé pour la miniature (« ici la tour des jours », au crayon). Au repos, rien n&#x27;est peint : quatre lettrines N, C, L, F et leurs rince…</p>
+  <a class="ouvrir" href="t2-08-enluminure.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t2-08-enluminure">Tes mots</label>
+  <textarea id="m-t2-08-enluminure" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
+<article class="carte" data-id="t2-09-vitrail">
+  <div class="tete"><span class="num">04</span><h2>LA ROSACE</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : une grande rosace de cathédrale vue de la nef, à contre-jour, dans un mur de pierre grise taillée (assises, joints, layage au ciseau, épaufrures), sous un arc de claveaux ; en bas, le dallage en perspective. Au repos, le vitrail est éteint : verres gris, réseau de plomb en relief, remplage de pierre, une lueur à peine derrière. Quatre quartiers, un par priorité,…</p>
+  <a class="ouvrir" href="t2-09-vitrail.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t2-09-vitrail">Tes mots</label>
+  <textarea id="m-t2-09-vitrail" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
+<article class="carte" data-id="t2-10-estampe">
+  <div class="tete"><span class="num">05</span><h2>L&#x27;ESTAMPE</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : une estampe (ukiyo-e) en train d&#x27;être imprimée sur un washi gris clair très fibreux : une mer qui se creuse en une grande vague, trois barques, une montagne au loin, le soleil de l&#x27;aube. Au repos, seule la planche de trait (keyban) est imprimée, gris sur gris ; dans la marge, l&#x27;équerre de repérage (kentō). La loi : la houle trochoïdale de Gerstner (Theorie der W…</p>
+  <a class="ouvrir" href="t2-10-estampe.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t2-10-estampe">Tes mots</label>
+  <textarea id="m-t2-10-estampe" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
 <div class="envoyer"><button type="button" id="copier">Copier mes verdicts</button><small>puis colle-les dans la conversation avec Claude</small></div>
 </main>
 <script>
-const PIECES = [{"id": "t2-06-cretes-couleur", "titre": "LES CRÊTES EN COULEUR"}];
+const PIECES = [{"id": "t2-06-cretes-couleur", "titre": "LES CRÊTES EN COULEUR"}, {"id": "t2-07-pierre", "titre": "LA PIERRE DES LANGUES"}, {"id": "t2-08-enluminure", "titre": "L'ENLUMINURE"}, {"id": "t2-09-vitrail", "titre": "LA ROSACE"}, {"id": "t2-10-estampe", "titre": "L'ESTAMPE"}];
 const CLE = "atelier_tour2";
 let V = {}; try { V = JSON.parse(localStorage.getItem(CLE) || "{}") || {}; } catch (e) {}
 const garder = () => { try { localStorage.setItem(CLE, JSON.stringify(V)); } catch (e) {} };
