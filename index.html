@@ -1094,6 +1094,8 @@
   .ractions .start,.sa button.go,.agurg,.agform button,.cplus,.cgo,.crel,.kcheck.on .kb,.klire-go,.applist .row .start{color:var(--on-accent);box-shadow:none}
   .krit,.krit.soir,.krit.bilan{color:var(--ink);background:var(--card);border:1px solid var(--line2);box-shadow:none}
   .kech,.kech .kgo2{color:var(--ink)} .kech a{color:var(--ink)!important}
+  /* Maintenant se lit de haut en bas, même sur ordinateur : une seule colonne centrée */
+  @media (min-width:980px){ .cols.une{display:block;max-width:760px} .cols.une .col-r>:first-child{margin-top:14px} }
   @media (min-width:980px){
     #app{max-width:1120px}
     header{grid-template-columns:1fr auto;padding:28px 4px 14px}
@@ -1460,7 +1462,7 @@ function render(){
 
   const titre=(TABS.find(x=>x[0]===T)||TABS[0])[1];
   let corps="";
-  if(T==="maintenant") corps=`<div class="cols"><div class="col-l">
+  if(T==="maintenant") corps=`<div class="cols une"><div class="col-l">
         ${isStandalone()?modeHtml():""}
         ${coachHtml()}
         ${dayBarHtml()}
