@@ -1110,6 +1110,43 @@
   }
   .cahier .jcard,.cahier .klire{margin-top:14px}
   @media (min-width:980px){ .col-r>:first-child{margin-top:12px} }
+
+  /* ═══════════ LE MONDE DU JOUR + LA TYPOGRAPHIE DE LA VOÛTE (26/10, tour 2) ═══════════
+     Verdict de Thomas sur La Voûte : « j'aime beaucoup surtout le style police d'écriture, j'ai envie que tu utilises ce style
+     PARTOUT sur l'app ». Donc : Georgia partout, les titres en capitales espacées, les petites lignes en mono espacé. */
+  .monde{position:relative;height:60vh;min-height:400px;max-height:640px;margin:6px -15px 0;overflow:hidden;background:#16171C}
+  .monde::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
+  @media (min-width:980px){ .monde{margin:12px 0 0;border-radius:20px;border:1px solid var(--line);height:560px} .monde::after{display:none} }
+  .dpied-c{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+  .dcoche{display:flex;align-items:center;gap:10px;border:1px solid var(--line2);border-radius:4px;padding:4px 10px 4px 6px;min-height:48px}
+  .dcoche-b{width:30px;height:30px;flex:none;border:1.5px solid var(--c);border-radius:3px;background:transparent;cursor:pointer;position:relative}
+  .dcoche.on .dcoche-b{background:var(--c)}
+  .dcoche.on .dcoche-b i{position:absolute;left:10px;top:5px;width:6px;height:12px;border:solid #16171C;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  .dcoche-n{flex:1;min-width:0;border:none;background:none;color:var(--ink);text-align:left;cursor:pointer;padding:8px 0;
+    font:500 12px Georgia,'Times New Roman',serif;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dcoche.on .dcoche-n{color:var(--c)}
+  .dbar{margin-top:10px}
+
+  :root,:root[data-theme="dark"],:root[data-theme="light"]{
+    --serif:Georgia,'Times New Roman',serif; --sans:Georgia,'Times New Roman',serif; --disp:Georgia,'Times New Roman',serif;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace; }
+  body{font-family:Georgia,'Times New Roman',serif}
+  /* les titres : capitales espacées */
+  .today{font-family:Georgia,serif;font-weight:500;font-size:22px;letter-spacing:.2em;text-transform:uppercase}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:500}
+  .dom-n,.dbar-h span,.dmin-h b,.cahbloc-h b,.kjp-h b,.kpts-h b,.ktip-h b,.kwork .ktip-h b,.kcalh b,.agcard b:first-child,.ccard .chead b,
+  .sheet h3,details.ktips summary b,.dliens button{font-family:Georgia,serif;text-transform:uppercase;letter-spacing:.16em;font-weight:500}
+  .dom-n,.kjp-h b,.kpts-h b{font-size:13px} .sheet h3{font-size:16px} .dliens button{font-size:12.5px}
+  .dbar-h span{font-size:11.5px}
+  /* les petites lignes : mono espacé */
+  .dnom small,.dcpt,.dhors,.kco-pied,.kco-lien,.dbar-h a,.cahbloc-h span,.txrow span,.dmin-h span,.kjp-s,.kco-now i,.kpts-f,.kchain .kpts-f{font-family:var(--mono);letter-spacing:.06em}
+  .kco-now i{letter-spacing:.14em}
+  /* les boutons : comme celui de La Voûte, un cadre fin, des capitales espacées */
+  .btn,.btn:not(.ghost),.dpied button,.cahseg button,.sosmini{font-family:Georgia,serif;text-transform:uppercase;letter-spacing:.14em;font-weight:500;border-radius:3px}
+  .btn{font-size:13px}
+  .ktabs .kl{font-family:Georgia,serif;text-transform:uppercase;letter-spacing:.12em;font-size:9.5px;font-weight:500}
+  .dom,.dbar,.kco,.dmin,.dliens,.cahbloc,.cahecrire,.kjp,.agcard,.kcal,.ccard,.kwork,.ktips,.kpts,.kchain{border-radius:6px}
+  .dnom b,.kco-now b,.txrow b{font-family:Georgia,serif;letter-spacing:.02em}
 </style>
 </head>
 <body>
@@ -1118,6 +1155,9 @@
 <div id="toast"></div>
 <script src="/forge/forge-sync.js"></script>
 <script src="lectures.js"></script>
+<script src="atelier/bibliotheque/commun.js"></script>
+<script src="atelier/pieces/t2-06-cretes-couleur.js"></script>
+<script src="atelier/bibliotheque/monter.js"></script>
 <script>
 const KEY="pointage_v1";
 const DEFAULT_APPS=[
@@ -1464,8 +1504,9 @@ function render(){
   let corps="";
   if(T==="maintenant") corps=`<div class="cols une"><div class="col-l">
         ${isStandalone()?modeHtml():""}
-        ${coachHtml()}
+        ${mondeSlotHtml()}
         ${dayBarHtml()}
+        ${coachHtml()}
         ${echHtml()}
         ${ritHtml()}
         ${choseHtml()}
@@ -1508,7 +1549,7 @@ function render(){
     ${corps}
     ${tabbarHtml()}
   `;
-  agBind(); cahBind();
+  agBind(); cahBind(); mondePoser();
   if(keep){
     const el=document.getElementById(keep.id);
     if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} if(keep.id==="agIn") agPreview(); }
@@ -1518,16 +1559,65 @@ function render(){
 }
 
 /* ─── la barre de la journée : une marche par priorité ─── */
+/* ═══════════════════════════════════════════════════════════════════
+   LE MONDE DU JOUR (26/10, atelier tour 2)
+   Une pièce vivante de l'atelier (atelier/pieces/…) est posée en grand en
+   haut de Maintenant, avec atelier/bibliotheque/monter.js. Elle reçoit les
+   vraies données (tes priorités, tes 28 derniers jours, ta chaîne) et ce sont
+   tes vraies coches qui la font avancer : cocher une priorité lève son pic,
+   la dernière déclenche le seuil. Le bloc est gardé d'un rendu à l'autre
+   (l'app redessine ses onglets en entier) : on le range, puis on le remet.
+   ═══════════════════════════════════════════════════════════════════ */
+let MONDE=null, MONDE_BLOC=null, MONDE_CLE="", MONDE_SEUIL=null;
+function mondeSlotHtml(){ return typeof monterPiece==="function"&&typeof etude_cretesc==="function"?`<div id="mondeSlot"></div>`:""; }
+function mondeDonnees(){
+  const t=today(), AC=unitsOn(t), ch=chaine();
+  const jours=[]; for(let k=28;k>=1;k--){ const d=dayShift(t,-k); jours.push(AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0)); }
+  return { priorites:AC.map(c=>({nom:c.nom, min:20, serie:catStreak(c.id)})), jours,
+    chaine:Math.max(0,ch.n-(ch.todayOk?1:0)), aujourdhui:AC.map((c,i)=>catDone(c.id)?i:-1).filter(i=>i>=0) };
+}
+function mondePoser(){
+  const slot=document.getElementById("mondeSlot"); if(!slot) return;
+  try{
+    const AC=unitsOn(today()), cle=today()+"|"+AC.map(c=>c.id).join(",");
+    if(!AC.length){ slot.remove(); return; }
+    if(!MONDE||cle!==MONDE_CLE){
+      if(MONDE) MONDE.arreter();
+      MONDE_BLOC=document.createElement("div"); MONDE_BLOC.className="monde"; MONDE_CLE=cle;
+      slot.replaceWith(MONDE_BLOC);
+      const D=mondeDonnees(), base=etude_cretesc_DONNEES;
+      MONDE=monterPiece(MONDE_BLOC, etude_cretesc, {donnees:base, avec:D});
+      if(D.aujourdhui.length===AC.length) MONDE.piece.etat(D.aujourdhui,true);   // déjà bouclée en ouvrant : l'état final, sans rejouer
+      return;
+    }
+    slot.replaceWith(MONDE_BLOC);
+    mondeSync();
+  }catch(e){ console.error(e); slot.remove(); }
+}
+/* tes coches → la pièce : ce qui vient d'être fait se lève (animé), ce qui est décoché redescend */
+function mondeSync(){
+  if(!MONDE) return;
+  const AC=unitsOn(today()), P=MONDE.piece, ont=P.faits();
+  const faits=AC.map((c,i)=>catDone(c.id)?i:-1).filter(i=>i>=0);
+  faits.filter(i=>!ont.includes(i)).forEach(i=>MONDE.geste(i));
+  ont.filter(i=>!faits.includes(i)).forEach(i=>P.retirer(i));
+  clearTimeout(MONDE_SEUIL);
+  if(faits.length===AC.length&&!P.boucle()) MONDE_SEUIL=setTimeout(()=>{ if(MONDE&&!MONDE.piece.boucle()) MONDE.piece.boucler(); },2600);
+}
+/* sous la pièce : tes priorités, à cocher pour de vrai (le geste qui fait avancer le monde) */
 function dayBarHtml(){
   const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
   const fait=AC.filter(c=>catDone(c.id)).length, tout=fait===AC.length;
   const C=cad(), ch=chaine(), t=today();
   const note=C.minDay[t]?`<div class="dbar-n">Jour minimum : 5 minutes par priorité suffisent.</div>`
     :(ch.yMiss&&!ch.todayOk)?`<div class="dbar-n">Hier a manqué. Jamais deux jours de suite : aujourd'hui, même le minimum compte.${minDispo()?` <button onclick="setMinDay()">Jour minimum</button>`:""}</div>`:"";
+  const COUL=(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
   return `<div class="dbar ${tout?"tout":""}">
     <div class="dbar-h"><span>${tout?"Journée bouclée":"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
-    <div class="dbar-m" style="grid-template-columns:repeat(${AC.length},minmax(0,1fr))">${AC.map(c=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id);
-      return `<button class="${ok?"on":""}" onclick="openById('${a?a.id:""}')"><i></i><span>${esc(c.nom)}</span></button>`; }).join("")}</div>
+    <div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
+      return `<div class="dcoche ${ok?"on":""}" style="--c:${col}">
+        <button class="dcoche-b" onclick="onCheck('${a?a.id:""}')" role="checkbox" aria-checked="${ok}" aria-label="${esc(c.nom)} : fait aujourd'hui"><i></i></button>
+        <button class="dcoche-n" onclick="openById('${a?a.id:""}')">${esc(c.nom)}</button></div>`; }).join("")}</div>
     ${note}
   </div>`;
 }

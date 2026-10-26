@@ -10,7 +10,8 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 lire = lambda p: open(p, encoding="utf8").read()
 COMMUN = lire(os.path.join(ICI, "bibliotheque", "commun.js"))
 CADRE = lire(os.path.join(ICI, "cadre.html"))
-TOUR = "Tour 1 · 26 octobre"
+TOUR = "Tour 2 · 26 octobre"
+PREFIXE = "t2-"   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
 
 fautes, liste = [], []
 for chemin in sorted(glob.glob(os.path.join(ICI, "pieces", "*.js"))):
@@ -27,9 +28,10 @@ for chemin in sorted(glob.glob(os.path.join(ICI, "pieces", "*.js"))):
     open(os.path.join(ICI, nom + ".html"), "w", encoding="utf8").write(page)
     liste.append({"id": nom, "titre": titre, "resume": resume[:380] + ("…" if len(resume) > 380 else ""), "loi": loi.group(1) if loi else ""})
 
-if fautes:
-    print("ATELIER NON CONSTRUIT :\n- " + "\n- ".join(fautes)); sys.exit(1)
+if fautes:   # une pièce en chantier n'empêche pas les autres de se construire
+    print("PIÈCES IGNORÉES :\n- " + "\n- ".join(fautes))
 
+du_tour = [p for p in liste if p["id"].startswith(PREFIXE)] or liste
 cartes = "\n".join(f'''<article class="carte" data-id="{p["id"]}">
   <div class="tete"><span class="num">{i+1:02d}</span><h2>{html.escape(p["titre"])}</h2></div>
   <p class="resume">{html.escape(p["resume"])}</p>
@@ -37,7 +39,7 @@ cartes = "\n".join(f'''<article class="carte" data-id="{p["id"]}">
   <label class="lbl" for="m-{p["id"]}">Tes mots</label>
   <textarea id="m-{p["id"]}" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
   <div class="note" role="group" aria-label="Note de 1 à 5">{"".join(f'<button type="button" data-n="{n}">{n}</button>' for n in range(1, 6))}</div>
-</article>''' for i, p in enumerate(liste))
+</article>''' for i, p in enumerate(du_tour))
 
 index = f"""<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>L'atelier du Pointage</title>
@@ -67,16 +69,18 @@ textarea:focus{{outline:none;border-color:var(--encre)}}
 .envoyer small{{display:block;text-align:center;color:var(--pale);margin-top:8px;font-size:12px}}
 </style></head><body><main>
 <div class="sur">L'atelier du Pointage · {TOUR}</div>
-<h1>Ta journée, six façons</h1>
-<p class="intro">Six pièces très différentes pour le même écran : tes quatre priorités du jour. Ouvre-les une par une. Le bouton en bas fait la priorité suivante ;
-au cinquième geste, la journée est bouclée. Le doigt touche ou fait glisser. Les données sont fictives.</p>
+<h1>Ta journée, tour 2</h1>
+<p class="intro">Tes mots du tour 1 ont décidé de celui-ci : du gris pour le ton et de vraies couleurs dans les pièces, la typographie de La Voûte,
+chaque priorité qui change le monde tout de suite, et l'écriture (les langues, les signes) que tu as remarquée.
+Ouvre les pièces une par une. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée. Les données sont fictives.</p>
+<p class="intro">Les Crêtes en couleur sont déjà posées dans ton vrai écran Maintenant : ce sont tes vraies coches qui les font avancer.</p>
 <p class="intro">Puis écris ce que tu ressens, avec tes mots, et donne une note. C'est toi qui juges : tes mots décident du tour suivant.</p>
 {cartes}
 <div class="envoyer"><button type="button" id="copier">Copier mes verdicts</button><small>puis colle-les dans la conversation avec Claude</small></div>
 </main>
 <script>
-const PIECES = {json.dumps([{"id": p["id"], "titre": p["titre"]} for p in liste], ensure_ascii=False)};
-const CLE = "atelier_tour1";
+const PIECES = {json.dumps([{"id": p["id"], "titre": p["titre"]} for p in du_tour], ensure_ascii=False)};
+const CLE = "atelier_tour2";
 let V = {{}}; try {{ V = JSON.parse(localStorage.getItem(CLE) || "{{}}") || {{}}; }} catch (e) {{}}
 const garder = () => {{ try {{ localStorage.setItem(CLE, JSON.stringify(V)); }} catch (e) {{}} }};
 document.querySelectorAll(".carte").forEach(c => {{
