@@ -104,7 +104,8 @@ const etude_enluminure_DONNEES = Object.assign({
 function etude_enluminure(){
   const { PI, abs, atan2, ceil, cos, exp, floor, hypot, log, max, min, pow, round, sin, sqrt } = Math;
   const D = etude_enluminure_DONNEES, P = D.priorites;
-  const LAPIS = [30,58,148], VERMIL = [204,56,30], VERDET = [36,132,108], ENCRE = [36,30,28], INK = [52,48,46],
+  const LAPIS = [30,58,148], VERMIL = [204,56,30], VERDET = [36,132,108], ENCRE = [22,18,16], INK = [14,12,11],   // encre noire franche (tour 2 : « écriture noire foncé »)
+   
     OR_S = [112,80,28], OR_C = [255,238,180], OR_P = [208,162,60], PIERRE = [212,206,194], GRAPH = [66,66,72], BLANC_P = [255,250,236];
   const GA = PI * (3 - sqrt(5)), BSP = log((1 + sqrt(5)) / 2) / (PI / 2);
   const PIG = [
@@ -112,7 +113,7 @@ function etude_enluminure(){
     { l: [VERMIL], t: VERMIL, f: [VERDET, VERMIL, VERDET], fl: LAPIS },
     { l: [VERDET], t: VERDET, f: [VERDET, LAPIS, VERMIL], fl: VERMIL },
     { l: [LAPIS, VERMIL], t: LAPIS, f: [VERMIL, VERDET, LAPIS], fl: VERMIL } ];
-  let W = 390, H = 760, DPR = 1, seed = 1977, etape = 0;
+  let W = 390, H = 760, DPR = 1, seed = D.graine || 1977, etape = 0;   // l'app donne une graine par jour : une page neuve chaque jour
   let Lay = null, RN = [], BORD = null, MG = null, base = null, peint = null, pctx = null, gen = null, mini = null;
   let lettres = [], ors = [], anim = [null, null, null, null], cuit = [false, false, false, false], tS = null, bordCuit = false, RS = [], BS = null, cz = null;
   let lum = { x: 0, y: 0 }, lumMain = false, nImg = 0, flash = [-1e9, -1e9, -1e9, -1e9], dernierGeste = -1e9;
@@ -504,7 +505,7 @@ function etude_enluminure(){
     for (const y of raies){ const x = W - L.e * .55; c.beginPath(); c.arc(x, y, .9, 0, TAU); remplir(c, "rgba(40,34,30,.55)"); c.beginPath(); c.arc(x + .5, y + .5, 1.3, 0, TAU); trait(c, "rgba(240,234,222,.3)", .5); c.stroke(); }
     yield;
     // l'incipit et la ligne mono
-    c.textAlign = "left"; c.fillStyle = rgb(INK, .85); let fsI = L.fs * 1.05; c.font = `500 ${fsI}px ${SERIF}`;
+    c.textAlign = "left"; c.fillStyle = rgb(INK, .95); let fsI = L.fs * 1.05; c.font = `500 ${fsI}px ${SERIF}`;
     while (fsI > 6 && espace(mes, D.incipit.toUpperCase(), 0, -99, fsI * .22, false) > L.xR - L.mL){ fsI -= .25; mes.font = c.font = `500 ${fsI}px ${SERIF}`; }
     mes.font = c.font; L.fsI = fsI; incipit(c, INK);
     c.font = `${L.fs * .7}px ${MONO}`; c.fillStyle = mine(.75); espace(c, `${D.jour} · ${D.folio} · chaîne ${D.chaine} jours · 137,5°`, (L.mL + L.xR) / 2, L.top + L.lh * 1.85, .4, true);
@@ -512,7 +513,7 @@ function etude_enluminure(){
     for (const p of L.p){ c.font = `italic ${L.fs}px ${SERIF}`; const esp = c.measureText(" ").width;
       p.lignes.forEach((l, j) => { const x0 = j < 4 ? L.ind : L.mL, lim = L.xR - x0, ws = l.mots.map(m => c.measureText(m).width), nat = ws.reduce((a, b) => a + b, 0) + esp * (ws.length - 1);
         let ext = (!l.fin && ws.length > 1) ? (lim - nat) / (ws.length - 1) : 0; if (ext > L.fs * 1.3) ext = 0; let x = x0;
-        l.mots.forEach((m, k) => { c.fillStyle = rgb(INK, .7 + R() * .24); c.fillText(m, x, p.y0 + j * L.lh + L.fs + (R() - .5) * .35); x += ws[k] + esp + ext; }); });
+        l.mots.forEach((m, k) => { c.fillStyle = rgb(INK, .9 + R() * .1); c.fillText(m, x, p.y0 + j * L.lh + L.fs + (R() - .5) * .35); x += ws[k] + esp + ext; }); });
       yield; }
     // l'esquisse au crayon, lettres d'attente, note du copiste
     L.p.forEach((p, i) => { const b = p.box; trait(c, mine(.45), .6); c.strokeRect(b.x, b.y, b.s, b.s); c.strokeStyle = mine(.2); c.strokeRect(b.x + .8, b.y - .6, b.s - .4, b.s + .9);
@@ -603,9 +604,26 @@ function etude_enluminure(){
       if (n >= 5) yield* cuire(BS, () => { bordCuit = true; }); })();
     M.bouton = libelleGeste(etape); M.ligne = ligne(etape); }
   M.aller = aller;
+  /* Pour la pose dans l'app (tour 3) : les priorités se cochent dans n'importe quel ordre, et se décochent.
+     etat(liste, boucle) pose l'état sans animation ; faire(i) enlumine la lettrine i ; retirer(i) la rend au crayon. */
+  function textes(){ const n = anim.filter(a => a !== null).length; M.bouton = tS !== null ? "Encore" : n < 4 ? P[anim.findIndex(a => a === null)].nom : "Boucler";
+    M.ligne = tS !== null ? ligne(5) : n ? `${n} sur 4 · ${P.filter((p, i) => anim[i] !== null).map(p => p.nom).join(" · ")}` : ligneGeste(0); }
+  function etat(liste, boucle){ const L = (liste || []).filter(i => i >= 0 && i < 4);
+    anim = [0, 1, 2, 3].map(i => L.includes(i) ? -1e9 : null); tS = boucle && L.length === 4 ? -1e9 : null; etape = L.length + (tS !== null ? 1 : 0);
+    if (pctx){ pctx.save(); pctx.setTransform(1, 0, 0, 1, 0, 0); pctx.clearRect(0, 0, peint.width, peint.height); pctx.restore(); }
+    cuit = [false, false, false, false]; bordCuit = false; RS = RN.map(r => pousse(r.vignes)); BS = pousse(BORD.vignes);
+    cz = (function*(){ for (const i of L) yield* cuire(RS[i], () => { rubrique(pctx, i, 1); cuit[i] = true; });
+      if (tS !== null) yield* cuire(BS, () => { bordCuit = true; }); })();
+    textes(); }
+  M.etat = etat;
+  M.faire = i => { if (i < 0 || i > 3 || anim[i] !== null) return; anim[i] = maintenant(); etape++; textes(); };
+  M.retirer = i => { if (anim[i] === null) return; etat([0, 1, 2, 3].filter(k => k !== i && anim[k] !== null), false); };
+  M.boucler = () => { if (tS === null && anim.every(a => a !== null)){ tS = maintenant(); etape = 5; textes(); } };
+  M.faits = () => [0, 1, 2, 3].filter(i => anim[i] !== null);
+  M.boucle = () => tS !== null;
   M.taille = (w, h, dpr) => { W = w; H = h; DPR = dpr || 1; batir(true); aller(etape); };
   M.frame = frame;
-  M.geste = () => { const t = maintenant(); if (t - dernierGeste < 900) return; dernierGeste = t;
+  M.geste = (i) => { if (i !== undefined) return M.faire(i); const t = maintenant(); if (t - dernierGeste < 900) return; dernierGeste = t;
     if (etape >= 5){ seed += 7; batir(false); aller(0); return; }
     if (etape < 4) anim[etape] = t; else tS = t;
     etape++; M.bouton = libelleGeste(etape); M.ligne = ligne(etape); };

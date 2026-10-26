@@ -1115,6 +1115,8 @@
      Verdict de Thomas sur La Voûte : « j'aime beaucoup surtout le style police d'écriture, j'ai envie que tu utilises ce style
      PARTOUT sur l'app ». Donc : Georgia partout, les titres en capitales espacées, les petites lignes en mono espacé. */
   .monde{position:relative;height:60vh;min-height:400px;max-height:640px;margin:6px -15px 0;overflow:hidden;background:#16171C}
+  .monde-enluminure{height:62vh;min-height:470px;max-height:720px}
+  @media (min-width:980px){ .monde-enluminure{height:720px} }
   .monde::after{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;pointer-events:none;background:linear-gradient(to bottom,transparent,var(--bg))}
   @media (min-width:980px){ .monde{margin:12px 0 0;border-radius:20px;border:1px solid var(--line);height:560px} .monde::after{display:none} }
   .dpied-c{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
@@ -1157,6 +1159,7 @@
 <script src="lectures.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
 <script src="atelier/pieces/t2-06-cretes-couleur.js"></script>
+<script src="atelier/pieces/t2-08-enluminure.js"></script>
 <script src="atelier/bibliotheque/monter.js"></script>
 <script>
 const KEY="pointage_v1";
@@ -1582,24 +1585,34 @@ function render(){
    (l'app redessine ses onglets en entier) : on le range, puis on le remet.
    ═══════════════════════════════════════════════════════════════════ */
 let MONDE=null, MONDE_BLOC=null, MONDE_CLE="", MONDE_SEUIL=null;
+/* La pièce : L'Enluminure (5/5 au tour 2) quand il y a quatre priorités — elle a quatre lettrines ;
+   sinon Les Crêtes en couleur (4/5), qui s'adaptent à n'importe quel nombre. */
+function mondePiece(n){
+  if(n===4&&typeof etude_enluminure==="function") return {id:"enluminure", fab:etude_enluminure, donnees:etude_enluminure_DONNEES};
+  return {id:"cretes", fab:etude_cretesc, donnees:etude_cretesc_DONNEES};
+}
 function mondeSlotHtml(){ return typeof monterPiece==="function"&&typeof etude_cretesc==="function"?`<div id="mondeSlot"></div>`:""; }
 function mondeDonnees(){
   const t=today(), AC=unitsOn(t), ch=chaine();
   const jours=[]; for(let k=28;k>=1;k--){ const d=dayShift(t,-k); jours.push(AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0)); }
+  /* une page neuve chaque jour : la graine vient de la date ; la date et le folio (le jour de l'année) sont les vrais */
+  const dt=new Date(t+"T12:00:00"), jan=new Date(dt.getFullYear(),0,1), quant=Math.floor((dt-jan)/864e5)+1;
   return { priorites:AC.map(c=>({nom:c.nom, min:20, serie:catStreak(c.id)})), jours,
+    graine:Number(t.replace(/-/g,""))%100003, jour:dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}), folio:"f. "+quant+" r°",
     chaine:Math.max(0,ch.n-(ch.todayOk?1:0)), aujourdhui:AC.map((c,i)=>catDone(c.id)?i:-1).filter(i=>i>=0) };
 }
 function mondePoser(){
   const slot=document.getElementById("mondeSlot"); if(!slot) return;
   try{
-    const AC=unitsOn(today()), cle=today()+"|"+AC.map(c=>c.id).join(",");
+    const AC=unitsOn(today()), PC=mondePiece(AC.length), cle=today()+"|"+PC.id+"|"+AC.map(c=>c.id).join(",");
     if(!AC.length){ slot.remove(); return; }
     if(!MONDE||cle!==MONDE_CLE){
       if(MONDE) MONDE.arreter();
-      MONDE_BLOC=document.createElement("div"); MONDE_BLOC.className="monde"; MONDE_CLE=cle;
+      MONDE_BLOC=document.createElement("div"); MONDE_BLOC.className="monde monde-"+PC.id; MONDE_CLE=cle;
       slot.replaceWith(MONDE_BLOC);
-      const D=mondeDonnees(), base=etude_cretesc_DONNEES;
-      MONDE=monterPiece(MONDE_BLOC, etude_cretesc, {donnees:base, avec:D});
+      const D=mondeDonnees();
+      MONDE=monterPiece(MONDE_BLOC, PC.fab, {donnees:PC.donnees, avec:D});
+      if(PC.id==="enluminure") MONDE.piece.etat(D.aujourdhui,false);
       if(D.aujourdhui.length===AC.length) MONDE.piece.etat(D.aujourdhui,true);   // déjà bouclée en ouvrant : l'état final, sans rejouer
       return;
     }
@@ -1612,7 +1625,7 @@ function mondeSync(){
   if(!MONDE) return;
   const AC=unitsOn(today()), P=MONDE.piece, ont=P.faits();
   const faits=AC.map((c,i)=>catDone(c.id)?i:-1).filter(i=>i>=0);
-  faits.filter(i=>!ont.includes(i)).forEach(i=>MONDE.geste(i));
+  faits.filter(i=>!ont.includes(i)).forEach(i=>P.faire?P.faire(i):MONDE.geste(i));
   ont.filter(i=>!faits.includes(i)).forEach(i=>P.retirer(i));
   clearTimeout(MONDE_SEUIL);
   if(faits.length===AC.length&&!P.boucle()) MONDE_SEUIL=setTimeout(()=>{ if(MONDE&&!MONDE.piece.boucle()) MONDE.piece.boucler(); },2600);
@@ -1624,7 +1637,8 @@ function dayBarHtml(){
   const C=cad(), ch=chaine(), t=today();
   const note=C.minDay[t]?`<div class="dbar-n">Jour minimum : 5 minutes par priorité suffisent.</div>`
     :(ch.yMiss&&!ch.todayOk)?`<div class="dbar-n">Hier a manqué. Jamais deux jours de suite : aujourd'hui, même le minimum compte.${minDispo()?` <button onclick="setMinDay()">Jour minimum</button>`:""}</div>`:"";
-  const COUL=(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
+  const COUL=AC.length===4&&typeof etude_enluminure==="function"?["#3E64C8","#D8452A","#2E9C80","#5A62C8"]
+    :(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
   return `<div class="dbar ${tout?"tout":""}">
     <div class="dbar-h"><span>${tout?"Journée bouclée":"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
     <div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];

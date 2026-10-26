@@ -10,8 +10,8 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 lire = lambda p: open(p, encoding="utf8").read()
 COMMUN = lire(os.path.join(ICI, "bibliotheque", "commun.js"))
 CADRE = lire(os.path.join(ICI, "cadre.html"))
-TOUR = "Tour 2 · 26 octobre"
-PREFIXE = "t2-"   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
+TOUR = "Tour 3 · 26 octobre"
+PREFIXE = "t3-"   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
 
 fautes, liste = [], []
 for chemin in sorted(glob.glob(os.path.join(ICI, "pieces", "*.js"))):
@@ -69,18 +69,17 @@ textarea:focus{{outline:none;border-color:var(--encre)}}
 .envoyer small{{display:block;text-align:center;color:var(--pale);margin-top:8px;font-size:12px}}
 </style></head><body><main>
 <div class="sur">L'atelier du Pointage · {TOUR}</div>
-<h1>Ta journée, tour 2</h1>
-<p class="intro">Tes mots du tour 1 ont décidé de celui-ci : du gris pour le ton et de vraies couleurs dans les pièces, la typographie de La Voûte,
-chaque priorité qui change le monde tout de suite, et l'écriture (les langues, les signes) que tu as remarquée.
-Ouvre les pièces une par une. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée. Les données sont fictives.</p>
-<p class="intro">Les Crêtes en couleur sont déjà posées dans ton vrai écran Maintenant : ce sont tes vraies coches qui les font avancer.</p>
+<h1>Ta journée, tour 3</h1>
+<p class="intro">Tes mots du tour 2 ont décidé de celui-ci : la pierre qui explose et des couleurs plus belles, la rosace seule dans le noir avec sa lumière au sol,
+l'estampe nette sans pinceau, et une pièce neuve qui croise le manuscrit et le Japon. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
+<p class="intro">L'Enluminure, ta 5/5, est posée dans ton vrai écran Maintenant, en encre noire, avec une page neuve chaque jour.</p>
 <p class="intro">Puis écris ce que tu ressens, avec tes mots, et donne une note. C'est toi qui juges : tes mots décident du tour suivant.</p>
 {cartes}
 <div class="envoyer"><button type="button" id="copier">Copier mes verdicts</button><small>puis colle-les dans la conversation avec Claude</small></div>
 </main>
 <script>
 const PIECES = {json.dumps([{"id": p["id"], "titre": p["titre"]} for p in du_tour], ensure_ascii=False)};
-const CLE = "atelier_tour2";
+const CLE = "atelier_tour3";
 let V = {{}}; try {{ V = JSON.parse(localStorage.getItem(CLE) || "{{}}") || {{}}; }} catch (e) {{}}
 const garder = () => {{ try {{ localStorage.setItem(CLE, JSON.stringify(V)); }} catch (e) {{}} }};
 document.querySelectorAll(".carte").forEach(c => {{

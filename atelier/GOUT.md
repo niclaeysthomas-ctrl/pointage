@@ -60,3 +60,34 @@ Ce qu'il a vu ailleurs et aimé : la pièce d'Eliodor « Le Sutra d'or » (carac
 | B2 | Le ton gris | L'Harmonographe | « j'aime beaucoup le "ton" avec gris » |
 | B3 | La pile des jours (le mois en relevé) | Les Crêtes du mois | « très sympa » |
 | B4 | Ce qui pousse tout seul, différent des autres | Le Corail | « différent des autres j'aime bien » |
+
+## Strate du tour 2 · 26/10 · cinq pièces, dont Les Crêtes posées dans Maintenant
+
+| Pièce | Note | Ses mots, tels quels |
+|---|---|---|
+| Les Crêtes en couleur (CP 1919, ondes) | 4/5 | « C'est mieux ! super » |
+| La Pierre des langues (distance signée, fissure) | 3/5 | « Good, si tu pouvais améliorer les couleurs et faire en chose que la pierre explose avec la fissure à la fin c'est mieux » |
+| L'Enluminure (spirale d'or, phyllotaxie, or bruni) | **5/5** | « super, juste écriture noire foncé stp » |
+| La Rosace (Voronoï-Lloyd, homographie) | 4/5 | « l'asset est good met à côté de la rosace c'est pas ouf, j'adore l'ombre par contre » ; précisé : ce qui n'est pas ouf, c'est « Le mur de pierre » |
+| L'Estampe (houle de Gerstner, planches) | 3/5 | « good mais je suis pas fan du pinceau, j'adore le style japonais par contre » ; précisé : le pinceau, c'est le disque marron (le baren) et le rendu peint en général |
+
+## Les lois, après le tour 2
+
+- **P2 confirmée.** La couleur dans les pièces sur un ton gris : « C'est mieux ! super ».
+- **P10. Le manuscrit, la page, l'écriture : c'est son monde.** Premier 5/5 : L'Enluminure (lettrines d'or, rinceaux, miniature). Avec le Sutra d'or remarqué au tour 1 : l'écrit enluminé est la piste maîtresse.
+- **P11. Le texte se lit : encre noire, franche.** « juste écriture noire foncé stp » : le texte gris pâle sur vélin ne passe pas.
+- **P12. Le seuil doit être une vraie rupture.** « que la pierre explose avec la fissure à la fin » : une fissure qui éclaire ne suffit pas ; la matière doit céder, éclater.
+- **P13. Les couleurs doivent être belles, pas seulement présentes.** « améliorer les couleurs » (la Pierre) : des pigments plus riches, plus profonds.
+- **P14. Le sujet seul, sans décor autour.** « met à côté de la rosace c'est pas ouf » (le mur de pierre) : l'objet central porte la pièce ; le décor qui l'encadre l'affaiblit.
+- **P15. La lumière projetée plaît.** « j'adore l'ombre » (la lumière colorée tombée au sol) : la lumière qui traverse et se pose ailleurs est une brique.
+- **P16. Pas d'outil visible, pas d'effet « peint ».** « pas fan du pinceau » : ni le baren qui passe, ni le rendu coups de pinceau. Le trait net, gravé, imprimé.
+- **P17. Le Japon plaît.** « j'adore le style japonais » : l'estampe (composition, cartouches, sceaux) est à garder, en trait net.
+
+## Briques (ajouts du tour 2)
+
+| # | Brique | Source | Ses mots |
+|---|---|---|---|
+| B5 | La lettrine qui s'enlumine (or + pigment) | L'Enluminure | « super » (5/5) |
+| B6 | La lumière colorée projetée au sol | La Rosace | « j'adore l'ombre » |
+| B7 | Le style japonais (cartouches, sceaux, composition) | L'Estampe | « j'adore le style japonais » |
+| B8 | Une couleur par priorité, dans le relevé du mois | Les Crêtes en couleur | « C'est mieux ! super » |
