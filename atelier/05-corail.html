@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Le Corail</title>
+<style>
+/* Le cadre d'une pièce : la toile occupe tout ; le titre discret en haut ; un seul bouton en bas. */
+html, body { margin: 0; height: 100%; background: #0F1014; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.titre { position: fixed; left: 16px; top: max(14px, env(safe-area-inset-top)); font: 500 12px/1.3 Georgia, "Times New Roman", serif;
+  letter-spacing: .22em; color: rgba(242,240,234,.8); pointer-events: none; text-shadow: 0 0 8px #000; }
+.ligne { display: block; margin-top: 5px; font: 500 11px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .12em; color: rgba(242,240,234,.55); }
+.retour { position: fixed; right: 14px; top: max(10px, env(safe-area-inset-top)); font: 500 12px Georgia, serif; color: rgba(242,240,234,.6);
+  text-decoration: none; padding: 6px 8px; letter-spacing: .1em; }
+.bas { position: fixed; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); display: flex; justify-content: center; pointer-events: none; }
+button { pointer-events: auto; font: 500 14px Georgia, "Times New Roman", serif; letter-spacing: .16em; color: #F2F0EA; background: rgba(15,16,20,.6);
+  border: 1px solid rgba(242,240,234,.55); padding: 12px 24px; border-radius: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); min-width: 140px; }
+button:active { background: rgba(242,240,234,.18); }
+button[hidden] { display: none; }
+.erreur { position: fixed; left: 12px; right: 12px; top: 60px; color: #F2B8B0; font: 13px ui-monospace, monospace; white-space: pre-wrap; }
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div class="titre"><span id="titre"></span><span class="ligne" id="ligne"></span></div>
+<a class="retour" href="index.html">← ATELIER</a>
+<div class="bas"><button id="geste" type="button"></button></div>
+<script>
+/* ======================= Atelier du Pointage : outils communs ======================= */
+/* Repris de l'« atelier des mondes » d'Eliodor (mêmes noms, pour que ses pièces et les nôtres parlent la même langue),
+   avec la palette du Pointage : gris neutre, le blanc pour seul accent (choix de Thomas, 26/10).
+   Toute pièce peut appeler ces outils ; aucune ne les redéfinit. Le temps se lit avec maintenant(), jamais Date.now(). */
+function graine(s){ return function(){ s|=0; s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function bruit1(seed){ const R = graine(seed), v = Array.from({length:512}, R); return x => { const i = Math.floor(x), f = x - i, a = v[i & 511], b = v[(i+1) & 511], u = f*f*(3-2*f); return a + (b-a)*u; }; }
+function bruit2(seed){ const R = graine(seed), v = Array.from({length:4096}, R);
+  const h = (i,j) => v[((i*73856093) ^ (j*19349663)) & 4095];
+  return (x,y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx*fx*(3-2*fx), w = fy*fy*(3-2*fy);
+    const a = h(i,j), b = h(i+1,j), c = h(i,j+1), d = h(i+1,j+1); return a + (b-a)*u + (c-a)*w + (a-b-c+d)*u*w; }; }
+const mix = (a,b,t) => a.map((x,i) => x + (b[i]-x)*t);
+const rgb = (c,a=1) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const clamp = (x,a=0,b=1) => Math.max(a, Math.min(b, x));
+const doux = u => 1 - Math.pow(1 - clamp(u), 3);
+const lisse = u => { u = clamp(u); return u*u*(3 - 2*u); };
+const maintenant = () => performance.now();
+/* La palette du Pointage : un fond gris-noir, des gris, le blanc cassé pour ce qui est fait. */
+const FOND = [15,16,20], CARTE = [23,24,29], TRAIT = [52,53,61], GRIS = [119,117,125], GRIS_CLAIR = [163,161,168], BLANC = [242,240,234], BLANC_PUR = [255,253,248];
+function toile(w, h, dpr){ const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w*dpr)); c.height = Math.max(1, Math.round(h*dpr)); const x = c.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0); return [c, x]; }
+function grainTexture(){ const g = document.createElement("canvas"); g.width = g.height = 128; const x = g.getContext("2d"), im = x.createImageData(128,128), R = graine(9);
+  for (let i = 0; i < im.data.length; i += 4) { const v = R()*255; im.data[i]=im.data[i+1]=im.data[i+2]=v; im.data[i+3]=255; } x.putImageData(im,0,0); return g; }
+const GRAIN = grainTexture();
+function passeGrain(ctx, W, H, t, a){ ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = ctx.createPattern(GRAIN, "repeat"); ctx.translate((t*.07)%128, (t*.05)%128); ctx.fillRect(-128, -128, W + 256, H + 256); ctx.restore(); }
+function fondu(ctx, W, H, coul, depuis=.82){ const f = ctx.createLinearGradient(0, H*depuis, 0, H); f.addColorStop(0, rgb(coul, 0)); f.addColorStop(1, rgb(coul, 1)); ctx.fillStyle = f; ctx.fillRect(0, H*depuis, W, H*(1-depuis)); }
+/* Les données communes à toutes les pièces du premier tour : la journée de Thomas (fictive, mais à sa forme).
+   Plus tard, l'app les remplacera par les vraies : priorités du jour, minutes, les 28 derniers jours. */
+const JOURNEE = {
+  priorites: [
+    { nom: "990",        domaine: "Langues",  min: 20, serie: 12 },
+    { nom: "CUMBRE",     domaine: "Langues",  min: 20, serie: 11 },
+    { nom: "Lecture",    domaine: "Lecture",  min: 12, serie: 9 },
+    { nom: "LE CLOSING", domaine: "Carrière", min: 30, serie: 3 }
+  ],
+  // les 28 derniers jours, du plus ancien à hier : combien de priorités faites (0 à 4)
+  jours: [4,4,3,4,2,4,4,4,1,0,4,4,3,4,4,4,4,2,4,4,4,4,3,4,4,4,4,4],
+  chaine: 9
+};
+/* Le bouton dit la prochaine priorité ; le cinquième geste boucle la journée ; ensuite « Encore » relance une variante. */
+function libelleGeste(n){ const P = JOURNEE.priorites; return n < 4 ? P[n].nom : n === 4 ? "Boucler" : "Encore"; }
+function ligneGeste(n){ const P = JOURNEE.priorites; if (n === 0) return "chaîne · " + JOURNEE.chaine + " jours"; if (n <= 4) return P[n-1].nom + " · " + Math.min(n,4) + " sur 4"; return "journée bouclée · " + (JOURNEE.chaine + 1) + " jours"; }
+
+</script>
+<script>
+/* ======================= Tour 1, pièce 05 : LE CORAIL (etude_corail) ======================= */
+/* Ce qu'on voit : une matière grise, comme une pierre polie vue de très près, éclairée en biais. Au repos, vingt-huit taches
+   y vivent doucement : les jours du mois, plus grosses quand la journée était pleine. Chaque priorité faite dépose une semence
+   à sa place (quatre places, une par priorité) : un corail blanc en sort, se divise, pousse ses bras et gagne la pierre.
+   Ce qui a poussé reste : la matière garde la trace de toute la journée.
+   La loi : la réaction-diffusion de Gray-Scott (Turing, 1952 ; Pearson, 1993). Deux substances U et V diffusent et réagissent :
+   ∂U/∂t = Dᵤ∇²U − UV² + F(1 − U), ∂V/∂t = Dᵥ∇²V + UV² − (F + k)V. Selon F et k, V forme des taches qui se divisent, des
+   coraux ou des labyrinthes : la forme n'est pas dessinée, elle naît du calcul.
+   La main : le relief en camaïeu de gris, la lumière rasante (le gradient de V donne l'ombre et le reflet).
+   L'usage : « Ta journée ». Une semence par priorité, et le mois en fond.
+   Le doigt : toucher dépose une semence de plus ; glisser déplace la lumière.
+   Le seuil (Boucler) : la réaction change de régime (F et k passent dans la zone des labyrinthes) et des semences tombent
+   partout : en quelques secondes, tout l'écran devient un labyrinthe blanc, comme un corail cérébral ; il reste.
+   Le téléphone : une grille de 100 × 190 (19 000 cases) ; 6 à 20 itérations par image selon le moment ; une image de 19 000 pixels. */
+const etude_corail_DONNEES = JOURNEE;
+
+function etude_corail(){
+  const D = etude_corail_DONNEES;
+  let W = 390, H = 760, seed = 1952;
+  const NX = 100; let NY = 190, U, V, U2, V2, Fm = null, img = null, ictx = null, im = null, tCarte = -1e9;
+  let etape = 0, tG = [-1e9, -1e9, -1e9, -1e9], tSeuil = -1e9, F = .03, K = .062, lx = -.7, ly = -.7, dernier = 0, vite = 0;
+  const M = { titre: "LE CORAIL", bouton: libelleGeste(0), ligne: ligneGeste(0), dprMax: 1.5 };
+  const PLACES = [[.3, .3], [.7, .38], [.32, .66], [.7, .72]];
+
+  function semer(x, y, r, v){ const R = graine((x * 1000 + y * 7) | 0);
+    for (let j = -r; j <= r; j++) for (let i = -r; i <= r; i++){ if (i * i + j * j > r * r) continue; const a = Math.round(x + i), b = Math.round(y + j); if (a < 1 || b < 1 || a >= NX - 1 || b >= NY - 1) continue;
+      const id = b * NX + a; V[id] = Math.max(V[id], v * (.8 + .2 * R())); U[id] = .5; } }
+  function grille(){
+    NY = Math.round(NX * H / W);
+    U = new Float32Array(NX * NY).fill(1); V = new Float32Array(NX * NY); U2 = new Float32Array(NX * NY); V2 = new Float32Array(NX * NY); Fm = new Float32Array(NX * NY).fill(.03);
+    img = document.createElement("canvas"); img.width = NX; img.height = NY; ictx = img.getContext("2d"); im = ictx.createImageData(NX, NY);
+    const R = graine(seed); F = .03; K = .062;
+    // le mois : vingt-huit taches, plus grosses quand la journée était pleine
+    D.jours.forEach((n, k) => { if (!n) return; semer(4 + R() * (NX - 8), 4 + R() * (NY - 8), 1 + Math.round(n / 2), .5); });
+  }
+  function iterer(n){
+    const Du = .21, Dv = .105;
+    for (let s = 0; s < n; s++){
+      for (let j = 1; j < NY - 1; j++){ const r = j * NX;
+        for (let i = 1; i < NX - 1; i++){ const id = r + i, u = U[id], v = V[id];
+          const lu = U[id - 1] + U[id + 1] + U[id - NX] + U[id + NX] - 4 * u, lv = V[id - 1] + V[id + 1] + V[id - NX] + V[id + NX] - 4 * v, uvv = u * v * v;
+          const f = Fm[id]; U2[id] = u + Du * lu - uvv + f * (1 - u); V2[id] = v + Dv * lv + uvv - (f + K) * v; } }
+      let tmp = U; U = U2; U2 = tmp; tmp = V; V = V2; V2 = tmp;
+    }
+  }
+  /* la carte du régime : le corail (F = 0,0545) ne vit que dans un disque qui s'élargit autour de chaque semence ;
+     ailleurs, les taches du mois restent sages (F = 0,03). Au seuil, le disque gagne tout l'écran depuis le centre. */
+  function carte(t){
+    const Z = [];
+    tG.forEach((x, k) => { if (x > 0) Z.push([PLACES[k][0] * NX, PLACES[k][1] * NY, Math.min(30, 4 + (t - x) / 1000 * 7)]); });
+    if (tSeuil > 0) Z.push([NX / 2, NY / 2, 6 + Math.pow((t - tSeuil) / 1000, 1.5) * 16]);
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++){ let f = .03;
+      for (const [x, y, r] of Z){ const d = Math.hypot(i - x, j - y); if (d < r) { f = .0545; break; } if (d < r + 4) f = Math.max(f, .03 + .0245 * (1 - (d - r) / 4)); }
+      Fm[j * NX + i] = f; }
+  }
+  function peindre(t){
+    const d = im.data, lum = tSeuil > 0 ? lisse((t - tSeuil) / 3000) : 0;
+    for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++){ const id = j * NX + i, v = V[id];
+      const gx = (i > 0 && i < NX - 1) ? V[id + 1] - V[id - 1] : 0, gy = (j > 0 && j < NY - 1) ? V[id + NX] - V[id - NX] : 0;
+      const relief = clamp(.5 + (gx * lx + gy * ly) * 3.2, 0, 1), m = lisse((v - .1) / .3);
+      let b = 20 + m * (175 + 50 * lum) + (relief - .5) * (70 + 60 * m);
+      b = clamp(b, 10, 250);
+      d[id * 4] = b * .985; d[id * 4 + 1] = b * .98; d[id * 4 + 2] = b * .97 + 3; d[id * 4 + 3] = 255; }
+    ictx.putImageData(im, 0, 0);
+  }
+
+  function frame(ctx, t){
+    const dt = dernier ? Math.min(.05, (t - dernier) / 1000) : 1 / 60; dernier = t;
+    if (!U) grille();
+    // le rythme : lent au repos ; vif pendant quelques secondes après chaque geste ; très vif au seuil
+    let n = 5;
+    const recent = Math.max(...tG.map(x => t - x));
+    if (tG.some(x => t - x < 5000)) n = 14;
+    if (tSeuil > 0) n = t - tSeuil < 9000 ? 22 : 4;
+    if (t - tCarte > 150){ tCarte = t; carte(t); }
+    iterer(n); peindre(t);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(img, 0, 0, W, H);
+    // les places des quatre priorités : un petit repère gravé, qui s'efface quand la semence a poussé
+    D.priorites.forEach((p, k) => { const [x, y] = PLACES[k], X = x * W, Y = y * H, on = tG[k] > 0, a = on ? 1 - clamp((t - tG[k]) / 2500) : .5;
+      if (a <= 0) return; ctx.strokeStyle = rgb(BLANC, .55 * a); ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(X, Y, 16 + (on ? (t - tG[k]) / 40 : 0), 0, 7); ctx.stroke();
+      ctx.fillStyle = rgb(BLANC, .7 * a); ctx.font = "10px Georgia, serif"; ctx.textAlign = "center"; ctx.fillText(p.nom.toUpperCase().split("").join(" "), X, Y + 32); ctx.textAlign = "left"; });
+    // un voile en haut et en bas, pour lire le titre et le bouton
+    const g = ctx.createLinearGradient(0, 0, 0, 90); g.addColorStop(0, rgb(FOND, .8)); g.addColorStop(1, rgb(FOND, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 90);
+    passeGrain(ctx, W, H, t, .05);
+    fondu(ctx, W, H, FOND, .84);
+  }
+
+  function geste(){
+    const t = maintenant();
+    if (etape >= 5){ seed += 29; grille(); etape = 0; tG = [-1e9, -1e9, -1e9, -1e9]; tSeuil = -1e9; M.bouton = libelleGeste(0); M.ligne = ligneGeste(0); return; }
+    if (etape > 0 && etape <= 4 && t - tG[etape - 1] < 1500) return;
+    if (etape < 4){ const [x, y] = PLACES[etape]; tG[etape] = t; semer(x * NX, y * NY, 5, .9); }
+    else { tSeuil = t; const R = graine(seed + 9); for (let k = 0; k < 26; k++) semer(4 + R() * (NX - 8), 4 + R() * (NY - 8), 3, .9); }
+    etape++; M.bouton = libelleGeste(etape); M.ligne = ligneGeste(etape);
+  }
+  M.taille = (w, h) => { const ch = Math.abs(w - W) > 2 || Math.abs(h - H) > 2; W = w; H = h; if (ch || !U){ grille(); } };
+  M.frame = frame; M.geste = geste;
+  M.tap = (x, y) => { if (U) semer(x / W * NX, y / H * NY, 3, .9); };
+  M.glisse = (dx, dy) => { const a = Math.atan2(ly, lx) + dx * .01; lx = Math.cos(a); ly = Math.sin(a); };
+  return M;
+}
+window.ETUDE = etude_corail;
+
+</script>
+<script>
+/* Le moteur : une image par rafraîchissement, le doigt, le bouton. */
+(function(){
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), bouton = document.getElementById("geste");
+  const montrerErreur = e => { const p = document.createElement("div"); p.className = "erreur"; p.textContent = "Erreur : " + (e && e.message || e); document.body.appendChild(p); };
+  let m; try { m = window.ETUDE(); } catch (e) { montrerErreur(e); return; }
+  document.getElementById("titre").textContent = m.titre || "";
+  let W = 0, H = 0, D = 1;
+  function dimension(){ D = Math.min(window.devicePixelRatio || 1, m.dprMax || 2); W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W*D); cv.height = Math.round(H*D); ctx.setTransform(D, 0, 0, D, 0, 0); m.taille(W, H, D); }
+  dimension(); addEventListener("resize", dimension);
+  let libelle = null, ligne = null, pire = 0, n = 0;
+  function boucle(){
+    const t0 = performance.now();
+    try { ctx.setTransform(D, 0, 0, D, 0, 0); m.frame(ctx, maintenant()); } catch (e) { montrerErreur(e); return; }
+    const dt = performance.now() - t0; if (++n > 30) pire = Math.max(pire, dt); window.__PIRE = pire;
+    if (m.bouton !== libelle) { libelle = m.bouton; bouton.textContent = libelle || ""; bouton.hidden = !libelle; }
+    if ((m.ligne || "") !== ligne) { ligne = m.ligne || ""; document.getElementById("ligne").textContent = ligne; }
+    requestAnimationFrame(boucle);
+  }
+  bouton.onclick = () => { try { m.geste?.(); } catch (e) { montrerErreur(e); } };
+  let p0 = null, dernier = null;
+  cv.addEventListener("pointerdown", e => { p0 = dernier = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!p0) return; const dx = e.clientX - dernier[0], dy = e.clientY - dernier[1]; dernier = [e.clientX, e.clientY];
+    if (Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 8) m.glisse?.(dx, dy); });
+  cv.addEventListener("pointerup", e => { if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) <= 8) m.tap?.(e.clientX, e.clientY); p0 = null; });
+  window.__ETUDE = m;
+  requestAnimationFrame(boucle);
+})();
+</script>
+</body></html>
