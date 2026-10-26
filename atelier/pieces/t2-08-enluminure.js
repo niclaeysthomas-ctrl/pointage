@@ -43,7 +43,7 @@ function etude_enluminure(){
     { l: [VERMIL], t: VERMIL, f: [VERDET, VERMIL, VERDET], fl: LAPIS },
     { l: [VERDET], t: VERDET, f: [VERDET, LAPIS, VERMIL], fl: VERMIL },
     { l: [LAPIS, VERMIL], t: LAPIS, f: [VERMIL, VERDET, LAPIS], fl: VERMIL } ];
-  let W = 390, H = 760, DPR = 1, seed = 1977, etape = 0;
+  let W = 390, H = 760, DPR = 1, seed = D.graine || 1977, etape = 0;   // l'app donne une graine par jour : une page neuve chaque jour
   let Lay = null, RN = [], BORD = null, MG = null, base = null, peint = null, pctx = null, gen = null, mini = null;
   let lettres = [], ors = [], anim = [null, null, null, null], cuit = [false, false, false, false], tS = null, bordCuit = false, RS = [], BS = null, cz = null;
   let lum = { x: 0, y: 0 }, lumMain = false, nImg = 0, flash = [-1e9, -1e9, -1e9, -1e9], dernierGeste = -1e9;

@@ -1595,7 +1595,10 @@ function mondeSlotHtml(){ return typeof monterPiece==="function"&&typeof etude_c
 function mondeDonnees(){
   const t=today(), AC=unitsOn(t), ch=chaine();
   const jours=[]; for(let k=28;k>=1;k--){ const d=dayShift(t,-k); jours.push(AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0)); }
+  /* une page neuve chaque jour : la graine vient de la date ; la date et le folio (le jour de l'année) sont les vrais */
+  const dt=new Date(t+"T12:00:00"), jan=new Date(dt.getFullYear(),0,1), quant=Math.floor((dt-jan)/864e5)+1;
   return { priorites:AC.map(c=>({nom:c.nom, min:20, serie:catStreak(c.id)})), jours,
+    graine:Number(t.replace(/-/g,""))%100003, jour:dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}), folio:"f. "+quant+" r°",
     chaine:Math.max(0,ch.n-(ch.todayOk?1:0)), aujourdhui:AC.map((c,i)=>catDone(c.id)?i:-1).filter(i=>i>=0) };
 }
 function mondePoser(){
