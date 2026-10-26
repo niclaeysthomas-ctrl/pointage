@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#0E0F14">
+<meta name="theme-color" content="#0F1014">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pointage">
@@ -936,27 +936,28 @@
   .lr-livre{text-align:center;padding-top:40px}
   .lr-clock{font-family:var(--mono);font-size:56px;font-weight:700;margin:26px 0 10px;font-variant-numeric:tabular-nums;color:var(--accent)}
 
-  /* ═══════════ LOOK « NUIT » (26/10) : nuit d'encre, un seul accent ambre, titres en sérif ═══════════
-     Le thème sombre est désormais celui par défaut ; le clair reste à un toucher (☀).
-     Une seule couleur dit « fait » : l'ambre. Les cours gardent un bleu-violet à part. */
+  /* ═══════════ LOOK « NUIT » (26/10, 2e passe) : gris neutre, le blanc pour seul accent ═══════════
+     Zéro couleur : seuls les emojis colorent. « Fait » = blanc plein ; le reste en gris.
+     Aucune boîte teintée : les cartes se distinguent par leur fond et un trait fin.
+     Le sombre est le thème par défaut ; le clair (☀) inverse le tout. */
   :root,:root[data-theme="dark"]{
-    --bg:#0E0F14; --bg2:#12131A; --card:#181A22; --card2:#20222C; --line:#2A2C38; --line2:#363948;
-    --ink:#ECE8E1; --muted:#A6A3B2; --faint:#76737F;
-    --accent:#E9A24B; --accent2:#F3BD74; --accent-soft:rgba(233,162,75,.13);
-    --good:#E9A24B; --good-ink:#1A1206; --good-soft:rgba(233,162,75,.13); --bad:#F08A8F;
-    --gem:linear-gradient(135deg,#F0B262,#E39A3F); --gem-soft:linear-gradient(135deg,rgba(233,162,75,.15),rgba(233,162,75,.07));
-    --cours:#9A9AF5; --on-accent:#1A1206;
+    --bg:#0F1014; --bg2:#131418; --card:#17181D; --card2:#1F2026; --line:#26272E; --line2:#34353D;
+    --ink:#F2F0EA; --muted:#A3A1A8; --faint:#77757D;
+    --accent:#F2F0EA; --accent2:#FFFFFF; --accent-soft:rgba(242,240,234,.06);
+    --good:#F2F0EA; --good-ink:#0F1014; --good-soft:rgba(242,240,234,.06); --bad:#D9D6CE;
+    --gem:#F2F0EA; --gem-soft:rgba(242,240,234,.06);
+    --cours:#C9C7CF; --on-accent:#0F1014;
     --shadow:none; --shadow-sm:none;
     --disp:'Inter Tight',-apple-system,system-ui,sans-serif; --sans:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
     --serif:Newsreader,Georgia,'Iowan Old Style',serif;
   }
   :root[data-theme="light"]{
-    --bg:#F4F1EA; --bg2:#ECE8DF; --card:#FFFFFF; --card2:#F6F3EC; --line:#E4DED2; --line2:#D6CFC1;
-    --ink:#1C1B20; --muted:#5F5C68; --faint:#8E8A95;
-    --accent:#A8661A; --accent2:#C27E2C; --accent-soft:rgba(168,102,26,.10);
-    --good:#A8661A; --good-ink:#FFFFFF; --good-soft:rgba(168,102,26,.10); --bad:#C2414B;
-    --gem:linear-gradient(135deg,#B8741F,#A0601A); --gem-soft:linear-gradient(135deg,rgba(168,102,26,.12),rgba(168,102,26,.05));
-    --cours:#4B4BC4; --on-accent:#FFFFFF;
+    --bg:#F4F3EF; --bg2:#ECEBE6; --card:#FFFFFF; --card2:#F4F3EF; --line:#E3E1DA; --line2:#D2CFC7;
+    --ink:#16161A; --muted:#5E5C64; --faint:#8C8A92;
+    --accent:#16161A; --accent2:#000000; --accent-soft:rgba(22,22,26,.05);
+    --good:#16161A; --good-ink:#FFFFFF; --good-soft:rgba(22,22,26,.05); --bad:#3A3A40;
+    --gem:#16161A; --gem-soft:rgba(22,22,26,.05);
+    --cours:#4A4950; --on-accent:#FFFFFF;
   }
   body{background:var(--bg);background-attachment:scroll}
   .today{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--ink);font-family:var(--serif);font-weight:500;
@@ -1064,6 +1065,47 @@
     font:400 17px/1.65 var(--serif);padding:14px;resize:vertical;box-sizing:border-box}
   .txzone:focus{outline:none;border-color:var(--accent)}
   .col-r>:first-child{margin-top:14px}
+
+  /* 2e passe : Maintenant épuré, plus rien de teinté, l'ordinateur pensé */
+  .kco{border:1px solid var(--line);background:var(--card);padding:18px 18px 14px;border-radius:20px;margin:6px 0 0}
+  .kco-now,.kco-now.cours{background:none;border:none;padding:0;gap:14px;align-items:flex-start}
+  .kco-now>span{font-size:30px;line-height:1.1}
+  .kco-now i{color:var(--muted);font-size:11px;letter-spacing:.12em;font-weight:600}
+  .kco-now b{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:4px;line-height:1.2}
+  .kco-now small{font-size:13.5px;color:var(--muted);font-weight:500;margin-top:4px}
+  .kco-b{margin-top:16px}
+  .kco-pied{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--faint);margin-top:12px;font-weight:500}
+  .kco-lien{display:block;border:none;background:none;color:var(--muted);font:500 12.5px var(--sans);padding:8px 0 0;cursor:pointer;text-align:left}
+  .dbar-n{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+  .dbar-n button{border:1px solid var(--line2);background:none;color:var(--ink);font:600 12px var(--sans);border-radius:999px;padding:3px 10px;margin-left:4px;cursor:pointer}
+  .kban,.kban.min{background:var(--card);border:1px solid var(--line);border-left:1px solid var(--line);color:var(--ink)}
+  .sheet .kban{margin:0 0 14px}
+  .sosmini{color:var(--muted);background:transparent;border-color:var(--line2)}
+  .kjp-r.now{background:var(--accent-soft)}
+  .kjp-r.done .kjp-c{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .kjp-r.done .kjp-n b{color:var(--faint)}
+  .kech{border-color:var(--line2)}
+  .dnom em,.txrow em{color:var(--muted);border-color:var(--line2)}
+  .dcpt{color:var(--ink)}
+  .dbar.tout .dbar-h span{color:var(--ink)}
+  .ktabs button.on{background:var(--card2);color:var(--ink)}
+  .ktabs i{background:var(--ink);color:var(--bg)}
+  /* tout ce qui pose du texte sur l'accent : le texte prend la couleur du fond */
+  .ractions .start,.sa button.go,.agurg,.agform button,.cplus,.cgo,.crel,.kcheck.on .kb,.klire-go,.applist .row .start{color:var(--on-accent);box-shadow:none}
+  .krit,.krit.soir,.krit.bilan{color:var(--ink);background:var(--card);border:1px solid var(--line2);box-shadow:none}
+  .kech,.kech .kgo2{color:var(--ink)} .kech a{color:var(--ink)!important}
+  @media (min-width:980px){
+    #app{max-width:1120px}
+    header{grid-template-columns:1fr auto;padding:28px 4px 14px}
+    header>.today{grid-column:1;grid-row:2;justify-content:flex-start;gap:18px;font-size:38px}
+    header .brand{grid-row:1 / span 2;align-self:center}
+    .cols{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px}
+    .ktabs{width:100%;justify-content:flex-start;background:transparent;border:none;border-bottom:1px solid var(--line);border-radius:0;
+      box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0 0 8px;margin:0 0 8px;top:0;
+      position:sticky;z-index:40;background:var(--bg)}
+    .ktabs button{flex:0 0 auto;border-radius:10px;padding:8px 14px}
+    .kco{margin-top:12px}
+  }
   .cahier .jcard,.cahier .klire{margin-top:14px}
   @media (min-width:980px){ .col-r>:first-child{margin-top:12px} }
 </style>
@@ -1419,18 +1461,16 @@ function render(){
   const titre=(TABS.find(x=>x[0]===T)||TABS[0])[1];
   let corps="";
   if(T==="maintenant") corps=`<div class="cols"><div class="col-l">
-        ${modeHtml()}
-        ${echHtml()}
-        ${banHtml()}
+        ${isStandalone()?modeHtml():""}
         ${coachHtml()}
         ${dayBarHtml()}
+        ${echHtml()}
         ${ritHtml()}
         ${choseHtml()}
-        ${dockHtml()}
       </div><div class="col-r">
         ${jpHtml()}
         ${agCardHtml()}
-        ${calHtml()}
+        ${calGet().at?calHtml():""}
       </div></div>`;
   else if(T==="domaines") corps=`<div class="cols"><div class="col-l">
         ${domainesHtml()}
@@ -1479,10 +1519,14 @@ function render(){
 function dayBarHtml(){
   const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
   const fait=AC.filter(c=>catDone(c.id)).length, tout=fait===AC.length;
+  const C=cad(), ch=chaine(), t=today();
+  const note=C.minDay[t]?`<div class="dbar-n">Jour minimum : 5 minutes par priorité suffisent.</div>`
+    :(ch.yMiss&&!ch.todayOk)?`<div class="dbar-n">Hier a manqué. Jamais deux jours de suite : aujourd'hui, même le minimum compte.${minDispo()?` <button onclick="setMinDay()">Jour minimum</button>`:""}</div>`:"";
   return `<div class="dbar ${tout?"tout":""}">
     <div class="dbar-h"><span>${tout?"Journée bouclée":"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
     <div class="dbar-m" style="grid-template-columns:repeat(${AC.length},minmax(0,1fr))">${AC.map(c=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id);
       return `<button class="${ok?"on":""}" onclick="openById('${a?a.id:""}')"><i></i><span>${esc(c.nom)}</span></button>`; }).join("")}</div>
+    ${note}
   </div>`;
 }
 
@@ -4387,10 +4431,12 @@ function echMatinHtml(){ const E=ech(), P=echPlan(); if(!E||!P.length) return ""
 
 /* ---- ⋯ Plus : tout le secondaire, hors de l'accueil ---- */
 function openPlus(){
-  const B=[["✎","Mes apps","openManage()"],["🚀","Catalogue","openLauncher()"],["🗂️","Archives","openArchives()"],["💡","Le brief","openBrief()"],
-    ["🔗","Appareils","syncOpen()"],["💾","Sauver","bkSheet()"],["🛡️","Mon cadre","openCadre()"],["🚪","Porte","openPorte()"],
-    ["📱","Téléphone","openTel()"],["📅","Agenda","openCal()"],["✳️","Claude","openClaude()"]];
-  sheet(`<h3>Réglages et outils</h3><div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
+  const B=[["🎯","Focus","openFocus()"],["✅","Tâche","agSheet()"],["🥊","FORGE","forgeOpen()"],["📨","+1 cand.","cPlus()"],
+    ["✎","Mes apps","openManage()"],["🚀","Catalogue","openLauncher()"],["🗂️","Archives","openArchives()"],["💡","Le brief","openBrief()"],
+    ["🎓",calGet().at?"Mes cours":"Importer cours",calGet().at?"openCal()":"calPaste()"],["🔗","Appareils","syncOpen()"],["💾","Sauver","bkSheet()"],["🛡️","Mon cadre","openCadre()"],
+    ["🚪","Porte","openPorte()"],["📱","Téléphone","openTel()"],["📅","Agenda","openCal()"],["✳️","Claude","openClaude()"]];
+  const md=isStandalone()?"":modeHtml();
+  sheet(`<h3>Réglages et outils</h3>${md}<div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:18px" onclick="closeOv();render()">Fermer</button>`);
 }
 
@@ -4729,14 +4775,13 @@ function coachHtml(){
   else if(fixNow) main=`<div class="kco-now"><span>${fixNow.e}</span><div><i>Maintenant</i><b>${esc(fixNow.nom)}</b><small>${esc(fixNow.sub||"")}</small></div></div>${fixNow.go||fixNow.id==="tel"||fixNow.id==="soir"?`<div class="kco-b">${btns(fixNow)}</div>`:""}`;
   else if(next) main=`<div class="kco-now"><span>${next.e}</span><div><i>${next.s>now+10?"À "+jpHM(next.s):"Maintenant"} · ${next.f-next.s} min</i><b>${esc(next.nom)}</b><small>${esc(next.sub||"")}</small></div></div><div class="kco-b">${btns(next)}</div>`;
   else main=`<div class="kco-now"><span>🏁</span><div><i>Journée bouclée</i><b>Rituel du soir, puis repos</b></div></div><div class="kco-b"><button class="btn" style="margin-top:0" onclick="openSoir()">🌙 Fermer la journée</button></div>`;
-  const pct=tot?Math.round(done/tot*100):0, [te,tt]=tipPick();
-  return `<div class="kco"><div class="kco-h"><b>🗣️ Ton coach</b><span>${done}/${tot}${late?` · <em>${late} en retard</em>`:""}</span></div>
-    <div class="kco-say">${esc(coLine(ctx))}</div>
+  /* 26/10 : épuré. La tâche du moment, ses boutons, la suivante. Le discours,
+     la jauge et l'astuce sont partis : trop de texte pour un coup d'œil. */
+  const miss=(()=>{ if(syncOn()) return 0; try{ return coachMissed().length; }catch(e){ return 0; } })();
+  return `<div class="kco">
     ${main}
-    ${after&&!(H>=23||H<5)?`<div class="kco-next">Ensuite · ${jpHM(after.s)} ${after.e} ${esc(after.nom)}</div>`:""}
-    <div class="kprog" style="margin-top:10px"><i style="width:${pct}%"></i></div>
-    <div class="kco-tip" onclick="tipOff++;render()">${te} ${esc(tt)} <u>↻</u></div>
-    ${(()=>{ if(syncOn()) return ""; let m=[]; try{ m=coachMissed(); }catch(e){} return m.length?`<button class="btn ghost" style="margin-top:10px" onclick="coachSendMissed()">📨 ${m.length} bilan${m.length>1?"s":""} pas envoyé${m.length>1?"s":""} au coach · envoyer</button>`:""; })()}</div>`;
+    <div class="kco-pied">${after&&!(H>=23||H<5)?`<span>Ensuite · ${jpHM(after.s)} ${esc(after.nom)}</span>`:"<span></span>"}${late?`<span>${late} en retard</span>`:""}</div>
+    ${miss?`<button class="kco-lien" onclick="coachSendMissed()">${miss} bilan${miss>1?"s":""} pas envoyé${miss>1?"s":""} au coach · envoyer ›</button>`:""}</div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
