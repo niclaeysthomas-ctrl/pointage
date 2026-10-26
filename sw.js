@@ -1,6 +1,6 @@
 // LE POINTAGE — service worker : network-first, repli cache (100 % hors-ligne)
-const CACHE = "pointage-v56-domaines";
-const ASSETS = ["./", "./index.html", "./coffre.html", "./lectures.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
+const CACHE = "pointage-v57-mandarin";
+const ASSETS = ["./", "./index.html", "./coffre.html", "./lectures.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./mandarin/"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

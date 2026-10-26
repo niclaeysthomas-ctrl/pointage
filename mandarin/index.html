@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EEF2EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1513" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mandarin">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Mandarin entre amis</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600&family=Noto+Serif+SC:wght@500;700&family=Young+Serif&display=swap">
+<style>
+/* Concept : papier de riz froid, encre de jade, sceaux vermillon ; les couleurs vives sont réservées aux tons. */
+:root{
+  --paper:#EEF2EF; --surface:#FBFCFB; --sunk:#E2E8E4; --line:#CFD8D3;
+  --ink:#15201C; --ink2:#4C5A55; --jade:#1D5A52; --jade-2:#2B7468; --jade-soft:#D6E6E1;
+  --cinnabar:#BF3B2A; --cinnabar-soft:#F4DCD5; --on-accent:#FFFFFF;
+  --t1:#C23B28; --t2:#A86A05; --t3:#2C7F45; --t4:#2759AB; --t5:#80908A;
+  --good:#2C7F45; --good-soft:#DCEFE2; --bad:#BF3B2A; --bad-soft:#F7E0DA;
+  --shadow:0 1px 2px rgba(21,32,28,.06),0 6px 20px rgba(21,32,28,.06);
+  --f-display:"Young Serif",Georgia,"Times New Roman",serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-py:"Noto Sans","Figtree",system-ui,sans-serif;
+  --f-hz:"Noto Serif SC","Songti SC","STSong","SimSun","Noto Serif CJK SC",serif;
+  --r:14px; --nav-h:64px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1513; --surface:#161E1B; --sunk:#1D2724; --line:#2A3632;
+  --ink:#E6ECE9; --ink2:#A0AEA9; --jade:#7CC4B6; --jade-2:#5FAE9F; --jade-soft:#1C3631;
+  --cinnabar:#EC735E; --cinnabar-soft:#3A221D; --on-accent:#0F1513;
+  --t1:#F0806C; --t2:#E2B054; --t3:#71C98D; --t4:#80A9F0; --t5:#8A9893;
+  --good:#71C98D; --good-soft:#18352A; --bad:#EC735E; --bad-soft:#3A221D;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1513; --surface:#161E1B; --sunk:#1D2724; --line:#2A3632;
+  --ink:#E6ECE9; --ink2:#A0AEA9; --jade:#7CC4B6; --jade-2:#5FAE9F; --jade-soft:#1C3631;
+  --cinnabar:#EC735E; --cinnabar-soft:#3A221D; --on-accent:#0F1513;
+  --t1:#F0806C; --t2:#E2B054; --t3:#71C98D; --t4:#80A9F0; --t5:#8A9893;
+  --good:#71C98D; --good-soft:#18352A; --bad:#EC735E; --bad-soft:#3A221D;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--paper)}
+[lang="zh-CN"]{font-family:var(--f-hz)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2.5px solid var(--jade);outline-offset:2px;border-radius:8px}
+h1,h2,h3,h4{font-family:var(--f-display);font-weight:400;line-height:1.2;margin:0;text-wrap:balance;letter-spacing:-.005em}
+h2{font-size:1.6rem} h3{font-size:1.18rem} h4{font-size:1.02rem}
+p{margin:0}
+.muted{color:var(--ink2)} .small{font-size:.875rem}
+.eyebrow{font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:var(--jade)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.between{justify-content:space-between}
+.center{display:flex;justify-content:center}
+
+/* Tons */
+.py{font-family:var(--f-py);font-weight:500;letter-spacing:.01em;display:block}
+.t1{color:var(--t1)}.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}.t5{color:var(--t5)}
+.no-tones .py span{color:inherit}
+.py.m-fade{opacity:.4;transition:opacity .2s}
+.py.m-fade:hover,button:hover .py.m-fade,.py.m-fade:focus{opacity:1}
+.py.m-veil{filter:blur(5px);cursor:pointer;user-select:none;transition:filter .2s;border-radius:6px}
+.py.m-veil.shown{filter:none;user-select:auto}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;font-family:var(--f-py);font-weight:500;margin-top:14px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:-1px}
+
+/* En-tête */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;text-align:left}
+.brand-seal{width:34px;height:34px;display:grid;place-items:center;background:var(--cinnabar);color:var(--on-accent);border-radius:7px;font-family:var(--f-hz);font-weight:700;font-size:1.2rem;transform:rotate(-4deg)}
+.brand-n{font-family:var(--f-display);font-size:1.12rem;line-height:1.1}
+.brand-n small{display:block;font-family:var(--f-body);font-size:.72rem;color:var(--ink2);letter-spacing:.04em}
+.top-r{margin-left:auto;display:flex;gap:8px;align-items:center}
+.streak{display:flex;align-items:center;gap:4px;font-weight:600;font-size:.9rem;padding:6px 10px;border-radius:999px;background:var(--sunk);color:var(--ink2)}
+.streak svg{width:16px;height:16px}
+.streak.lit{background:var(--cinnabar-soft);color:var(--cinnabar)}
+.icon-btn{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.icon-btn svg{width:20px;height:20px}
+
+/* Navigation */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.nav-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav-h)}
+.tab{background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--ink2);font-size:.72rem;font-weight:600}
+.tab-ic{font-family:var(--f-hz);font-size:1.25rem;line-height:1;width:34px;height:28px;display:grid;place-items:center;border-radius:10px}
+.tab.on{color:var(--jade)}
+.tab.on .tab-ic{background:var(--jade-soft)}
+@media (min-width:860px){
+  body{padding-bottom:32px}
+  .nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 55px);z-index:19;border-top:0;border-bottom:1px solid var(--line);background:var(--paper)}
+  .nav-in{height:auto;max-width:980px;display:flex;gap:4px;padding-block:6px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .tab{flex-direction:row;gap:8px;font-size:.92rem;padding:6px 14px 6px 6px;border-radius:12px}
+  .tab:hover{background:var(--sunk)}
+  .tab.on{background:var(--jade-soft)}
+  .tab.on .tab-ic{background:transparent}
+}
+
+/* Contenu */
+main{max-width:980px;margin:0 auto;padding-block:20px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;padding:11px 18px;font-weight:600;border:1.5px solid transparent;min-height:44px;transition:transform .08s,background .15s}
+.btn:active{transform:translateY(1px)}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--jade);color:var(--on-accent)}
+.btn.primary:hover{background:var(--jade-2)}
+.btn.ghost{background:var(--surface);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--jade)}
+.btn.sm{padding:7px 12px;min-height:36px;font-size:.9rem}
+.btn.danger{background:var(--surface);border-color:var(--bad);color:var(--bad)}
+.btn.danger.armed{background:var(--bad);color:var(--on-accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* Accueil */
+.home{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.home{grid-template-columns:1fr}}
+.hero{display:flex;gap:22px;align-items:center;background:var(--jade);color:var(--on-accent);border-radius:20px;padding:24px;position:relative;overflow:hidden;min-width:0}
+.hero .eyebrow{color:inherit;opacity:.8}
+.hero .muted{color:inherit;opacity:.85}
+.hero h2{font-size:1.75rem;margin:4px 0}
+.hero-body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.hero .row{margin-top:10px}
+.hero .btn.primary{background:var(--on-accent);color:var(--jade)}
+.hero .btn.ghost{background:transparent;color:inherit;border-color:color-mix(in srgb,var(--on-accent) 45%,transparent)}
+.hero-hz{font-family:var(--f-hz);font-weight:700;font-size:clamp(3rem,10vw,4.6rem);line-height:1;writing-mode:vertical-rl;letter-spacing:.06em;opacity:.95;flex:none}
+@media (max-width:480px){.hero{flex-direction:column;align-items:flex-start}.hero-hz{writing-mode:horizontal-tb}}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.review{flex-direction:row;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.review > div{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 200px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0}
+.stats div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stats dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);font-weight:600}
+.stats dd{margin:2px 0 0;font-family:var(--f-display);font-size:1.4rem;font-variant-numeric:tabular-nums}
+.stats small{font-family:var(--f-body);font-size:.8rem;color:var(--ink2)}
+.level{display:flex;flex-direction:column;gap:12px}
+.level-h{display:flex;gap:12px;align-items:center;margin-top:8px}
+.lvl-tag{display:inline-grid;place-items:center;min-width:40px;height:30px;padding:0 8px;border-radius:8px;background:var(--ink);color:var(--paper);font-weight:700;font-size:.85rem;letter-spacing:.04em;flex:none}
+.lvl-tag.sm{min-width:30px;height:22px;font-size:.7rem;border-radius:6px;vertical-align:2px;font-family:var(--f-body)}
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.ucard{display:flex;align-items:center;gap:14px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;transition:border-color .15s,transform .15s;min-width:0}
+.ucard:hover{border-color:var(--jade);transform:translateY(-1px)}
+.ucard.cur{border-color:var(--jade);box-shadow:0 0 0 3px var(--jade-soft)}
+.u-hz{font-family:var(--f-hz);font-size:1.7rem;font-weight:700;min-width:64px;text-align:center;line-height:1.1}
+.u-txt{display:flex;flex-direction:column;flex:1;min-width:0}
+.u-num{font-size:.72rem;color:var(--ink2);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.u-title{font-weight:600}
+.u-sub{font-size:.85rem;color:var(--ink2)}
+.dots{display:flex;gap:4px;margin-top:8px}
+.dots i{width:16px;height:4px;border-radius:2px;background:var(--sunk)}
+.dots i.on{background:var(--jade)}
+.seal{width:40px;height:40px;flex:none;display:grid;place-items:center;border:1.5px dashed var(--line);border-radius:8px;color:var(--line);font-family:var(--f-hz);font-weight:700;font-size:1.2rem}
+.seal.on{border:0;background:var(--cinnabar);color:var(--on-accent);transform:rotate(-6deg);box-shadow:inset 0 0 0 3px color-mix(in srgb,var(--on-accent) 30%,transparent)}
+.seal.big{width:64px;height:64px;font-size:2rem;border-radius:12px}
+.foot-note{text-align:center;max-width:60ch;margin:4px auto 0}
+
+/* Unité */
+.back{align-self:flex-start;display:inline-flex;align-items:center;gap:4px;background:none;border:0;color:var(--jade);font-weight:600;padding:4px 0}
+.back svg{width:18px;height:18px}
+.unit-head{display:flex;align-items:center;gap:20px}
+.uh-hz{font-family:var(--f-hz);font-weight:700;font-size:clamp(2.6rem,9vw,4rem);line-height:1}
+.uh-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.step{width:100%;display:flex;align-items:center;gap:14px;text-align:left;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);transition:border-color .15s}
+.step:hover{border-color:var(--jade)}
+.st-ic{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;background:var(--sunk);font-family:var(--f-hz);font-size:1.4rem;flex:none}
+.step.done .st-ic{background:var(--jade-soft);color:var(--jade)}
+.st-txt{flex:1;display:flex;flex-direction:column;min-width:0}
+.st-n{font-weight:600}
+.st-d{font-size:.85rem;color:var(--ink2)}
+.st-min{font-size:.8rem;color:var(--ink2);font-variant-numeric:tabular-nums;flex:none}
+.st-min svg{width:22px;height:22px;color:var(--jade)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:flex;flex-direction:column;align-items:flex-start;padding:8px 12px;border-radius:12px;background:var(--paper);border:1px solid var(--line);text-align:left}
+.chip [lang]{font-size:1.25rem;font-weight:500}
+.chip .py{font-size:.85rem}
+.chip-f{font-size:.78rem;color:var(--ink2)}
+
+/* Pages */
+.page-h{display:flex;flex-direction:column;gap:6px;max-width:65ch}
+.seg{display:inline-flex;background:var(--sunk);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{background:none;border:0;padding:7px 12px;border-radius:9px;font-weight:600;font-size:.88rem;color:var(--ink2);font-family:var(--f-py)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.seg.wide{display:flex}.seg.wide button{flex:1}
+.tones-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:center}
+.tones-grid > div{display:flex;flex-direction:column;gap:12px;min-width:0}
+@media (max-width:720px){.tones-grid{grid-template-columns:1fr}}
+.quad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qcell{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+.qcell:hover{border-color:var(--jade)}
+.qhz{font-family:var(--f-hz);font-size:1.8rem;line-height:1.2}
+.qcell .py{font-size:1rem}
+.qf{font-size:.75rem;color:var(--ink2)}
+.tchart{width:100%;max-width:420px;height:auto;justify-self:center}
+.tchart .grid{stroke:var(--line);stroke-width:1}
+.tchart .axis{fill:var(--ink2);font-size:11px;font-family:var(--f-body)}
+.tchart .lab{font-size:13px;font-weight:700;font-family:var(--f-body)}
+.tchart .line{fill:none;stroke-width:6;stroke-linecap:round;pointer-events:none}
+.tchart .hit{fill:none;stroke:transparent;stroke-width:22;cursor:pointer}
+.tchart .tpath:hover .line,.tchart .tpath:focus .line{stroke-width:8}
+.tc1{stroke:var(--t1)}.tc2{stroke:var(--t2)}.tc3{stroke:var(--t3)}.tc4{stroke:var(--t4)}
+.tc1f{fill:var(--t1)}.tc2f{fill:var(--t2)}.tc3f{fill:var(--t3)}.tc4f{fill:var(--t4)}
+.game-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.game-play{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.big-say{width:84px;height:84px;border-radius:50%;border:0;background:var(--jade);color:var(--on-accent);display:grid;place-items:center;box-shadow:var(--shadow)}
+.big-say svg{width:38px;height:38px}
+.big-say.sm{width:56px;height:56px}.big-say.sm svg{width:26px;height:26px}
+.tone-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:480px}
+.topt{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:12px;background:var(--paper);border:2px solid var(--line)}
+.topt b{font-family:var(--f-display);font-size:1.5rem;font-weight:400}
+.topt span{font-size:.75rem;color:var(--ink2)}
+.tc1b b{color:var(--t1)}.tc2b b{color:var(--t2)}.tc3b b{color:var(--t3)}.tc4b b{color:var(--t4)}
+.topt.right{border-color:var(--good);background:var(--good-soft)}
+.topt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.game-res{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+.game-res .py{display:inline;font-size:1.1rem}
+.sounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.snd,.sd{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px;background:var(--paper)}
+.snd-k{font-family:var(--f-py);font-weight:600;font-size:1.05rem;color:var(--jade)}
+.snd-ex{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.mini{display:flex;align-items:baseline;gap:6px;padding:6px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line)}
+.mini [lang]{font-size:1.1rem}
+.mini .py{display:inline;font-size:.9rem}
+.sandhi{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search{flex:1 1 240px}
+.search input{width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit}
+.wgroup{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.wg-h{font-size:1.05rem;display:flex;align-items:center;gap:8px}
+.wg-h [lang]{font-weight:700}
+.words{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.words li + li{border-top:1px solid var(--line)}
+.wrow{width:100%;display:grid;grid-template-columns:72px minmax(90px,140px) minmax(0,1fr) auto;gap:12px;align-items:center;text-align:left;background:none;border:0;padding:10px 14px}
+.wrow:hover{background:var(--paper)}
+.w-hz{font-size:1.35rem;font-weight:500}
+.w-f{font-size:.92rem;min-width:0}
+@media (max-width:520px){.wrow{grid-template-columns:64px minmax(0,1fr) auto;row-gap:0}.w-py{grid-column:2}.w-f{grid-column:2;grid-row:2}.wst{grid-column:3;grid-row:1/3}}
+.wst{font-size:.72rem;font-weight:600;letter-spacing:.03em}
+.wst.new{color:var(--ink2)}
+.wst.ok{color:var(--good);background:var(--good-soft);padding:3px 8px;border-radius:999px}
+.wst.mid{display:flex;gap:3px}
+.wst.mid i{width:6px;height:6px;border-radius:50%;background:var(--sunk)}
+.wst.mid i.on{background:var(--jade)}
+.empty{text-align:center;padding:24px}
+.sec-h{display:flex;align-items:center;gap:10px;margin-top:8px}
+.glist{display:flex;flex-direction:column;gap:8px}
+.gcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.gcard summary{display:flex;align-items:center;gap:14px;padding:14px;cursor:pointer;list-style:none}
+.gcard summary::-webkit-details-marker{display:none}
+.gcard[open] summary{border-bottom:1px solid var(--line)}
+.g-hz{font-family:var(--f-hz);font-weight:700;font-size:1.3rem;min-width:56px;text-align:center}
+.g-t{display:flex;flex-direction:column;flex:1;min-width:0}
+.g-title{font-weight:600}
+.g-body{padding:16px;display:flex;flex-direction:column;gap:14px;max-width:70ch}
+.g-body .btn{align-self:flex-start}
+.okmark svg{width:20px;height:20px;color:var(--jade)}
+.pattern{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pt{padding:6px 12px;border-radius:10px;font-weight:600;font-size:.95rem}
+.pt.slot{background:var(--sunk);color:var(--ink2);font-family:var(--f-body)}
+.pt.hz{background:var(--jade-soft);color:var(--jade);font-size:1.1rem}
+.plus{color:var(--ink2);font-weight:600}
+.exs{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.ex{width:100%;text-align:left;padding:10px 14px;border-radius:12px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.ex:hover{border-color:var(--jade)}
+.ex-hz{font-size:1.25rem}
+.ex-f{font-size:.88rem;color:var(--ink2)}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.ccard{position:relative;display:flex;flex-direction:column;gap:6px;text-align:left;padding:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);min-height:150px}
+.ccard:hover{border-color:var(--cinnabar)}
+.c-hz{font-family:var(--f-hz);font-size:1.7rem;font-weight:700;color:var(--cinnabar);line-height:1.2}
+.c-title{font-family:var(--f-display);font-size:1.08rem;margin-top:auto}
+.ccard .okmark{position:absolute;top:14px;right:14px}
+
+/* Leçon */
+body.lesson-open{overflow:hidden}
+.lesson{position:fixed;inset:0;z-index:50;background:var(--paper);display:flex;flex-direction:column}
+.l-top{display:flex;align-items:center;gap:12px;padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:760px;width:100%;margin:0 auto}
+.l-title{font-family:var(--f-hz);font-size:.95rem;color:var(--ink2);white-space:nowrap}
+.l-bar{flex:1;height:8px;border-radius:4px;background:var(--sunk);overflow:hidden}
+.l-bar i{display:block;height:100%;width:0;background:var(--jade);border-radius:4px;transition:width .35s ease}
+.l-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.l-inner{max-width:760px;margin:0 auto;padding-block:12px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+.l-foot{border-top:1px solid var(--line);background:var(--surface);padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.l-foot-in{max-width:760px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.l-foot-in .btn{margin-left:auto;min-width:150px}
+.l-fb{flex:1 1 260px;font-weight:600;padding:10px 14px;border-radius:12px;min-width:0}
+.l-fb .py{display:inline}
+.l-fb.good{background:var(--good-soft);color:var(--good)}
+.l-fb.bad{background:var(--bad-soft);color:var(--bad)}
+.l-h{font-size:1.7rem}
+.q-kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:var(--jade)}
+.info{display:flex;flex-direction:column;gap:14px}
+.info > p{max-width:65ch}
+.pron-ex{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.pex{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);text-align:left}
+.pex:hover{border-color:var(--jade)}
+.pex-hz{font-size:1.6rem;line-height:1.2}
+.pex .py{font-size:1.05rem}
+.cult-word{display:flex}
+.prose{display:flex;flex-direction:column;gap:12px;max-width:65ch}
+.fact{border-left:3px solid var(--cinnabar);padding:10px 14px;background:var(--cinnabar-soft);border-radius:0 12px 12px 0;max-width:65ch;font-size:.95rem}
+.flash{align-self:center;width:min(100%,380px);min-height:250px;border-radius:20px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;cursor:pointer;position:relative}
+.fl-front{display:flex;flex-direction:column;align-items:center;gap:6px}
+.fl-hz{font-size:clamp(3rem,14vw,4.6rem);line-height:1.15;font-weight:500}
+.fl-front .py{font-size:1.5rem}
+.fl-back{padding-top:10px;border-top:1px dashed var(--line);width:80%}
+.fl-f{font-family:var(--f-display);font-size:1.35rem}
+.fl-hint{font-size:.8rem;color:var(--ink2)}
+.flash.flipped{border-color:var(--jade)}
+.say{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--jade);display:inline-grid;place-items:center;flex:none}
+.say svg{width:24px;height:24px}
+.say:hover{border-color:var(--jade)}
+.q-prompt{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0}
+.qp-hz{display:flex;flex-direction:column;align-items:center}
+.qp-hz [lang]{font-size:3.2rem;line-height:1.2}
+.qp-hz .py{font-size:1.3rem}
+.qp-f{font-family:var(--f-display);font-size:1.4rem;text-align:center;text-wrap:balance}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:480px){.opts{grid-template-columns:1fr}}
+.opt{padding:14px;border-radius:14px;background:var(--surface);border:2px solid var(--line);text-align:center;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-weight:500}
+.opt:hover:not(:disabled){border-color:var(--jade)}
+.opt.right{border-color:var(--good);background:var(--good-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.o-hz{font-size:1.6rem;line-height:1.2}
+.opt .py{font-size:1.05rem}
+.answer{min-height:76px;border-bottom:2px solid var(--line);display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 0}
+.answer.right{border-color:var(--good)}
+.answer.wrong{border-color:var(--bad)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding-top:8px}
+.tile{display:flex;flex-direction:column;align-items:center;padding:8px 14px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);border-bottom-width:3px;min-width:52px}
+.tile [lang]{font-size:1.4rem;line-height:1.25}
+.tile .py{font-size:.82rem}
+.tile.ghost{color:transparent;background:var(--sunk);border-color:var(--sunk);font-family:var(--f-hz);font-size:1.4rem;line-height:1.25;padding-bottom:22px}
+.dlg-tools{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;align-items:center;gap:8px;font-weight:500;cursor:pointer}
+.switch input{width:20px;height:20px;accent-color:var(--jade)}
+.dlg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.line{display:flex;gap:10px;align-items:flex-start;transition:opacity .2s}
+.line.me{flex-direction:row-reverse}
+.line.dim{opacity:.5}
+.av{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:1.05rem}
+.av-l{background:var(--jade-soft);color:var(--jade)}
+.av-w{background:var(--cinnabar-soft);color:var(--cinnabar)}
+.av-t{background:var(--sunk);color:var(--ink)}
+.bubble{background:var(--surface);border:1px solid var(--line);border-radius:4px 16px 16px 16px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;max-width:min(520px,85%);min-width:0}
+.line.me .bubble{border-radius:16px 4px 16px 16px;background:var(--jade-soft);border-color:transparent}
+.line.playing .bubble{box-shadow:0 0 0 2.5px var(--jade)}
+.who{font-size:.75rem;font-weight:600}
+.l-hz{background:none;border:0;padding:0;text-align:left;font-size:1.3rem;line-height:1.4}
+.bubble .py{font-size:.95rem}
+.l-fr{font-size:.88rem;color:var(--ink2);border-top:1px dashed var(--line);padding-top:4px;margin-top:4px}
+.summary{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 0}
+.sum-ic{width:84px;height:84px;border-radius:50%;background:var(--jade-soft);color:var(--jade);display:grid;place-items:center;font-family:var(--f-hz);font-size:2.2rem}
+.sum-ic svg{width:42px;height:42px}
+.sum-score{font-family:var(--f-display);font-size:1.2rem}
+.summary .muted{max-width:46ch}
+.stamp{width:120px;height:120px;border-radius:18px;background:var(--cinnabar);color:var(--on-accent);display:grid;place-items:center;font-family:var(--f-hz);font-weight:700;font-size:4rem;box-shadow:inset 0 0 0 6px color-mix(in srgb,var(--on-accent) 25%,transparent);animation:stamp .55s cubic-bezier(.2,1.4,.4,1) both;transform:rotate(-7deg)}
+@keyframes stamp{0%{transform:scale(2.2) rotate(-18deg);opacity:0}60%{opacity:1}100%{transform:scale(1) rotate(-7deg)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* Réglages, toast */
+.modal{position:fixed;inset:0;z-index:60;background:color-mix(in srgb,var(--ink) 40%,transparent);display:flex;align-items:flex-end;justify-content:center;padding-top:env(safe-area-inset-top,0px)}
+@media (min-width:640px){.modal{align-items:center}}
+.sheet{background:var(--surface);width:min(100%,520px);max-height:90%;overflow-y:auto;border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+@media (min-width:640px){.sheet{border-radius:20px}}
+.sheet-h{display:flex;justify-content:space-between;align-items:center}
+.set-group{display:flex;flex-direction:column;gap:10px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.set-group:last-child{border-bottom:0}
+.set-group .btn{align-self:flex-start}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));z-index:70;background:var(--ink);color:var(--paper);padding:12px 16px;border-radius:12px;max-width:min(92vw,460px);font-size:.9rem;box-shadow:var(--shadow)}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <button class="brand" id="brand" type="button" aria-label="Accueil"><span class="brand-seal" lang="zh-CN">学</span><span class="brand-n">Mandarin entre amis<small>DU A1 AU B1</small></span></button>
+  <div class="top-r"><span class="streak" id="streak"></span><button class="icon-btn" id="gear" type="button" aria-label="Réglages"></button></div>
+</div></header>
+<nav class="nav" id="nav" aria-label="Sections"></nav>
+<main id="main"></main>
+
+<div class="lesson" id="lesson" hidden role="dialog" aria-modal="true" aria-labelledby="lTitle">
+  <div class="l-top"><button class="icon-btn" id="lClose" type="button" aria-label="Fermer la leçon"></button><span class="l-title" id="lTitle"></span><div class="l-bar"><i id="lProg"></i></div></div>
+  <div class="l-body"><div class="l-inner" id="lBody"></div></div>
+  <div class="l-foot"><div class="l-foot-in"><div class="l-fb" id="lFeedback" hidden aria-live="polite"></div><button class="btn primary" id="lNext" type="button">Continuer</button></div></div>
+</div>
+
+<div class="modal" id="settings" hidden><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setH">
+  <div class="sheet-h"><h2 id="setH">Réglages</h2><button class="icon-btn" id="setClose" type="button" aria-label="Fermer"></button></div>
+  <div id="setBody"></div>
+</div></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<script>
+// ===== Contenu pédagogique =====
+// Pinyin : le ton écrit est le ton réellement prononcé pour 一 et 不 (comme dans les manuels).
+const SPEAKERS = {
+  L: { name: "小李", py: "Xiǎo Lǐ", av: "李", pitch: 0.85, cls: "av-l" },
+  W: { name: "王芳", py: "Wáng Fāng", av: "芳", pitch: 1.25, cls: "av-w" },
+  T: { name: "汤姆", py: "Tāngmǔ", av: "汤", pitch: 1.0, cls: "av-t" }
+};
+
+const LEVELS = [
+  { id: "A1", name: "Premiers pas", desc: "Saluer, te présenter, parler de toi et de tes goûts." },
+  { id: "A2", name: "Se débrouiller", desc: "Fixer un rendez-vous, raconter ta journée, garder le contact." },
+  { id: "B1", name: "Converser", desc: "Comparer, donner ton avis, parler de tes projets." }
+];
+
+const UNITS = [
+// ---------------- A1 ----------------
+{ id: "u1", lvl: "A1", hz: "你好", title: "Saluer", sub: "Bonjour, merci, pardon",
+  words: [["你","nǐ","tu, toi"],["好","hǎo","bien, bon"],["你好","nǐ hǎo","bonjour, salut"],["我","wǒ","je, moi"],["是","shì","être (c'est)"],["谢谢","xièxie","merci"],["不客气","bú kèqi","de rien"],["再见","zàijiàn","au revoir"],["对不起","duìbuqǐ","pardon, désolé"],["没关系","méi guānxi","ce n'est pas grave"]],
+  pron: { title: "Les quatre tons",
+    text: "Chaque syllabe porte une mélodie, le <b>ton</b>, et changer de ton change le mot. Le 1er ton est haut et plat. Le 2e monte, comme un « hein ? » étonné. Le 3e descend très bas, puis remonte. Le 4e tombe d'un coup, comme un « Non ! » ferme. Dans toute l'application, la couleur du pinyin te rappelle le ton.",
+    ex: [["妈","mā","maman · 1er ton"],["麻","má","chanvre · 2e ton"],["马","mǎ","cheval · 3e ton"],["骂","mà","gronder · 4e ton"],["你好","nǐ hǎo","deux 3e tons : on dit « ní hǎo »"]] },
+  gram: { title: "Pas de conjugaison", patterns: ["Sujet + 是 + Nom","Sujet + 不是 + Nom"],
+    text: "En chinois, <b>les verbes ne se conjuguent jamais</b> : 是 shì veut dire je suis, tu es, il est… Pas de pluriel, pas de genre non plus. Pour dire « ne… pas », on place <b>不 bù</b> juste devant le verbe. Devant un 4e ton, 不 se prononce bú : 不是 bú shì.",
+    ex: [["我是汤姆。","Wǒ shì Tāngmǔ.","Je suis Tom."],["你是王芳。","Nǐ shì Wáng Fāng.","Tu es Wang Fang."],["我不是小李。","Wǒ bú shì Xiǎo Lǐ.","Je ne suis pas Xiao Li."]],
+    order: [{ fr: "Je ne suis pas Tom.", t: [["我","wǒ"],["不是","bú shì"],["汤姆","Tāngmǔ"]] },{ fr: "Tu es Xiao Li.", t: [["你","nǐ"],["是","shì"],["小李","Xiǎo Lǐ"]] }] },
+  dlg: { title: "Première rencontre", lines: [
+    ["L","你好！","Nǐ hǎo!","Salut !"],
+    ["T","你好！我是汤姆。","Nǐ hǎo! Wǒ shì Tāngmǔ.","Salut ! Je suis Tom."],
+    ["L","我是小李。","Wǒ shì Xiǎo Lǐ.","Moi, c'est Xiao Li."],
+    ["T","对不起！","Duìbuqǐ!","(Tom lui marche sur le pied) Pardon !"],
+    ["L","没关系。","Méi guānxi.","Ce n'est pas grave."],
+    ["T","谢谢！","Xièxie!","Merci !"],
+    ["L","不客气。再见！","Bú kèqi. Zàijiàn!","De rien. Au revoir !"],
+    ["T","再见！","Zàijiàn!","Au revoir !"]],
+    q: { q: "Que répond Xiao Li quand Tom s'excuse ?", opts: ["没关系 · ce n'est pas grave","谢谢 · merci","再见 · au revoir"] } },
+  cult: { title: "Se saluer en Chine", hz: "你吃了吗？", py: "Nǐ chī le ma?", fr: "Tu as mangé ?",
+    text: "<p>Pas de bise en Chine : un sourire, un signe de tête ou une poignée de main légère suffisent. Entre amis, 你好 peut même sonner un peu formel. On entend souvent un simple 嗨 hāi, ou une question en guise de bonjour : 你吃了吗？ « Tu as mangé ? ». Personne n'attend vraiment de réponse détaillée.</p><p>Tu as remarqué 小李 Xiǎo Lǐ ? 小 « petit » devant un nom de famille est un surnom affectueux pour quelqu'un de plus jeune ou d'âge égal. Pour quelqu'un de plus âgé, on dit 老 lǎo « vieux » : 老王 Lǎo Wáng. Ce n'est pas vexant, c'est chaleureux.</p>",
+    fact: "Demande à tes amis s'ils ont un surnom en 小 : c'est souvent comme ça que leurs proches les appellent." } },
+
+{ id: "u2", lvl: "A1", hz: "名字", title: "Se présenter", sub: "Nom, nationalité, questions",
+  words: [["叫","jiào","s'appeler"],["什么","shénme","quoi, quel"],["名字","míngzi","nom, prénom"],["呢","ne","et toi ? (question en retour)"],["他","tā","il, lui"],["她","tā","elle"],["人","rén","personne, gens"],["法国","Fǎguó","France"],["中国","Zhōngguó","Chine"],["哪","nǎ","quel, lequel"],["吗","ma","particule de question"],["很","hěn","très"],["高兴","gāoxìng","content"],["认识","rènshi","connaître, rencontrer"]],
+  pron: { title: "zh, ch, sh, r : la langue recourbée",
+    text: "Pour ces quatre sons, recourbe la pointe de la langue vers le haut du palais. <b>zh</b> ≈ « dj », <b>ch</b> ≈ « tch » avec un souffle d'air, <b>sh</b> ≈ « ch », <b>r</b> ≈ le « j » de « jour ». Ils donnent au mandarin du nord sa couleur caractéristique.",
+    ex: [["中国","Zhōngguó","Chine"],["是","shì","être"],["人","rén","personne"],["什么","shénme","quoi"],["吃","chī","manger"]] },
+  gram: { title: "Poser une question", patterns: ["Phrase + 吗 ？","Sujet + 叫 + 什么 ？"],
+    text: "Pour une question fermée (oui ou non), on ajoute <b>吗 ma</b> à la fin d'une phrase affirmative. Rien d'autre ne bouge. Pour une question ouverte, on met le mot interrogatif <b>à la place exacte de la réponse</b> : 你叫<b>什么</b>？ → 我叫<b>汤姆</b>。 On n'utilise jamais 吗 avec un mot interrogatif. Et pour renvoyer la question, on dit simplement 你呢？",
+    ex: [["你是法国人吗？","Nǐ shì Fǎguórén ma?","Tu es français ?"],["你叫什么名字？","Nǐ jiào shénme míngzi?","Comment tu t'appelles ?"],["她是哪国人？","Tā shì nǎ guó rén?","De quel pays est-elle ?"],["我叫汤姆，你呢？","Wǒ jiào Tāngmǔ, nǐ ne?","Je m'appelle Tom, et toi ?"]],
+    order: [{ fr: "Comment tu t'appelles ?", t: [["你","nǐ"],["叫","jiào"],["什么","shénme"],["名字","míngzi"]] },{ fr: "Il est chinois ?", t: [["他","tā"],["是","shì"],["中国人","Zhōngguórén"],["吗","ma"]] }] },
+  dlg: { title: "À une soirée", lines: [
+    ["W","你好！你叫什么名字？","Nǐ hǎo! Nǐ jiào shénme míngzi?","Salut ! Comment tu t'appelles ?"],
+    ["T","我叫汤姆。你呢？","Wǒ jiào Tāngmǔ. Nǐ ne?","Je m'appelle Tom. Et toi ?"],
+    ["W","我叫王芳。你是哪国人？","Wǒ jiào Wáng Fāng. Nǐ shì nǎ guó rén?","Je m'appelle Wang Fang. Tu viens de quel pays ?"],
+    ["T","我是法国人。你是中国人吗？","Wǒ shì Fǎguórén. Nǐ shì Zhōngguórén ma?","Je suis français. Tu es chinoise ?"],
+    ["W","是，我是中国人。他叫小李。","Shì, wǒ shì Zhōngguórén. Tā jiào Xiǎo Lǐ.","Oui, je suis chinoise. Lui, il s'appelle Xiao Li."],
+    ["T","很高兴认识你！","Hěn gāoxìng rènshi nǐ!","Ravi de te rencontrer !"],
+    ["W","我也很高兴认识你！","Wǒ yě hěn gāoxìng rènshi nǐ!","Moi aussi, ravie de te rencontrer !"]],
+    q: { q: "De quel pays vient Wang Fang ?", opts: ["De Chine","De France","On ne le sait pas"] } },
+  cult: { title: "Les noms chinois", hz: "王芳", py: "Wáng Fāng", fr: "Wang (nom de famille) Fang (prénom)",
+    text: "<p>En chinois, <b>le nom de famille vient en premier</b> : dans 王芳, 王 Wáng est le nom de famille et 芳 Fāng le prénom. Les noms de famille ont presque tous une seule syllabe, et quelques-uns sont extrêmement répandus : 王 Wáng, 李 Lǐ et 张 Zhāng sont portés par des centaines de millions de personnes.</p><p>Les étrangers reçoivent souvent un nom chinois. Il peut imiter le son (汤姆 Tāngmǔ pour Tom) ou être choisi pour son sens. Demander à tes amis de t'en trouver un est une excellente façon d'entrer dans la langue.</p>",
+    fact: "Les prénoms chinois sont choisis pour leur sens : 芳 fāng évoque un parfum de fleurs." } },
+
+{ id: "u3", lvl: "A1", hz: "一二三", title: "Les nombres", sub: "Compter et dire son âge",
+  words: [["一","yī","un"],["二","èr","deux"],["三","sān","trois"],["四","sì","quatre"],["五","wǔ","cinq"],["六","liù","six"],["七","qī","sept"],["八","bā","huit"],["九","jiǔ","neuf"],["十","shí","dix"],["几","jǐ","combien (petit nombre)"],["岁","suì","an (âge)"],["多大","duō dà","quel âge ?"]],
+  pron: { title: "一 change de ton",
+    text: "一 se dit yī (1er ton) quand on compte. Devant un 4e ton, il devient <b>yí</b> : 一个 yí gè. Devant les autres tons, il devient <b>yì</b> : 一起 yìqǐ. Dans l'application, le pinyin indique toujours le ton réellement prononcé.",
+    ex: [["一","yī","un, seul"],["十一","shíyī","onze"],["一个","yí gè","un (+ objet)"],["一起","yìqǐ","ensemble"]] },
+  gram: { title: "Jusqu'à 99, et ton âge", patterns: ["Chiffre + 十 + Chiffre","Sujet + Nombre + 岁"],
+    text: "Les nombres sont très logiques : 十一 = 10 + 1 (11), 二十 = 2 × 10 (20), 二十五 = 2 × 10 + 5 (25). Pour l'âge, pas de verbe : on dit littéralement « moi 25 ans ». On demande 你多大？ à un adulte et 你几岁？ à un enfant.",
+    ex: [["我二十八岁。","Wǒ èrshíbā suì.","J'ai 28 ans."],["你多大？","Nǐ duō dà?","Quel âge as-tu ?"],["他十九岁。","Tā shíjiǔ suì.","Il a 19 ans."],["九十九","jiǔshíjiǔ","99"]],
+    order: [{ fr: "J'ai 26 ans.", t: [["我","wǒ"],["二十六","èrshíliù"],["岁","suì"]] },{ fr: "Elle a 31 ans.", t: [["她","tā"],["三十一","sānshíyī"],["岁","suì"]] }] },
+  dlg: { title: "Une question d'âge", lines: [
+    ["W","汤姆，你多大？","Tāngmǔ, nǐ duō dà?","Tom, tu as quel âge ?"],
+    ["T","我二十七岁。你呢？","Wǒ èrshíqī suì. Nǐ ne?","J'ai 27 ans. Et toi ?"],
+    ["W","我二十五岁。小李三十岁！","Wǒ èrshíwǔ suì. Xiǎo Lǐ sānshí suì!","J'ai 25 ans. Xiao Li a 30 ans !"],
+    ["L","不是！我二十九岁！","Bú shì! Wǒ èrshíjiǔ suì!","Pas du tout ! J'ai 29 ans !"],
+    ["W","哈哈，对不起！","Hāha, duìbuqǐ!","Haha, pardon !"],
+    ["L","没关系……明年三十。","Méi guānxi… míngnián sānshí.","Pas grave… J'aurai trente ans l'an prochain."]],
+    q: { q: "Quel âge a Xiao Li ?", opts: ["29 ans","30 ans","27 ans"] } },
+  cult: { title: "Les chiffres porte-bonheur", hz: "八", py: "bā", fr: "huit, le chiffre de la chance",
+    text: "<p>Le 8 se dit bā, qui rappelle 发 fā, « s'enrichir ». C'est le chiffre le plus recherché : numéros de téléphone, plaques d'immatriculation, dates de mariage. À l'inverse, 四 sì ressemble à 死 sǐ, « mourir ». Beaucoup d'immeubles n'ont pas de 4e étage, ou pas de 14e.</p><p>On compte aussi d'une seule main : 6 avec le pouce et l'auriculaire tendus, 8 avec le pouce et l'index en forme de L, 10 avec le poing fermé ou les index croisés. Pratique au marché, déroutant la première fois.</p>",
+    fact: "La cérémonie d'ouverture des JO de Pékin a commencé le 8/8/2008 à 20 h 08." } },
+
+{ id: "u4", lvl: "A1", hz: "家", title: "La famille", sub: "Frères, sœurs, possession",
+  words: [["家","jiā","famille, maison"],["爸爸","bàba","papa"],["妈妈","māma","maman"],["哥哥","gēge","grand frère"],["姐姐","jiějie","grande sœur"],["弟弟","dìdi","petit frère"],["妹妹","mèimei","petite sœur"],["和","hé","et (entre deux noms)"],["有","yǒu","avoir, il y a"],["没有","méiyǒu","ne pas avoir"],["的","de","particule de possession"],["个","gè","classificateur général"],["两","liǎng","deux (+ classificateur)"]],
+  pron: { title: "Le ton neutre",
+    text: "Certaines syllabes perdent leur ton : elles deviennent <b>courtes et légères</b>. C'est le cas du second caractère dans les mots redoublés de la famille, et des particules comme 吗, 呢, 的. En pinyin, elles n'ont pas d'accent, et l'application les affiche en gris.",
+    ex: [["爸爸","bàba","papa"],["妈妈","māma","maman"],["哥哥","gēge","grand frère"],["谢谢","xièxie","merci"],["我的","wǒ de","mon, à moi"]] },
+  gram: { title: "Possession et quantité", patterns: ["Sujet + 的 + Nom","Sujet + 有 + Nombre + 个 + Nom"],
+    text: "<b>的</b> marque la possession : 我的 = mon, à moi. Avec la famille proche, on l'omet souvent : 我妈妈 = ma mère. Entre un nombre et un nom, il faut un <b>classificateur</b> : 个 gè est le plus courant. Devant un classificateur, « deux » se dit 两 liǎng, pas 二. Enfin, la négation de 有 est toujours <b>没有</b>, jamais 不有.",
+    ex: [["我有一个哥哥。","Wǒ yǒu yí gè gēge.","J'ai un grand frère."],["她有两个妹妹。","Tā yǒu liǎng gè mèimei.","Elle a deux petites sœurs."],["我没有姐姐。","Wǒ méiyǒu jiějie.","Je n'ai pas de grande sœur."],["你家有几个人？","Nǐ jiā yǒu jǐ gè rén?","Vous êtes combien dans ta famille ?"]],
+    order: [{ fr: "J'ai deux petits frères.", t: [["我","wǒ"],["有","yǒu"],["两个","liǎng gè"],["弟弟","dìdi"]] },{ fr: "Je n'ai pas de grand frère.", t: [["我","wǒ"],["没有","méiyǒu"],["哥哥","gēge"]] }] },
+  dlg: { title: "Frères et sœurs", lines: [
+    ["L","汤姆，你家有几个人？","Tāngmǔ, nǐ jiā yǒu jǐ gè rén?","Tom, vous êtes combien dans ta famille ?"],
+    ["T","我家有五个人：爸爸、妈妈、两个妹妹和我。","Wǒ jiā yǒu wǔ gè rén: bàba, māma, liǎng gè mèimei hé wǒ.","Nous sommes cinq : papa, maman, mes deux petites sœurs et moi."],
+    ["L","你有哥哥吗？","Nǐ yǒu gēge ma?","Tu as un grand frère ?"],
+    ["T","没有。你呢？","Méiyǒu. Nǐ ne?","Non. Et toi ?"],
+    ["L","我有一个姐姐，她三十二岁。","Wǒ yǒu yí gè jiějie, tā sānshí'èr suì.","J'ai une grande sœur, elle a 32 ans."],
+    ["T","王芳呢？","Wáng Fāng ne?","Et Wang Fang ?"],
+    ["L","她有一个弟弟。","Tā yǒu yí gè dìdi.","Elle a un petit frère."]],
+    q: { q: "Combien sont-ils dans la famille de Tom ?", opts: ["Cinq","Quatre","Deux"] } },
+  cult: { title: "Une famille, beaucoup de mots", hz: "奶奶", py: "nǎinai", fr: "grand-mère (côté père)",
+    text: "<p>Le chinois distingue précisément chaque membre de la famille. La grand-mère paternelle est 奶奶 nǎinai, la maternelle 外婆 wàipó (ou 姥姥 lǎolao dans le nord). Il existe aussi un mot différent pour l'oncle côté père et côté mère, selon qu'il est plus âgé ou plus jeune que le parent.</p><p>Entre amis, on appelle volontiers un ami plus âgé 哥 gē (« grand frère ») ou 姐 jiě (« grande sœur »). De 1980 à 2015, la politique de l'enfant unique a fait de beaucoup de trentenaires des enfants uniques : leurs cousins jouent souvent le rôle de frères et sœurs.</p>",
+    fact: "Pour un cousin, on dit 表哥 biǎogē ou 堂哥 tánggē selon le côté de la famille." } },
+
+{ id: "u5", lvl: "A1", hz: "喜欢", title: "Goûts et loisirs", sub: "Aussi, tous, pas trop",
+  words: [["喜欢","xǐhuan","aimer, apprécier"],["看","kàn","regarder, lire"],["电影","diànyǐng","film"],["听","tīng","écouter"],["音乐","yīnyuè","musique"],["运动","yùndòng","sport, faire du sport"],["做饭","zuò fàn","cuisiner"],["玩","wán","jouer, s'amuser"],["游戏","yóuxì","jeu"],["我们","wǒmen","nous"],["也","yě","aussi"],["都","dōu","tous (les deux)"],["不太","bú tài","pas très, pas trop"]],
+  pron: { title: "j, q, x : la langue à plat",
+    text: "Ces trois consonnes sont toujours suivies d'un son i ou ü. La langue reste à plat, la pointe contre les dents du bas, les lèvres un peu souriantes. <b>j</b> ≈ « dj » doux, <b>q</b> ≈ « tch » avec un souffle d'air, <b>x</b> ≈ un son entre « s » et « ch ».",
+    ex: [["喜欢","xǐhuan","aimer"],["七","qī","sept"],["九","jiǔ","neuf"],["家","jiā","famille"],["去","qù","aller"]] },
+  gram: { title: "也 et 都 : aussi, tous", patterns: ["Sujet + 也 + Verbe","Sujet + 都 + Verbe"],
+    text: "En français, « aussi » peut aller en fin de phrase. En chinois, <b>也 et 都 se placent toujours juste avant le verbe</b> (ou l'adjectif). Pour dire « moi aussi », on dit 我也是. Attention : après une phrase négative, 我也是 se traduit par « moi non plus ».",
+    ex: [["我也喜欢音乐。","Wǒ yě xǐhuan yīnyuè.","Moi aussi, j'aime la musique."],["我们都喜欢看电影。","Wǒmen dōu xǐhuan kàn diànyǐng.","Nous aimons tous regarder des films."],["他不太喜欢运动。","Tā bú tài xǐhuan yùndòng.","Il n'aime pas trop le sport."],["你喜欢做饭吗？","Nǐ xǐhuan zuò fàn ma?","Tu aimes cuisiner ?"]],
+    order: [{ fr: "Moi aussi, j'aime cuisiner.", t: [["我","wǒ"],["也","yě"],["喜欢","xǐhuan"],["做饭","zuò fàn"]] },{ fr: "Nous aimons tous écouter de la musique.", t: [["我们","wǒmen"],["都","dōu"],["喜欢","xǐhuan"],["听音乐","tīng yīnyuè"]] }] },
+  dlg: { title: "Qu'est-ce que tu aimes ?", lines: [
+    ["W","汤姆，你喜欢做什么？","Tāngmǔ, nǐ xǐhuan zuò shénme?","Tom, qu'est-ce que tu aimes faire ?"],
+    ["T","我喜欢看电影，也喜欢听音乐。","Wǒ xǐhuan kàn diànyǐng, yě xǐhuan tīng yīnyuè.","J'aime regarder des films, et aussi écouter de la musique."],
+    ["W","我也喜欢看电影！小李呢？","Wǒ yě xǐhuan kàn diànyǐng! Xiǎo Lǐ ne?","Moi aussi, j'aime les films ! Et Xiao Li ?"],
+    ["L","我不太喜欢看电影。我喜欢运动，也喜欢玩游戏。","Wǒ bú tài xǐhuan kàn diànyǐng. Wǒ xǐhuan yùndòng, yě xǐhuan wán yóuxì.","Je n'aime pas trop les films. J'aime le sport, et aussi les jeux vidéo."],
+    ["T","你喜欢做饭吗？","Nǐ xǐhuan zuò fàn ma?","Tu aimes cuisiner ?"],
+    ["L","很喜欢！","Hěn xǐhuan!","J'adore !"],
+    ["W","我不太喜欢做饭。","Wǒ bú tài xǐhuan zuò fàn.","Moi, je n'aime pas trop cuisiner."],
+    ["T","我也是！哈哈。","Wǒ yě shì! Hāha.","Moi non plus ! Haha."]],
+    q: { q: "Qu'est-ce que Xiao Li aime faire ?", opts: ["Le sport et les jeux vidéo","Les films et la musique","Rien du tout"] } },
+  cult: { title: "Sortir entre amis", hz: "广场舞", py: "guǎngchǎngwǔ", fr: "la danse sur les places publiques",
+    text: "<p>Le soir, dans les parcs et sur les places, des groupes de retraités dansent en musique : c'est le 广场舞, la « danse de place ». Les plus jeunes, eux, réservent une salle privée de <b>KTV</b> (karaoké) pour chanter entre amis, parfois jusqu'au bout de la nuit.</p><p>Très à la mode aussi : le 剧本杀 jùběnshā, un jeu de rôle d'enquête où chacun incarne un personnage. Badminton et ping-pong restent des sports de quartier incontournables, et les jeux vidéo sur téléphone sont partout.</p>",
+    fact: "Proposer un KTV à tes amis est une invitation classique : personne ne juge la justesse." } },
+
+{ id: "u6", lvl: "A1", hz: "吃饭", title: "Manger ensemble", sub: "Commander, avoir envie",
+  words: [["吃","chī","manger"],["喝","hē","boire"],["饭","fàn","repas, riz cuit"],["菜","cài","plat, légume"],["茶","chá","thé"],["水","shuǐ","eau"],["咖啡","kāfēi","café"],["杯","bēi","tasse, verre (classificateur)"],["想","xiǎng","avoir envie de, penser"],["要","yào","vouloir, prendre (commander)"],["好吃","hǎochī","bon (à manger)"],["饿","è","avoir faim"],["一点儿","yìdiǎnr","un peu"]],
+  pron: { title: "z, c, s et le i bourdonnant",
+    text: "<b>z</b> ≈ « dz », <b>c</b> ≈ « ts » avec un souffle, <b>s</b> = « s ». Après z, c, s (et zh, ch, sh, r), la lettre i ne se prononce pas « i » : c'est un son bourdonnant, la bouche presque fermée. 四 sì ne se dit donc pas « si ».",
+    ex: [["菜","cài","plat"],["再见","zàijiàn","au revoir"],["四","sì","quatre"],["是","shì","être"],["吃","chī","manger"]] },
+  gram: { title: "想 et 要 : envie et commande", patterns: ["Sujet + 想 + Verbe","Sujet + 要 + Nombre + 杯 + Boisson"],
+    text: "<b>想</b> + verbe exprime une envie (« j'aimerais »). <b>要</b> est plus direct : c'est le verbe pour commander, ou dire ce qu'on prend. Entre amis au restaurant, 我要… est tout à fait poli.",
+    ex: [["我想喝茶。","Wǒ xiǎng hē chá.","J'ai envie d'un thé."],["我要一杯咖啡。","Wǒ yào yì bēi kāfēi.","Je prends un café."],["你想吃什么？","Nǐ xiǎng chī shénme?","Tu as envie de manger quoi ?"],["我不饿，我想喝一点儿水。","Wǒ bú è, wǒ xiǎng hē yìdiǎnr shuǐ.","Je n'ai pas faim, je voudrais un peu d'eau."]],
+    order: [{ fr: "J'ai envie de manger chinois.", t: [["我","wǒ"],["想","xiǎng"],["吃","chī"],["中国菜","Zhōngguó cài"]] },{ fr: "Je prends un café.", t: [["我","wǒ"],["要","yào"],["一杯","yì bēi"],["咖啡","kāfēi"]] }] },
+  dlg: { title: "On mange quoi ?", lines: [
+    ["L","汤姆，你饿吗？","Tāngmǔ, nǐ è ma?","Tom, tu as faim ?"],
+    ["T","很饿！我想吃中国菜。","Hěn è! Wǒ xiǎng chī Zhōngguó cài.","Très faim ! J'ai envie de manger chinois."],
+    ["W","你想吃什么菜？","Nǐ xiǎng chī shénme cài?","Tu veux manger quoi comme plat ?"],
+    ["T","我喜欢吃饺子！","Wǒ xǐhuan chī jiǎozi!","J'adore les raviolis (jiaozi) !"],
+    ["L","饺子很好吃！你想喝什么？","Jiǎozi hěn hǎochī! Nǐ xiǎng hē shénme?","Les jiaozi, c'est délicieux ! Tu veux boire quoi ?"],
+    ["T","我要一杯茶。","Wǒ yào yì bēi chá.","Je prends un thé."],
+    ["W","我也要茶。小李，你呢？","Wǒ yě yào chá. Xiǎo Lǐ, nǐ ne?","Moi aussi, un thé. Xiao Li, et toi ?"],
+    ["L","我不喝茶，我要一杯咖啡。","Wǒ bù hē chá, wǒ yào yì bēi kāfēi.","Je ne bois pas de thé, je prends un café."]],
+    q: { q: "Que commande Xiao Li ?", opts: ["Un café","Un thé","De l'eau"] } },
+  cult: { title: "Qui paie l'addition ?", hz: "我请客", py: "wǒ qǐngkè", fr: "c'est moi qui invite",
+    text: "<p>En Chine, on partage rarement l'addition. Entre amis, chacun essaie de payer pour tout le monde, parfois avec une véritable lutte amicale à la caisse. L'usage veut que l'autre invite la fois suivante. Le pourboire, lui, ne se pratique généralement pas.</p><p>Les plats sont posés au centre et tout le monde se sert avec ses baguettes. Une règle à retenir : ne plante jamais tes baguettes à la verticale dans un bol de riz, cela rappelle l'encens des rites funéraires.</p>",
+    fact: "Proposer 我请客 la prochaine fois que tes amis t'invitent fera très bonne impression." } },
+
+// ---------------- A2 ----------------
+{ id: "u7", lvl: "A2", hz: "几点", title: "L'heure et les rendez-vous", sub: "Fixer un moment ensemble",
+  words: [["现在","xiànzài","maintenant"],["点","diǎn","heure (« h »)"],["半","bàn","demi, et demie"],["分","fēn","minute"],["今天","jīntiān","aujourd'hui"],["明天","míngtiān","demain"],["晚上","wǎnshang","soir"],["星期","xīngqī","semaine"],["星期六","xīngqīliù","samedi"],["有空","yǒu kòng","être libre"],["一起","yìqǐ","ensemble"],["见","jiàn","voir, se retrouver"],["吧","ba","particule de suggestion"]],
+  pron: { title: "ü : le « u » français",
+    text: "Bonne nouvelle : le ü chinois est exactement le « u » de « lune ». Piège : après j, q, x et y, on écrit u mais on prononce ü. 去 qù se dit donc « tchu », pas « tchou ». Le u normal, lui, se prononce « ou » : 不 bù se dit « bou ».",
+    ex: [["去","qù","aller"],["女","nǚ","femme"],["鱼","yú","poisson"],["不","bù","ne… pas"],["五","wǔ","cinq"]] },
+  gram: { title: "Le moment avant l'action", patterns: ["Sujet + Quand + Verbe","Quand + Sujet + Verbe"],
+    text: "En chinois, on dit <b>quand</b> avant de dire <b>quoi</b>. L'expression de temps se place juste après le sujet, ou tout au début de la phrase, jamais à la fin comme dans « on se voit samedi ». Ajouter <b>吧</b> en fin de phrase transforme une affirmation en proposition : « …, ça te dit ? »",
+    ex: [["我明天晚上有空。","Wǒ míngtiān wǎnshang yǒu kòng.","Je suis libre demain soir."],["我们七点半见吧。","Wǒmen qī diǎn bàn jiàn ba.","On se retrouve à 7 h 30 ?"],["现在几点？","Xiànzài jǐ diǎn?","Quelle heure est-il ?"],["星期六我们一起看电影吧！","Xīngqīliù wǒmen yìqǐ kàn diànyǐng ba!","Samedi, on va voir un film ensemble ?"]],
+    order: [{ fr: "On se voit demain à 8 h.", t: [["我们","wǒmen"],["明天","míngtiān"],["八点","bā diǎn"],["见","jiàn"]], alt: [[1,0,2,3]] },{ fr: "Tu es libre samedi ?", t: [["你","nǐ"],["星期六","xīngqīliù"],["有空","yǒu kòng"],["吗","ma"]], alt: [[1,0,2,3]] }] },
+  dlg: { title: "Ciné samedi ?", lines: [
+    ["W","汤姆，你星期六有空吗？","Tāngmǔ, nǐ xīngqīliù yǒu kòng ma?","Tom, tu es libre samedi ?"],
+    ["T","有空。你想做什么？","Yǒu kòng. Nǐ xiǎng zuò shénme?","Oui. Tu veux faire quoi ?"],
+    ["W","我们一起看电影吧！小李也想看。","Wǒmen yìqǐ kàn diànyǐng ba! Xiǎo Lǐ yě xiǎng kàn.","Et si on allait voir un film ? Xiao Li veut le voir aussi."],
+    ["T","好啊！几点？","Hǎo a! Jǐ diǎn?","Avec plaisir ! À quelle heure ?"],
+    ["W","电影八点开始。我们七点半见吧？","Diànyǐng bā diǎn kāishǐ. Wǒmen qī diǎn bàn jiàn ba?","Le film commence à 8 h. On se retrouve à 7 h 30 ?"],
+    ["T","好！星期六晚上七点半见！","Hǎo! Xīngqīliù wǎnshang qī diǎn bàn jiàn!","Parfait ! À samedi soir, 7 h 30 !"]],
+    q: { q: "À quelle heure se retrouvent-ils ?", opts: ["19 h 30","20 h","7 h"] } },
+  cult: { title: "Une semaine en chiffres", hz: "星期天", py: "xīngqītiān", fr: "dimanche",
+    text: "<p>Les jours de la semaine sont numérotés : 星期一 « semaine-un » est lundi, jusqu'à 星期六, samedi. Seul dimanche fait exception : 星期天 ou 星期日. Les mois suivent la même logique : 一月 janvier, 二月 février… jusqu'à 十二月.</p><p>Autre surprise : toute la Chine vit à l'heure de Pékin, alors que le pays s'étend sur l'équivalent de cinq fuseaux horaires. Dans l'extrême ouest, au Xinjiang, le soleil se couche très tard, et beaucoup d'habitants utilisent une heure locale officieuse.</p>",
+    fact: "Pour « lundi », on entend aussi 周一 zhōuyī ou 礼拜一 lǐbàiyī." } },
+
+{ id: "u8", lvl: "A2", hz: "哪儿", title: "Où es-tu ?", sub: "Lieux, transports, distances",
+  words: [["去","qù","aller"],["来","lái","venir"],["哪儿","nǎr","où ?"],["这儿","zhèr","ici"],["那儿","nàr","là-bas"],["在","zài","être (à un endroit)"],["饭馆","fànguǎn","restaurant"],["地铁","dìtiě","métro"],["坐","zuò","prendre (un transport), s'asseoir"],["走路","zǒulù","marcher, à pied"],["远","yuǎn","loin"],["近","jìn","proche"],["离","lí","(distance) de"]],
+  pron: { title: "-n ou -ng ?",
+    text: "Les finales -n et -ng distinguent des mots différents. Pour <b>-n</b>, le bout de la langue touche l'arrière des dents du haut : son net, comme dans « Anne ». Pour <b>-ng</b>, la langue reste au fond et le son passe par le nez, comme à la fin de « camping ».",
+    ex: [["近","jìn","proche"],["星期","xīngqī","semaine"],["饭馆","fànguǎn","restaurant"],["中国","Zhōngguó","Chine"],["很","hěn","très"]] },
+  gram: { title: "Où ? Comment ? À quelle distance ?", patterns: ["Sujet + 在 + Lieu","Sujet + 坐 + Transport + 去 + Lieu","A + 离 + B + 远 / 近"],
+    text: "<b>在</b> + lieu indique où l'on se trouve, sans 是. Pour dire comment on va quelque part, le moyen de transport vient <b>avant</b> le verbe 去 : « je prends le métro aller ». <b>离</b> sert à parler de distance : A 离 B 很近 = A est près de B.",
+    ex: [["你在哪儿？","Nǐ zài nǎr?","Tu es où ?"],["我在饭馆。","Wǒ zài fànguǎn.","Je suis au restaurant."],["我坐地铁去。","Wǒ zuò dìtiě qù.","J'y vais en métro."],["饭馆离这儿很近。","Fànguǎn lí zhèr hěn jìn.","Le restaurant est tout près d'ici."]],
+    order: [{ fr: "Je vais au restaurant en métro.", t: [["我","wǒ"],["坐地铁","zuò dìtiě"],["去","qù"],["饭馆","fànguǎn"]] },{ fr: "Le restaurant est loin d'ici ?", t: [["饭馆","fànguǎn"],["离","lí"],["这儿","zhèr"],["远吗","yuǎn ma"]] }] },
+  dlg: { title: "Au téléphone", lines: [
+    ["T","喂，小李！你在哪儿？","Wéi, Xiǎo Lǐ! Nǐ zài nǎr?","Allô, Xiao Li ! Tu es où ?"],
+    ["L","我在地铁站。你呢？","Wǒ zài dìtiězhàn. Nǐ ne?","Je suis à la station de métro. Et toi ?"],
+    ["T","我在饭馆。王芳也在这儿。你来吗？","Wǒ zài fànguǎn. Wáng Fāng yě zài zhèr. Nǐ lái ma?","Je suis au restaurant. Wang Fang est là aussi. Tu viens ?"],
+    ["L","来！饭馆离地铁站远吗？","Lái! Fànguǎn lí dìtiězhàn yuǎn ma?","J'arrive ! Le restaurant est loin de la station ?"],
+    ["T","不远，很近。走路五分钟。","Bù yuǎn, hěn jìn. Zǒulù wǔ fēnzhōng.","Pas loin, c'est tout près. Cinq minutes à pied."],
+    ["L","好，我现在去！","Hǎo, wǒ xiànzài qù!","OK, j'y vais tout de suite !"]],
+    q: { q: "Comment Xiao Li va-t-il de la station au restaurant ?", opts: ["À pied, en cinq minutes","En métro","En taxi"] } },
+  cult: { title: "哪儿 ou 哪里 ?", hz: "哪里", py: "nǎlǐ", fr: "où ? (forme du sud)",
+    text: "<p>À Pékin et dans le nord, on ajoute volontiers un petit « r » en fin de mot : 哪儿 nǎr, 一点儿 yìdiǎnr. C'est le 儿化 érhuà. Dans le sud, on dit plutôt 哪里 nǎlǐ et 一点 yìdiǎn. Les deux formes sont correctes : demande à tes amis d'où ils viennent, et imite leur façon de parler.</p><p>Côté transports, les grandes villes ont des métros immenses, on paie presque tout en scannant un QR code, et le réseau de trains à grande vitesse, le 高铁 gāotiě, est le plus vaste du monde.</p>",
+    fact: "Si tes amis disent 哪里 au lieu de 哪儿, ils viennent probablement du sud." } },
+
+{ id: "u9", lvl: "A2", hz: "昨天", title: "Raconter sa journée", sub: "了 et l'action accomplie",
+  words: [["昨天","zuótiān","hier"],["了","le","action accomplie, changement"],["已经","yǐjīng","déjà"],["还没","hái méi","pas encore"],["买","mǎi","acheter"],["东西","dōngxi","chose, affaires"],["朋友","péngyou","ami, amie"],["很多","hěn duō","beaucoup (de)"],["累","lèi","fatigué"],["睡觉","shuìjiào","dormir, se coucher"],["开心","kāixīn","joyeux, content"],["回家","huí jiā","rentrer à la maison"]],
+  pron: { title: "不 change de ton",
+    text: "不 se dit bù, sauf devant un 4e ton : il devient alors <b>bú</b>. C'est pour ça que tu as vu 不是 bú shì et 不客气 bú kèqi. Comme pour 一, l'application écrit le ton réellement prononcé.",
+    ex: [["不是","bú shì","ce n'est pas"],["不太","bú tài","pas très"],["不想","bù xiǎng","ne pas avoir envie"],["不喝","bù hē","ne pas boire"],["不来","bù lái","ne pas venir"]] },
+  gram: { title: "了 : c'est fait !", patterns: ["Sujet + Verbe + 了 + Objet","Sujet + 没 + Verbe"],
+    text: "Le chinois n'a pas de passé composé, mais la particule <b>了</b> indique qu'une action est accomplie. Pour dire qu'on n'a pas fait quelque chose, on place <b>没</b> devant le verbe et 了 disparaît. 还没 = pas encore. En fin de phrase, 了 peut aussi signaler un changement : 我饿了 « j'ai faim (maintenant) ».",
+    ex: [["我昨天买了很多东西。","Wǒ zuótiān mǎile hěn duō dōngxi.","Hier, j'ai acheté plein de choses."],["你吃饭了吗？","Nǐ chī fàn le ma?","Tu as mangé ?"],["我还没吃。","Wǒ hái méi chī.","Je n'ai pas encore mangé."],["他已经回家了。","Tā yǐjīng huí jiā le.","Il est déjà rentré."]],
+    order: [{ fr: "Hier, j'ai vu un film.", t: [["我","wǒ"],["昨天","zuótiān"],["看了","kànle"],["一个电影","yí gè diànyǐng"]], alt: [[1,0,2,3]] },{ fr: "Je n'ai pas encore mangé.", t: [["我","wǒ"],["还没","hái méi"],["吃饭","chī fàn"]] }] },
+  dlg: { title: "Le lendemain", lines: [
+    ["W","汤姆，你昨天做什么了？","Tāngmǔ, nǐ zuótiān zuò shénme le?","Tom, tu as fait quoi hier ?"],
+    ["T","我和朋友去买东西了。买了很多东西！","Wǒ hé péngyou qù mǎi dōngxi le. Mǎile hěn duō dōngxi!","Je suis allé faire les magasins avec des amis. J'ai acheté plein de trucs !"],
+    ["W","你累吗？","Nǐ lèi ma?","Tu es fatigué ?"],
+    ["T","很累！我十点就睡觉了。","Hěn lèi! Wǒ shí diǎn jiù shuìjiào le.","Très ! Je me suis couché dès 22 h."],
+    ["W","小李呢？他回家了吗？","Xiǎo Lǐ ne? Tā huí jiā le ma?","Et Xiao Li ? Il est rentré ?"],
+    ["T","他还没回家，他在朋友家玩游戏！","Tā hái méi huí jiā, tā zài péngyou jiā wán yóuxì!","Il n'est pas encore rentré, il joue aux jeux vidéo chez un ami !"],
+    ["W","哈哈，他一定很开心！","Hāha, tā yídìng hěn kāixīn!","Haha, il doit être ravi !"]],
+    q: { q: "Qu'a fait Tom hier ?", opts: ["Du shopping avec des amis","Il a joué aux jeux vidéo","Il est allé au cinéma"] } },
+  cult: { title: "微信, l'appli à tout faire", hz: "微信", py: "Wēixìn", fr: "WeChat",
+    text: "<p>En Chine, WeChat ne sert pas seulement à envoyer des messages. On y paie ses courses, on y commande un taxi, on y partage ses photos dans le 朋友圈 péngyouquān, le « cercle d'amis ». Pour garder le contact avec des amis chinois, c'est presque toujours là que tout se passe.</p><p>Les messages vocaux y sont très populaires, souvent plus que l'écrit. Pour toi, c'est une chance : écouter et envoyer des vocaux est l'un des meilleurs entraînements possibles.</p>",
+    fact: "Envoie un petit vocal 你好！ à tes amis : c'est la meilleure façon de tester ta prononciation." } },
+
+{ id: "u10", lvl: "A2", hz: "天气", title: "Météo et ressenti", sub: "Les adjectifs sans 是",
+  words: [["天气","tiānqì","temps (météo)"],["怎么样","zěnmeyàng","comment ? ça va comment ?"],["冷","lěng","froid"],["热","rè","chaud"],["下雨","xià yǔ","pleuvoir"],["太…了","tài…le","trop… !","太好了"],["有点儿","yǒudiǎnr","un peu (souvent négatif)"],["觉得","juéde","trouver, avoir l'impression"],["舒服","shūfu","confortable, se sentir bien"],["漂亮","piàoliang","joli, beau"],["非常","fēicháng","extrêmement"],["身体","shēntǐ","corps, santé"]],
+  pron: { title: "Questions : les tons ne bougent pas",
+    text: "En français, on monte la voix pour poser une question. En chinois, ce sont les tons qui portent la mélodie : si tu montes la voix sur la dernière syllabe, tu risques de changer le mot. La question est marquée par 吗 ou par un mot interrogatif, prononcés légèrement.",
+    ex: [["你累吗？","Nǐ lèi ma?","Tu es fatigué ?"],["好吃吗？","Hǎochī ma?","C'est bon ?"],["天气怎么样？","Tiānqì zěnmeyàng?","Quel temps fait-il ?"],["冷吗？","Lěng ma?","Il fait froid ?"]] },
+  gram: { title: "Les adjectifs : sans 是 !", patterns: ["Sujet + 很 + Adjectif","太 + Adjectif + 了","Sujet + 有点儿 + Adjectif"],
+    text: "Un adjectif peut fonctionner comme un verbe : on ne dit <b>pas</b> 今天是冷, mais 今天<b>很</b>冷. Ici, 很 ne veut pas vraiment dire « très », il est presque obligatoire. 太…了 exprime l'excès ou l'enthousiasme : 太好了 ! « génial ! ». 有点儿 veut dire « un peu », mais pour quelque chose de négatif : 有点儿冷, jamais 有点儿漂亮.",
+    ex: [["今天很冷。","Jīntiān hěn lěng.","Il fait froid aujourd'hui."],["太好了！","Tài hǎo le!","Génial !"],["我有点儿累。","Wǒ yǒudiǎnr lèi.","Je suis un peu fatigué."],["你觉得怎么样？","Nǐ juéde zěnmeyàng?","Qu'est-ce que tu en penses ?"]],
+    order: [{ fr: "Aujourd'hui, il fait un peu froid.", t: [["今天","jīntiān"],["有点儿","yǒudiǎnr"],["冷","lěng"]] },{ fr: "Il fait vraiment beau aujourd'hui !", t: [["今天","jīntiān"],["天气","tiānqì"],["太好了","tài hǎo le"]] }] },
+  dlg: { title: "Pékin, Paris", lines: [
+    ["T","北京今天天气怎么样？","Běijīng jīntiān tiānqì zěnmeyàng?","Quel temps fait-il à Pékin aujourd'hui ?"],
+    ["W","有点儿冷，还下雨。","Yǒudiǎnr lěng, hái xià yǔ.","Un peu froid, et en plus il pleut."],
+    ["T","巴黎也很冷！","Bālí yě hěn lěng!","À Paris aussi, il fait froid !"],
+    ["W","你身体怎么样？昨天你很累。","Nǐ shēntǐ zěnmeyàng? Zuótiān nǐ hěn lèi.","Tu te sens comment ? Hier, tu étais très fatigué."],
+    ["T","今天很舒服，谢谢！","Jīntiān hěn shūfu, xièxie!","Aujourd'hui je me sens bien, merci !"],
+    ["W","太好了！天冷，多喝热水！","Tài hǎo le! Tiān lěng, duō hē rè shuǐ!","Super ! Il fait froid, bois beaucoup d'eau chaude !"],
+    ["T","哈哈，好的！","Hāha, hǎo de!","Haha, d'accord !"]],
+    q: { q: "Quel temps fait-il à Pékin ?", opts: ["Un peu froid et pluvieux","Très chaud","Beau et doux"] } },
+  cult: { title: "多喝热水, le remède universel", hz: "多喝热水", py: "duō hē rè shuǐ", fr: "bois beaucoup d'eau chaude",
+    text: "<p>Un rhume, un coup de fatigue, un mal de ventre ? La réponse sera presque toujours 多喝热水 : « bois beaucoup d'eau chaude ». Héritée en partie de la médecine traditionnelle, l'idée est d'éviter le froid dans le corps, y compris les boissons glacées.</p><p>La phrase est devenue un mème : en ligne, on se moque du petit ami qui répond 多喝热水 à tous les problèmes. Mais dans la vie, c'est une vraie marque d'attention.</p>",
+    fact: "Au restaurant, on te servira souvent de l'eau chaude sans même que tu la demandes." } },
+
+{ id: "u11", lvl: "A2", hz: "手机", title: "Garder le contact", sub: "Savoir, pouvoir, envoyer",
+  words: [["手机","shǒujī","téléphone portable"],["号码","hàomǎ","numéro"],["微信","Wēixìn","WeChat"],["发","fā","envoyer"],["消息","xiāoxi","message, nouvelle"],["打电话","dǎ diànhuà","téléphoner"],["给","gěi","à (quelqu'un), donner"],["等","děng","attendre"],["说","shuō","parler, dire"],["中文","Zhōngwén","chinois (langue)"],["会","huì","savoir faire (appris)"],["能","néng","pouvoir (être capable)"],["可以","kěyǐ","pouvoir (avoir le droit)"]],
+  pron: { title: "Numéros et 3e tons enchaînés",
+    text: "Dans les numéros (téléphone, chambre, bus), 一 se prononce souvent <b>yāo</b>, pour ne pas le confondre avec 七 qī. Et quand deux 3e tons se suivent, le premier devient un 2e ton : 可以 kěyǐ se dit « kéyǐ », 你好 se dit « ní hǎo ».",
+    ex: [["一一零","yāo yāo líng","110, la police","幺幺零"],["可以","kěyǐ","se dit « kéyǐ »"],["手机","shǒujī","portable"],["你好","nǐ hǎo","se dit « ní hǎo »"]] },
+  gram: { title: "会, 能, 可以 : trois « pouvoir »", patterns: ["会 + Verbe · savoir faire","能 + Verbe · être capable","可以 + Verbe · avoir le droit","给 + Personne + Verbe"],
+    text: "<b>会</b> : une compétence apprise (parler une langue, nager). <b>能</b> : la possibilité dans la situation (« tu peux m'attendre ? »). <b>可以</b> : la permission (« je peux t'appeler ? »). Dans la vie, 能 et 可以 se recoupent souvent. <b>给</b> + personne se place avant le verbe : 给我发消息 « envoie-moi un message ».",
+    ex: [["我会说一点儿中文。","Wǒ huì shuō yìdiǎnr Zhōngwén.","Je parle un peu chinois."],["你能等我吗？","Nǐ néng děng wǒ ma?","Tu peux m'attendre ?"],["我可以给你打电话吗？","Wǒ kěyǐ gěi nǐ dǎ diànhuà ma?","Je peux t'appeler ?"],["给我发微信吧！","Gěi wǒ fā Wēixìn ba!","Envoie-moi un message WeChat !"]],
+    order: [{ fr: "Je parle un peu chinois.", t: [["我","wǒ"],["会说","huì shuō"],["一点儿","yìdiǎnr"],["中文","Zhōngwén"]] },{ fr: "Je peux t'appeler ?", t: [["我","wǒ"],["可以","kěyǐ"],["给你","gěi nǐ"],["打电话吗","dǎ diànhuà ma"]] }] },
+  dlg: { title: "On s'ajoute ?", lines: [
+    ["W","汤姆，你的中文很好！","Tāngmǔ, nǐ de Zhōngwén hěn hǎo!","Tom, ton chinois est très bon !"],
+    ["T","谢谢！我会说一点儿。","Xièxie! Wǒ huì shuō yìdiǎnr.","Merci ! Je parle un peu."],
+    ["W","你有微信吗？我可以加你吗？","Nǐ yǒu Wēixìn ma? Wǒ kěyǐ jiā nǐ ma?","Tu as WeChat ? Je peux t'ajouter ?"],
+    ["T","可以！我给你我的手机号码。","Kěyǐ! Wǒ gěi nǐ wǒ de shǒujī hàomǎ.","Bien sûr ! Je te donne mon numéro."],
+    ["W","好，我给你发消息。","Hǎo, wǒ gěi nǐ fā xiāoxi.","OK, je t'envoie un message."],
+    ["T","晚上我能给你打电话吗？我想练习中文。","Wǎnshang wǒ néng gěi nǐ dǎ diànhuà ma? Wǒ xiǎng liànxí Zhōngwén.","Je peux t'appeler ce soir ? J'aimerais pratiquer mon chinois."],
+    ["W","可以！八点以后吧。","Kěyǐ! Bā diǎn yǐhòu ba.","Oui ! Après 20 h, d'accord ?"]],
+    q: { q: "Pourquoi Tom veut-il appeler Wang Fang ?", opts: ["Pour pratiquer son chinois","Pour l'inviter au cinéma","Pour lui demander son numéro"] } },
+  cult: { title: "520 veut dire « je t'aime »", hz: "五二零", py: "wǔ èr líng", fr: "520, qui sonne comme 我爱你",
+    text: "<p>Les Chinois adorent jouer avec les chiffres. 520 wǔ èr líng ressemble à 我爱你 wǒ ài nǐ, « je t'aime » : le 20 mai est devenu une fête des amoureux en ligne. 88 bābā veut dire « bye-bye », et 666 liùliùliù, « trop fort ! », vient des joueurs de jeux vidéo.</p><p>Dans les messages, 哈哈哈 est le rire de base : plus il y a de 哈, plus c'est drôle. Méfie-toi en revanche de l'émoji souriant tout simple de WeChat : beaucoup le perçoivent comme froid, voire ironique.</p>",
+    fact: "Pour ajouter quelqu'un sur WeChat, on scanne son QR code : 我扫你 wǒ sǎo nǐ, « je te scanne »." } },
+
+{ id: "u12", lvl: "A2", hz: "去过", title: "Expériences et voyages", sub: "过 : je l'ai déjà vécu",
+  words: [["过","guo","expérience vécue"],["次","cì","fois"],["第一次","dì yī cì","la première fois"],["旅游","lǚyóu","voyager (en touriste)"],["地方","dìfang","endroit"],["好玩","hǎowán","amusant, sympa"],["北京","Běijīng","Pékin"],["上海","Shànghǎi","Shanghai"],["长城","Chángchéng","la Grande Muraille"],["一定","yídìng","absolument, sûrement"],["从来没","cónglái méi","n'avoir jamais"],["还","hái","encore, en plus"]],
+  pron: { title: "Le 3e ton, en vrai",
+    text: "Dans les tableaux, le 3e ton descend puis remonte. Mais dans une phrase, il ne remonte presque jamais : il reste <b>bas et grave</b>, comme une voix qui grogne. Il ne remonte complètement que seul ou en fin de phrase. Écoute la différence.",
+    ex: [["好","hǎo","seul : descend et remonte"],["好吃","hǎochī","hǎo reste bas"],["北京","Běijīng","běi reste bas"],["我想去","wǒ xiǎng qù","se dit « wó xiǎng qù »"],["你好","nǐ hǎo","se dit « ní hǎo »"]] },
+  gram: { title: "过 : déjà vécu", patterns: ["Sujet + Verbe + 过 + Objet","Sujet + 没 + Verbe + 过","Verbe + 过 + Nombre + 次"],
+    text: "<b>过</b> après un verbe signifie qu'on a déjà vécu cette expérience, au moins une fois dans sa vie. Négation : 没 + verbe + 过, « je ne l'ai jamais fait », renforcée avec 从来没. Pour compter les fois, on utilise <b>次</b> après 过.",
+    ex: [["我去过北京。","Wǒ qùguo Běijīng.","Je suis déjà allé à Pékin."],["你吃过饺子吗？","Nǐ chīguo jiǎozi ma?","Tu as déjà mangé des jiaozi ?"],["我从来没去过上海。","Wǒ cónglái méi qùguo Shànghǎi.","Je ne suis jamais allé à Shanghai."],["我去过两次长城。","Wǒ qùguo liǎng cì Chángchéng.","Je suis allé deux fois à la Grande Muraille."]],
+    order: [{ fr: "Je suis déjà allé en Chine.", t: [["我","wǒ"],["去过","qùguo"],["中国","Zhōngguó"]] },{ fr: "Je ne suis jamais allé à Shanghai.", t: [["我","wǒ"],["没","méi"],["去过","qùguo"],["上海","Shànghǎi"]] }] },
+  dlg: { title: "Tu es déjà allé en Chine ?", lines: [
+    ["L","汤姆，你去过中国吗？","Tāngmǔ, nǐ qùguo Zhōngguó ma?","Tom, tu es déjà allé en Chine ?"],
+    ["T","没去过。你去过法国吗？","Méi qùguo. Nǐ qùguo Fǎguó ma?","Jamais. Et toi, tu es déjà allé en France ?"],
+    ["L","去过一次。我非常喜欢巴黎。","Qùguo yí cì. Wǒ fēicháng xǐhuan Bālí.","Une fois. J'ai adoré Paris."],
+    ["W","汤姆，你一定要来中国旅游！","Tāngmǔ, nǐ yídìng yào lái Zhōngguó lǚyóu!","Tom, il faut absolument que tu viennes visiter la Chine !"],
+    ["T","我想去北京看长城。好玩吗？","Wǒ xiǎng qù Běijīng kàn Chángchéng. Hǎowán ma?","J'aimerais aller à Pékin voir la Grande Muraille. C'est sympa ?"],
+    ["L","非常好玩！可是人很多。","Fēicháng hǎowán! Kěshì rén hěn duō.","Génial ! Mais il y a beaucoup de monde."],
+    ["W","你来北京，我们带你玩！","Nǐ lái Běijīng, wǒmen dài nǐ wán!","Si tu viens à Pékin, on te fait visiter !"]],
+    q: { q: "Combien de fois Xiao Li est-il allé en France ?", opts: ["Une fois","Jamais","Deux fois"] } },
+  cult: { title: "Une langue, beaucoup de parlers", hz: "普通话", py: "Pǔtōnghuà", fr: "le mandarin standard",
+    text: "<p>Ce que tu apprends s'appelle 普通话 Pǔtōnghuà, « la langue commune ». Basé sur la prononciation de Pékin, il est enseigné à l'école dans toute la Chine. Mais beaucoup de Chinois parlent aussi une langue régionale, souvent incompréhensible pour les autres : le cantonais 粤语 Yuèyǔ à Canton et Hong Kong, le shanghaïen, le minnan à Taïwan et au Fujian…</p><p>À l'écrit, la Chine continentale utilise des caractères simplifiés, tandis que Taïwan, Hong Kong et Macao gardent les caractères traditionnels.</p>",
+    fact: "Demande à tes amis s'ils parlent un dialecte : ils seront ravis de t'en apprendre quelques mots." } },
+
+// ---------------- B1 ----------------
+{ id: "u13", lvl: "B1", hz: "比较", title: "Comparer et choisir", sub: "比, 更, 最, 还是",
+  words: [["比","bǐ","par rapport à (comparaison)"],["更","gèng","encore plus"],["最","zuì","le plus"],["一样","yíyàng","pareil"],["跟","gēn","avec, et"],["还是","háishi","ou (dans une question)"],["比较","bǐjiào","plutôt, assez"],["便宜","piányi","bon marché"],["贵","guì","cher"],["方便","fāngbiàn","pratique"],["差不多","chàbuduō","à peu près pareil"],["选","xuǎn","choisir"]],
+  pron: { title: "Le rythme des expressions",
+    text: "Le chinois adore les expressions en quatre syllabes. Pour bien les dire, garde chaque ton net et donne à toutes les syllabes la même durée, comme un métronome. 马马虎虎, littéralement « cheval cheval tigre tigre », veut dire « comme ci, comme ça ».",
+    ex: [["马马虎虎","mǎmahūhū","comme ci, comme ça"],["差不多","chàbuduō","à peu près"],["一模一样","yìmú yíyàng","identique"],["越来越好","yuèláiyuè hǎo","de mieux en mieux"]] },
+  gram: { title: "Comparer", patterns: ["A + 比 + B + Adjectif","A + 跟 + B + 一样 + Adjectif","X + 还是 + Y ？"],
+    text: "Avec <b>比</b>, on ne met jamais 很 : 北京比上海冷 (et non 很冷). Pour insister, on ajoute <b>更</b> « encore plus ». <b>最</b> donne le superlatif, <b>一样</b> l'égalité. Dans une question qui propose un choix, « ou » se dit <b>还是</b>.",
+    ex: [["北京比上海冷。","Běijīng bǐ Shànghǎi lěng.","Pékin est plus froid que Shanghai."],["火锅比饺子更贵。","Huǒguō bǐ jiǎozi gèng guì.","La fondue chinoise est encore plus chère que les jiaozi."],["地铁跟出租车一样方便。","Dìtiě gēn chūzūchē yíyàng fāngbiàn.","Le métro est aussi pratique que le taxi."],["你想喝茶还是喝咖啡？","Nǐ xiǎng hē chá háishi hē kāfēi?","Tu veux du thé ou du café ?"]],
+    order: [{ fr: "Le thé est moins cher que le café.", t: [["茶","chá"],["比","bǐ"],["咖啡","kāfēi"],["便宜","piányi"]] },{ fr: "Tu veux du thé ou du café ?", t: [["你想喝","nǐ xiǎng hē"],["茶","chá"],["还是","háishi"],["咖啡","kāfēi"]] }] },
+  dlg: { title: "Fondue ou raviolis ?", lines: [
+    ["W","今天晚上我们吃火锅还是吃饺子？","Jīntiān wǎnshang wǒmen chī huǒguō háishi chī jiǎozi?","Ce soir, on mange une fondue chinoise ou des jiaozi ?"],
+    ["L","火锅比饺子贵，但是更好吃！","Huǒguō bǐ jiǎozi guì, dànshì gèng hǎochī!","La fondue est plus chère que les jiaozi, mais encore meilleure !"],
+    ["T","我觉得差不多，两个我都喜欢。","Wǒ juéde chàbuduō, liǎng gè wǒ dōu xǐhuan.","Pour moi, c'est pareil : j'aime les deux."],
+    ["W","汤姆，你最喜欢什么中国菜？","Tāngmǔ, nǐ zuì xǐhuan shénme Zhōngguó cài?","Tom, quel plat chinois tu préfères ?"],
+    ["T","我最喜欢饺子。可是我还没吃过火锅。","Wǒ zuì xǐhuan jiǎozi. Kěshì wǒ hái méi chīguo huǒguō.","Les jiaozi. Mais je n'ai encore jamais mangé de fondue chinoise."],
+    ["L","那今天一定要吃火锅！","Nà jīntiān yídìng yào chī huǒguō!","Alors ce soir, c'est fondue, obligé !"],
+    ["W","好！离这儿最近的那家比较便宜，也很方便。","Hǎo! Lí zhèr zuì jìn de nà jiā bǐjiào piányi, yě hěn fāngbiàn.","OK ! Celle qui est la plus proche d'ici est plutôt bon marché, et c'est pratique."]],
+    q: { q: "Que vont-ils manger ce soir ?", opts: ["Une fondue chinoise (火锅)","Des jiaozi","Des plats français"] } },
+  cult: { title: "面子 : ne pas perdre la face", hz: "哪里哪里", py: "nǎlǐ nǎlǐ", fr: "oh non, pas du tout (réponse modeste)",
+    text: "<p>Le 面子 miànzi, la « face », c'est l'image qu'on donne aux autres. On évite de mettre quelqu'un dans l'embarras devant un groupe : une critique se fait en privé, avec tact. On offre et on reçoit aussi les cadeaux ou les cartes de visite à deux mains.</p><p>Face à un compliment, on répond avec modestie : 哪里哪里 nǎlǐ nǎlǐ (littéralement « où ça, où ça ? ») ou 还好 hái hǎo, « ça va ». Tes amis te diront 你的中文很好 ! dès ton premier 你好. Réponds 哪里哪里, et ils seront vraiment impressionnés.</p>",
+    fact: "Dire merci trop souvent à des amis proches peut sembler distant : entre proches, on se rend service sans compter." } },
+
+{ id: "u14", lvl: "B1", hz: "因为", title: "Donner son avis", sub: "Parce que, bien que, en fait",
+  words: [["因为","yīnwèi","parce que"],["所以","suǒyǐ","donc, c'est pourquoi"],["但是","dànshì","mais"],["虽然","suīrán","bien que"],["认为","rènwéi","estimer, considérer"],["同意","tóngyì","être d'accord"],["有意思","yǒu yìsi","intéressant"],["问题","wèntí","question, problème"],["其实","qíshí","en fait"],["当然","dāngrán","bien sûr"],["可能","kěnéng","peut-être, possible"],["难","nán","difficile"]],
+  pron: { title: "Les particules qui changent tout",
+    text: "En fin de phrase, une petite particule au ton neutre change l'humeur : 好吧 « bon, d'accord… » (un peu résigné), 好啊 « oh oui, avec plaisir ! », 好吗 ? « d'accord ? ». 是吗 ? veut dire « ah bon ? ». La voix de synthèse rend mal l'émotion : imite surtout l'intention.",
+    ex: [["好吧","hǎo ba","bon, d'accord…"],["好啊","hǎo a","oh oui !"],["好吗","hǎo ma","d'accord ?"],["是吗","shì ma","ah bon ?"]] },
+  gram: { title: "Relier ses idées", patterns: ["因为 … ，所以 …","虽然 … ，但是 …"],
+    text: "En français, on dit « parce que » ou « donc », rarement les deux. En chinois, on aime utiliser <b>la paire complète</b> : 因为…所以…, 虽然…但是… Cela structure la phrase et aide l'autre à suivre. À l'oral, on garde parfois une seule des deux moitiés.",
+    ex: [["因为下雨，所以我们不去了。","Yīnwèi xià yǔ, suǒyǐ wǒmen bú qù le.","Comme il pleut, on n'y va plus."],["虽然中文很难，但是很有意思。","Suīrán Zhōngwén hěn nán, dànshì hěn yǒu yìsi.","Le chinois a beau être difficile, c'est passionnant."],["其实我觉得没问题。","Qíshí wǒ juéde méi wèntí.","En fait, je pense que ça ne pose pas de problème."],["我不同意，因为太贵了。","Wǒ bù tóngyì, yīnwèi tài guì le.","Je ne suis pas d'accord, parce que c'est trop cher."]],
+    order: [{ fr: "Bien que ce soit cher, c'est très bon.", t: [["虽然","suīrán"],["很贵","hěn guì"],["但是","dànshì"],["很好吃","hěn hǎochī"]] },{ fr: "Comme je suis fatigué, je rentre.", t: [["因为","yīnwèi"],["我很累","wǒ hěn lèi"],["所以","suǒyǐ"],["我回家了","wǒ huí jiā le"]] }] },
+  dlg: { title: "Le chinois, c'est dur ?", lines: [
+    ["L","汤姆，你觉得中文难吗？","Tāngmǔ, nǐ juéde Zhōngwén nán ma?","Tom, tu trouves le chinois difficile ?"],
+    ["T","虽然声调很难，但是我觉得很有意思。","Suīrán shēngdiào hěn nán, dànshì wǒ juéde hěn yǒu yìsi.","Les tons ont beau être difficiles, je trouve ça passionnant."],
+    ["W","我同意！其实汉字更难。","Wǒ tóngyì! Qíshí Hànzì gèng nán.","D'accord avec toi ! En fait, les caractères sont encore plus durs."],
+    ["T","当然！因为汉字太多了，所以我先学拼音。","Dāngrán! Yīnwèi Hànzì tài duō le, suǒyǐ wǒ xiān xué pīnyīn.","Évidemment ! Comme il y a énormément de caractères, j'apprends d'abord le pinyin."],
+    ["L","我认为一年以后你可能就能跟我们聊天了！","Wǒ rènwéi yì nián yǐhòu nǐ kěnéng jiù néng gēn wǒmen liáotiān le!","Je pense que dans un an, tu pourras sûrement discuter avec nous !"],
+    ["T","真的吗？那太好了！","Zhēn de ma? Nà tài hǎo le!","C'est vrai ? Ce serait génial !"],
+    ["W","没问题，我们每天跟你说中文！","Méi wèntí, wǒmen měitiān gēn nǐ shuō Zhōngwén!","Pas de problème, on te parlera chinois tous les jours !"]],
+    q: { q: "Selon Wang Fang, qu'est-ce qui est le plus difficile ?", opts: ["Les caractères (汉字)","Les tons","Le pinyin"] } },
+  cult: { title: "Dire non sans dire non", hz: "再说吧", py: "zài shuō ba", fr: "on verra (souvent : non)",
+    text: "<p>Un « non » direct peut sembler brutal. On préfère des formules plus douces : 不太方便 « ce n'est pas très pratique », 我考虑一下 « je vais y réfléchir », ou 再说吧 « on en reparlera ». Dans bien des cas, cela veut dire non, poliment.</p><p>L'inverse existe aussi : quand on t'invite ou qu'on t'offre quelque chose, il est d'usage de refuser une première fois par politesse, avant d'accepter. Si tes amis insistent, ils sont sincères.</p>",
+    fact: "Un 没问题 méi wèntí franc et rapide, lui, veut vraiment dire « aucun problème »." } },
+
+{ id: "u15", lvl: "B1", hz: "打算", title: "Projets et avenir", sub: "Prévoir, espérer, progresser",
+  words: [["打算","dǎsuan","prévoir de, projet"],["准备","zhǔnbèi","préparer, s'apprêter à"],["以后","yǐhòu","plus tard, après"],["明年","míngnián","l'an prochain"],["学","xué","apprendre, étudier"],["汉字","Hànzì","caractère chinois"],["工作","gōngzuò","travail, travailler"],["希望","xīwàng","espérer"],["机会","jīhuì","occasion"],["越来越","yuèláiyuè","de plus en plus"],["正在","zhèngzài","être en train de"],["春节","Chūnjié","Fête du Printemps"]],
+  pron: { title: "Les vœux du Nouvel An",
+    text: "Pour le Nouvel An chinois, tout le monde échange des vœux en quatre syllabes. Lis-les lentement, chaque ton bien posé, puis accélère. Tes amis seront ravis de les recevoir en message vocal.",
+    ex: [["新年快乐","xīnnián kuàilè","bonne année"],["恭喜发财","gōngxǐ fācái","prospérité !"],["身体健康","shēntǐ jiànkāng","bonne santé"],["万事如意","wànshì rúyì","que tout aille comme tu le souhaites"]] },
+  gram: { title: "Parler de ses projets", patterns: ["Sujet + 打算 / 准备 + Verbe","越来越 + Adjectif","Sujet + 正在 + Verbe"],
+    text: "Le chinois n'a pas de futur : on utilise des verbes de projet comme <b>打算</b> (prévoir de) ou <b>准备</b> (s'apprêter à), et des mots de temps (明年, 以后). <b>越来越</b> + adjectif décrit une évolution, souvent avec 了 à la fin. <b>正在</b> + verbe indique une action en cours.",
+    ex: [["我打算明年去中国。","Wǒ dǎsuan míngnián qù Zhōngguó.","Je prévois d'aller en Chine l'an prochain."],["我的中文越来越好了。","Wǒ de Zhōngwén yuèláiyuè hǎo le.","Mon chinois s'améliore de plus en plus."],["我正在学汉字。","Wǒ zhèngzài xué Hànzì.","Je suis en train d'apprendre les caractères."],["希望以后有机会一起旅游。","Xīwàng yǐhòu yǒu jīhuì yìqǐ lǚyóu.","J'espère qu'on aura l'occasion de voyager ensemble."]],
+    order: [{ fr: "Mon chinois s'améliore de plus en plus.", t: [["我的中文","wǒ de Zhōngwén"],["越来越","yuèláiyuè"],["好了","hǎo le"]] },{ fr: "Je prévois d'aller en Chine l'an prochain.", t: [["我","wǒ"],["打算","dǎsuan"],["明年","míngnián"],["去中国","qù Zhōngguó"]], alt: [[0,2,1,3],[2,0,1,3]] }] },
+  dlg: { title: "Rendez-vous à Pékin", lines: [
+    ["W","汤姆，春节你有什么打算？","Tāngmǔ, Chūnjié nǐ yǒu shénme dǎsuan?","Tom, qu'est-ce que tu prévois pour le Nouvel An chinois ?"],
+    ["T","我正在准备去中国！我打算二月去北京。","Wǒ zhèngzài zhǔnbèi qù Zhōngguó! Wǒ dǎsuan èryuè qù Běijīng.","Je suis en train de préparer un voyage en Chine ! Je compte aller à Pékin en février."],
+    ["L","太好了！春节的时候，你可以来我家吃年夜饭。","Tài hǎo le! Chūnjié de shíhou, nǐ kěyǐ lái wǒ jiā chī niányèfàn.","Génial ! Pour la fête, tu peux venir chez moi pour le repas du réveillon."],
+    ["T","真的吗？谢谢你！我希望有机会认识你的家人。","Zhēn de ma? Xièxie nǐ! Wǒ xīwàng yǒu jīhuì rènshi nǐ de jiārén.","C'est vrai ? Merci ! J'espère avoir l'occasion de rencontrer ta famille."],
+    ["W","汤姆，你的中文越来越好了！","Tāngmǔ, nǐ de Zhōngwén yuèláiyuè hǎo le!","Tom, ton chinois s'améliore de plus en plus !"],
+    ["T","哪里哪里！因为你们每天跟我说中文。","Nǎlǐ nǎlǐ! Yīnwèi nǐmen měitiān gēn wǒ shuō Zhōngwén.","Oh, pas du tout ! C'est parce que vous me parlez chinois tous les jours."],
+    ["L","那我们北京见！","Nà wǒmen Běijīng jiàn!","Alors, rendez-vous à Pékin !"]],
+    q: { q: "Que propose Xiao Li à Tom ?", opts: ["Venir au repas du réveillon chez lui","Visiter la Grande Muraille","Apprendre les caractères ensemble"] } },
+  cult: { title: "春节, la Fête du Printemps", hz: "红包", py: "hóngbāo", fr: "enveloppe rouge",
+    text: "<p>Le Nouvel An chinois suit le calendrier lunaire : il tombe entre fin janvier et mi-février. C'est la plus grande fête de l'année. La veille, toute la famille se réunit pour le 年夜饭 niányèfàn, le repas du réveillon, et on colle sur les portes des bandes de papier rouge portant des vœux.</p><p>On offre aux enfants et aux plus jeunes des 红包, des enveloppes rouges contenant de l'argent. Aujourd'hui, on les envoie aussi sur WeChat, parfois sous forme de jeu entre amis : le premier qui clique gagne la plus grosse part.</p>",
+    fact: "Pendant le 春运, la période des retours du Nouvel An, des centaines de millions de personnes traversent le pays pour rentrer en famille." } }
+];
+
+// Prononciation (onglet Sons)
+const TONE_SETS = [
+  { base: "ma", hz: ["妈","麻","马","骂"], fr: ["maman","chanvre","cheval","gronder"] },
+  { base: "ba", hz: ["八","拔","把","爸"], fr: ["huit","arracher","tenir","papa"] },
+  { base: "yi", hz: ["衣","姨","椅","意"], fr: ["vêtement","tante","chaise","sens"] },
+  { base: "tang", hz: ["汤","糖","躺","烫"], fr: ["soupe","sucre","s'allonger","brûlant"] },
+  { base: "shu", hz: ["书","熟","鼠","树"], fr: ["livre","mûr","souris","arbre"] },
+  { base: "wu", hz: ["屋","无","五","雾"], fr: ["pièce","sans","cinq","brouillard"] },
+  { base: "tong", hz: ["通","同","桶","痛"], fr: ["passer","pareil","seau","douleur"] }
+];
+
+const SOUNDS = [
+  ["b · p", "b est un « p » sans souffle ; p est un « p » avec une bouffée d'air. Mets ta main devant ta bouche pour sentir la différence.", "八", "bā", "朋友", "péngyou"],
+  ["d · t", "Même logique : d est un « t » sans souffle, t est un « t » soufflé.", "弟弟", "dìdi", "天气", "tiānqì"],
+  ["g · k", "g est un « k » sans souffle, k est un « k » soufflé.", "哥哥", "gēge", "咖啡", "kāfēi"],
+  ["h", "Raclé au fond de la gorge, comme la jota espagnole.", "好", "hǎo", "喝", "hē"],
+  ["j · q · x", "Langue à plat, sourire : « dj », « tch » soufflé, et un son entre « s » et « ch ».", "家", "jiā", "七", "qī"],
+  ["z · c · s", "« dz », « ts » soufflé, et « s ».", "再见", "zàijiàn", "菜", "cài"],
+  ["zh · ch · sh · r", "Langue recourbée vers le palais : « dj », « tch », « ch », et un « j » de « jour ».", "中国", "Zhōngguó", "人", "rén"],
+  ["u", "Toujours « ou ».", "不", "bù", "五", "wǔ"],
+  ["ü, et u après j q x y", "Le « u » français de « lune ».", "去", "qù", "女", "nǚ"],
+  ["e", "Un « eu » sourd, venu du fond de la gorge.", "喝", "hē", "饿", "è"],
+  ["ie · üe", "Se prononcent « iè » et « uè ».", "姐姐", "jiějie", "音乐", "yīnyuè"],
+  ["i après z c s zh ch sh r", "Pas de « i » : un bourdonnement, bouche presque fermée.", "是", "shì", "四", "sì"],
+  ["ui · iu", "ui se dit « ouei », iu se dit « io ».", "对不起", "duìbuqǐ", "九", "jiǔ"],
+  ["-n · -ng", "-n contre les dents du haut ; -ng au fond, comme dans « camping ».", "饭馆", "fànguǎn", "星期", "xīngqī"],
+  ["er", "Un « eur » avec la langue recourbée.", "二", "èr", "哪儿", "nǎr"]
+];
+
+const SANDHI = [
+  { t: "Deux 3e tons de suite", d: "Le premier devient un 2e ton. On écrit nǐ hǎo, mais on dit « ní hǎo ».", ex: [["你好","nǐ hǎo"],["可以","kěyǐ"],["我想","wǒ xiǎng"]] },
+  { t: "不 devant un 4e ton", d: "不 bù devient bú. L'application écrit directement bú.", ex: [["不是","bú shì"],["不客气","bú kèqi"],["不太","bú tài"]] },
+  { t: "一 selon le ton suivant", d: "yí devant un 4e ton, yì devant les autres, yī quand on compte.", ex: [["一个","yí gè"],["一起","yìqǐ"],["十一","shíyī"]] },
+  { t: "Le ton neutre", d: "Syllabe courte et légère, sans accent en pinyin, en gris dans l'application.", ex: [["爸爸","bàba"],["谢谢","xièxie"],["你呢","nǐ ne"]] }
+];
+
+// ===== Mandarin entre amis : moteur =====
+const STEPS = [
+  { k: "sons", n: "Sons", ic: "音", min: 3, d: "Un point de prononciation" },
+  { k: "mots", n: "Mots", ic: "词", min: 5, d: "Cartes et petit quiz" },
+  { k: "gram", n: "Grammaire", ic: "法", min: 4, d: "Une structure, des phrases à construire" },
+  { k: "dlg", n: "Dialogue", ic: "话", min: 3, d: "Une scène entre amis" },
+  { k: "cult", n: "Culture", ic: "文", min: 2, d: "Un court récit" },
+  { k: "defi", n: "Défi", ic: "印", min: 4, d: "Gagne le sceau de l'unité" }
+];
+const DAY = 86400000;
+const INTERVALS = [0, 1, 3, 7, 16, 35]; // jours par boîte
+
+// ---------- utilitaires ----------
+const $ = (s, r = document) => r.querySelector(s);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const dayStr = d => { const x = new Date(d); return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); };
+const ttsText = s => String(s).replace(/[（(][^)）]*[)）]/g, "").replace(/…+/g, "，");
+
+// ---------- état ----------
+const KEY = "mandarin-entre-amis-v1";
+const DEFAULT = { done: {}, words: {}, streak: { n: 0, last: null }, best: 0, settings: { pinyin: "auto", rate: 0.8, tones: true } };
+let S = load();
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) { const o = JSON.parse(raw); return Object.assign({}, DEFAULT, o, { settings: Object.assign({}, DEFAULT.settings, o.settings || {}) }); } } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function markActivity() {
+  const t = dayStr(Date.now()), y = dayStr(Date.now() - DAY);
+  if (S.streak.last === t) return;
+  S.streak.n = S.streak.last === y ? S.streak.n + 1 : 1;
+  S.streak.last = t; save();
+}
+function streakNow() { const t = dayStr(Date.now()), y = dayStr(Date.now() - DAY); return (S.streak.last === t || S.streak.last === y) ? S.streak.n : 0; }
+
+// mots à plat
+const ALLW = [];
+UNITS.forEach((u, ui) => u.words.forEach(w => ALLW.push({ h: w[0], p: w[1], f: w[2], tts: w[3] || w[0], u: u.id, ui, lvl: u.lvl })));
+const WMAP = Object.fromEntries(ALLW.map(w => [w.h, w]));
+const unitById = id => UNITS.find(u => u.id === id);
+
+// SRS
+function srsAdd(h) { if (!S.words[h]) S.words[h] = { b: 1, d: Date.now() + DAY }; }
+function srsAnswer(h, ok) {
+  const w = S.words[h]; if (!w) return;
+  if (ok) { w.b = Math.min(5, w.b + 1); w.d = Date.now() + INTERVALS[w.b] * DAY; }
+  else { w.b = 1; w.d = Date.now() + 10 * 60000; }
+  save();
+}
+const dueWords = () => Object.keys(S.words).filter(h => S.words[h].d <= Date.now() && WMAP[h]).sort((a, b) => S.words[a].d - S.words[b].d);
+const knownCount = () => Object.keys(S.words).filter(h => S.words[h].b >= 4).length;
+
+const isDone = (u, k) => !!S.done[u.id + ":" + k];
+const unitDone = u => STEPS.every(s => isDone(u, s.k));
+const unitCount = u => STEPS.filter(s => isDone(u, s.k)).length;
+
+// ---------- pinyin coloré ----------
+const TM = { a: "aāáǎà", e: "eēéěè", i: "iīíǐì", o: "oōóǒò", u: "uūúǔù", "ü": "üǖǘǚǜ" };
+const STRIP = {}; const TONEOF = {};
+for (const v in TM) for (let t = 0; t < 5; t++) { STRIP[TM[v][t]] = v; if (t) TONEOF[TM[v][t]] = t; }
+const INI = ["zh", "ch", "sh", "b", "p", "m", "f", "d", "t", "n", "l", "g", "k", "h", "j", "q", "x", "r", "z", "c", "s", "y", "w"];
+const FIN = new Set("a o e i u ü ai ei ao ou an en ang eng ong er ia ie iao iu ian in iang ing iong ua uo uai ui uan un uang ueng üe üan ün ue".split(" "));
+const baseOf = s => [...s.toLowerCase()].map(c => STRIP[c] || c).join("");
+function validSyl(s, first, last) {
+  if (last && s.length > 1 && s.endsWith("r") && validSyl(s.slice(0, -1), first, false)) return true;
+  for (const i of INI) if (s.startsWith(i)) { const f = s.slice(i.length); if (f && FIN.has(f)) return true; }
+  return first && FIN.has(s) && /^[aoe]/.test(s);
+}
+function splitWord(word) {
+  const b = baseOf(word), n = b.length, memo = {};
+  const go = pos => {
+    if (pos === n) return [];
+    if (pos in memo) return memo[pos];
+    for (let len = Math.min(7, n - pos); len >= 1; len--) {
+      if (validSyl(b.slice(pos, pos + len), pos === 0, pos + len === n)) { const r = go(pos + len); if (r) return (memo[pos] = [len, ...r]); }
+    }
+    return (memo[pos] = null);
+  };
+  const lens = go(0); if (!lens) return null;
+  const out = []; let p = 0; const chars = [...word];
+  for (const l of lens) { out.push(chars.slice(p, p + l).join("")); p += l; }
+  return out;
+}
+const toneOf = syl => { for (const c of syl) if (TONEOF[c]) return TONEOF[c]; return 5; };
+const LETTERS = /[A-Za-züÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜĀÁǍÀĒÉĚÈĪÍǏÌŌÓǑÒŪÚǓÙ]+/g;
+function colorize(py) {
+  let out = "", last = 0;
+  py.replace(LETTERS, (m, off) => {
+    out += esc(py.slice(last, off)); last = off + m.length;
+    const syl = splitWord(m);
+    out += syl ? syl.map(s => `<span class="t${toneOf(s)}">${esc(s)}</span>`).join("") : esc(m);
+    return m;
+  });
+  return out + esc(py.slice(last));
+}
+function addTone(base, t) {
+  if (t === 5) return base;
+  let idx = base.indexOf("a"); if (idx < 0) idx = base.indexOf("e");
+  if (idx < 0 && base.includes("ou")) idx = base.indexOf("o");
+  if (idx < 0) for (let i = base.length - 1; i >= 0; i--) if ("aeiouü".includes(base[i])) { idx = i; break; }
+  if (idx < 0) return base;
+  return base.slice(0, idx) + TM[base[idx]][t] + base.slice(idx + 1);
+}
+function retone(py) {
+  const parts = []; let last = 0;
+  py.replace(LETTERS, (m, off) => { parts.push({ t: py.slice(last, off) }); const s = splitWord(m); parts.push(s ? { s } : { t: m }); last = off + m.length; return m; });
+  parts.push({ t: py.slice(last) });
+  const syls = []; parts.forEach((p, pi) => p.s && p.s.forEach((s, si) => { if (baseOf(s) !== "r") syls.push([pi, si]); }));
+  if (!syls.length) return py;
+  const [pi, si] = pick(syls); const orig = parts[pi].s[si];
+  const cur = toneOf(orig); const choices = [1, 2, 3, 4].filter(t => t !== cur);
+  let nb = addTone(baseOf(orig), pick(choices));
+  if (orig[0] !== orig[0].toLowerCase()) nb = nb[0].toUpperCase() + nb.slice(1);
+  parts[pi].s = parts[pi].s.slice(); parts[pi].s[si] = nb;
+  return parts.map(p => p.s ? p.s.join("") : p.t).join("");
+}
+function tonedVariants(py, n) {
+  const set = new Set([py]); let guard = 0;
+  while (set.size < n + 1 && guard++ < 60) set.add(retone(guard > 20 ? retone(py) : py));
+  return [...set].filter(x => x !== py).slice(0, n);
+}
+
+// modes d'affichage du pinyin
+function modeFor(lvl) {
+  const s = S.settings.pinyin;
+  if (s === "show") return "show";
+  if (s === "hide") return "veil";
+  return lvl === "A1" ? "show" : lvl === "A2" ? "fade" : "veil";
+}
+function py(p, lvl, force) {
+  const m = force || modeFor(lvl);
+  const extra = m === "veil" ? ' role="button" tabindex="0" aria-label="Afficher le pinyin"' : "";
+  return `<span class="py m-${m}"${extra}>${colorize(p)}</span>`;
+}
+
+// ---------- voix ----------
+let VOICE = null, voiceChecked = false, warned = false;
+function pickVoice() {
+  if (!("speechSynthesis" in window)) return;
+  const v = speechSynthesis.getVoices();
+  if (v.length) voiceChecked = true;
+  VOICE = v.find(x => /zh[-_]CN/i.test(x.lang)) || v.find(x => /cmn/i.test(x.lang)) || v.find(x => /^zh/i.test(x.lang)) || null;
+}
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if ($("#settings") && !$("#settings").hidden) renderSettings(); }; }
+function speak(text, opt = {}) {
+  if (!("speechSynthesis" in window)) { toast("Ce navigateur ne propose pas de synthèse vocale."); return; }
+  try {
+    if (!opt.queue) speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(ttsText(text));
+    u.lang = VOICE ? VOICE.lang : "zh-CN"; if (VOICE) u.voice = VOICE;
+    u.rate = (opt.rate || S.settings.rate); u.pitch = opt.pitch || 1;
+    if (opt.onend) { u.onend = opt.onend; u.onerror = opt.onend; }
+    speechSynthesis.speak(u);
+    if (!VOICE && voiceChecked && !warned) { warned = true; toast("Aucune voix chinoise trouvée sur cet appareil : le son peut manquer. Détails dans Réglages."); }
+  } catch (e) { if (opt.onend) opt.onend(); }
+}
+const sayBtn = (text, label = "Écouter", pitch) => `<button class="say" type="button" data-say="${esc(text)}"${pitch ? ` data-pitch="${pitch}"` : ""} aria-label="${esc(label)}">${ICON.sound}</button>`;
+
+const ICON = {
+  sound: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.3 1.2-3.8 2.4-5 .2 1.6.9 2.6 1.9 3.1C11 8.8 11.2 5.6 12 3z" fill="currentColor"/></svg>'
+};
+
+// ---------- toast ----------
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4200); }
+
+// ---------- clics globaux ----------
+document.addEventListener("click", e => {
+  const veil = e.target.closest(".py.m-veil");
+  if (veil && !e.target.closest(".tile")) { veil.classList.toggle("shown"); e.stopPropagation(); return; }
+  const say = e.target.closest("[data-say]");
+  if (say) { speak(say.dataset.say, { pitch: +say.dataset.pitch || 1 }); }
+}, true);
+document.addEventListener("keydown", e => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".py.m-veil")) { e.preventDefault(); e.target.classList.toggle("shown"); }
+});
+
+// ---------- navigation ----------
+const TABS = [
+  { k: "parcours", n: "Parcours", ic: "路" },
+  { k: "sons", n: "Sons", ic: "音" },
+  { k: "mots", n: "Mots", ic: "词" },
+  { k: "grammaire", n: "Grammaire", ic: "法" },
+  { k: "culture", n: "Culture", ic: "文" }
+];
+let VIEW = { tab: "parcours", unit: null };
+function go(tab, unit = null) {
+  VIEW = { tab, unit }; render();
+  window.scrollTo({ top: 0 });
+  try { history.replaceState(null, "", "#" + tab); } catch (e) {}
+}
+function renderNav() {
+  $("#nav").innerHTML = `<div class="nav-in">${TABS.map(t => `<button type="button" class="tab${VIEW.tab === t.k ? " on" : ""}" data-tab="${t.k}" aria-current="${VIEW.tab === t.k ? "page" : "false"}"><span class="tab-ic">${t.ic}</span><span class="tab-n">${t.n}</span></button>`).join("")}</div>`;
+  $("#nav").querySelectorAll("[data-tab]").forEach(b => b.onclick = () => go(b.dataset.tab));
+  const s = streakNow();
+  $("#streak").innerHTML = `${ICON.flame}<span>${s} j</span>`;
+  $("#streak").title = s ? `Série de ${s} jour${s > 1 ? "s" : ""}` : "Fais une étape aujourd'hui pour lancer ta série";
+  $("#streak").classList.toggle("lit", S.streak.last === dayStr(Date.now()));
+}
+function render() {
+  document.body.classList.toggle("no-tones", !S.settings.tones);
+  renderNav();
+  const m = $("#main");
+  if (VIEW.tab === "parcours") m.innerHTML = VIEW.unit ? viewUnit(unitById(VIEW.unit)) : viewHome();
+  else if (VIEW.tab === "sons") m.innerHTML = viewSons();
+  else if (VIEW.tab === "mots") m.innerHTML = viewMots();
+  else if (VIEW.tab === "grammaire") m.innerHTML = viewGram();
+  else if (VIEW.tab === "culture") m.innerHTML = viewCulture();
+  bindMain();
+}
+
+// ---------- accueil ----------
+function nextStep() {
+  for (const u of UNITS) for (const s of STEPS) if (!isDone(u, s.k)) return { u, s };
+  return null;
+}
+function seal(u, on, big) {
+  return `<span class="seal${on ? " on" : ""}${big ? " big" : ""}" aria-label="${on ? "Sceau obtenu" : "Sceau à gagner"}">${u.hz[0]}</span>`;
+}
+function viewHome() {
+  const nx = nextStep(), due = dueWords().length, seen = Object.keys(S.words).length;
+  const seals = UNITS.filter(unitDone).length;
+  const hero = nx ? `
+    <section class="hero">
+      <div class="hero-hz" lang="zh-CN">${nx.u.hz}</div>
+      <div class="hero-body">
+        <p class="eyebrow">${nx.u.lvl} · Unité ${UNITS.indexOf(nx.u) + 1} · ${esc(nx.u.title)}</p>
+        <h2>${seen ? "Continuer" : "Commencer"} : ${nx.s.n}</h2>
+        <p class="muted">${nx.s.d} · environ ${nx.s.min} min</p>
+        <div class="row">
+          <button class="btn primary" data-start="${nx.u.id}:${nx.s.k}">${seen ? "Reprendre" : "C'est parti"}</button>
+          <button class="btn ghost" data-unit="${nx.u.id}">Voir l'unité</button>
+        </div>
+      </div>
+    </section>` : `<section class="hero"><div class="hero-hz" lang="zh-CN">棒</div><div class="hero-body"><p class="eyebrow">Parcours terminé</p><h2>Les 15 sceaux sont à toi</h2><p class="muted">Continue les révisions pour garder tes mots en mémoire, et parle avec tes amis !</p></div></section>`;
+  const review = `
+    <section class="panel review">
+      <div><p class="eyebrow">Révision</p>
+        <h3>${due ? `${due} mot${due > 1 ? "s" : ""} à revoir` : seen ? "Rien à revoir pour l'instant" : "Tes mots apparaîtront ici"}</h3>
+        <p class="muted small">${seen ? "Les mots ratés reviennent plus vite, les mots sus s'espacent." : "Termine une étape Mots pour les ajouter."}</p></div>
+      <button class="btn ${due ? "primary" : "ghost"}" data-review ${seen ? "" : "disabled"}>${due ? "Réviser" : "S'entraîner"}</button>
+    </section>`;
+  const stats = `
+    <dl class="stats">
+      <div><dt>Série</dt><dd>${streakNow()} <small>j</small></dd></div>
+      <div><dt>Mots vus</dt><dd>${seen}<small> / ${ALLW.length}</small></dd></div>
+      <div><dt>Acquis</dt><dd>${knownCount()}</dd></div>
+      <div><dt>Sceaux</dt><dd>${seals}<small> / ${UNITS.length}</small></dd></div>
+    </dl>`;
+  const path = LEVELS.map(L => `
+    <section class="level">
+      <header class="level-h"><span class="lvl-tag">${L.id}</span><div><h3>${L.name}</h3><p class="muted small">${L.desc}</p></div></header>
+      <div class="units">${UNITS.filter(u => u.lvl === L.id).map(u => {
+        const c = unitCount(u), cur = nx && nx.u === u;
+        return `<button class="ucard${cur ? " cur" : ""}" data-unit="${u.id}">
+          <span class="u-hz" lang="zh-CN">${u.hz}</span>
+          <span class="u-txt"><span class="u-num">Unité ${UNITS.indexOf(u) + 1}</span><span class="u-title">${esc(u.title)}</span><span class="u-sub">${esc(u.sub)}</span>
+          <span class="dots" aria-label="${c} étapes sur 6">${STEPS.map(s => `<i class="${isDone(u, s.k) ? "on" : ""}"></i>`).join("")}</span></span>
+          ${seal(u, unitDone(u))}
+        </button>`;
+      }).join("")}</div>
+    </section>`).join("");
+  return `<div class="home">${hero}<div class="side">${review}${stats}</div></div>${path}
+  <p class="foot-note muted small">Chaque unité se fait en 6 étapes courtes de 2 à 5 minutes. Tu peux les faire dans n'importe quel ordre, mais l'ordre proposé est le plus progressif.</p>`;
+}
+
+// ---------- unité ----------
+function viewUnit(u) {
+  const i = UNITS.indexOf(u);
+  return `
+  <button class="back" data-go="parcours">${ICON.back}Parcours</button>
+  <section class="unit-head">
+    <div class="uh-hz" lang="zh-CN">${u.hz}</div>
+    <div class="uh-body"><p class="eyebrow">${u.lvl} · Unité ${i + 1}</p><h2>${esc(u.title)}</h2><p class="muted">${esc(u.sub)}</p></div>
+    ${seal(u, unitDone(u), true)}
+  </section>
+  <ol class="steps">${STEPS.map((s, si) => {
+    const d = isDone(u, s.k);
+    return `<li><button class="step${d ? " done" : ""}" data-start="${u.id}:${s.k}">
+      <span class="st-ic" lang="zh-CN">${s.ic}</span>
+      <span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d">${s.k === "sons" ? esc(u.pron.title) : s.k === "gram" ? esc(u.gram.title) : s.k === "dlg" ? esc(u.dlg.title) : s.k === "cult" ? esc(u.cult.title) : s.d}</span></span>
+      <span class="st-min">${d ? ICON.check : s.min + " min"}</span>
+    </button></li>`;
+  }).join("")}</ol>
+  <section class="panel">
+    <p class="eyebrow">Les mots de l'unité</p>
+    <div class="chips">${u.words.map(w => `<button class="chip" data-say="${esc(w[3] || w[0])}"><span lang="zh-CN">${w[0]}</span>${py(w[1], u.lvl, "show")}<span class="chip-f">${esc(w[2])}</span></button>`).join("")}</div>
+  </section>
+  <div class="row between">
+    ${i > 0 ? `<button class="btn ghost" data-unit="${UNITS[i - 1].id}">${ICON.back} Unité ${i}</button>` : "<span></span>"}
+    ${i < UNITS.length - 1 ? `<button class="btn ghost" data-unit="${UNITS[i + 1].id}">Unité ${i + 2} →</button>` : ""}
+  </div>`;
+}
+
+// ---------- onglet Sons ----------
+let toneSet = 0;
+function toneChart() {
+  const set = TONE_SETS[toneSet];
+  const y = L => 24 + (5 - L) * 36;
+  const paths = [
+    `M50 ${y(5)} L290 ${y(5)}`,
+    `M50 ${y(3)} C150 ${y(3)} 220 ${y(4.2)} 290 ${y(5)}`,
+    `M50 ${y(2)} C110 ${y(1)} 170 ${y(0.8)} 210 ${y(1.4)} S270 ${y(3.4)} 290 ${y(4)}`,
+    `M50 ${y(5)} C140 ${y(4.6)} 220 ${y(2)} 290 ${y(1)}`
+  ];
+  return `<svg class="tchart" viewBox="0 0 330 200" role="img" aria-label="Courbes des quatre tons">
+    ${[5, 4, 3, 2, 1].map(L => `<line x1="40" x2="300" y1="${y(L)}" y2="${y(L)}" class="grid"/><text x="22" y="${y(L) + 4}" class="axis">${L}</text>`).join("")}
+    ${paths.map((d, t) => `<g class="tpath" data-say="${set.hz[t]}" tabindex="0" role="button" aria-label="Écouter le ton ${t + 1}"><path d="${d}" class="hit"/><path d="${d}" class="line tc${t + 1}"/></g>`).join("")}
+    <text x="300" y="${y(5) - 8}" class="lab tc1f" text-anchor="end">1</text>
+    <text x="300" y="${y(5) + 18}" class="lab tc2f" text-anchor="end">2</text>
+    <text x="304" y="${y(4) + 16}" class="lab tc3f">3</text>
+    <text x="304" y="${y(1) + 4}" class="lab tc4f">4</text>
+  </svg>`;
+}
+let game = null;
+function viewSons() {
+  const set = TONE_SETS[toneSet];
+  return `
+  <header class="page-h"><p class="eyebrow">Prononciation</p><h2>Les sons du mandarin</h2><p class="muted">Quatre tons, quelques sons nouveaux et des règles simples. Tout est cliquable pour écouter.</p></header>
+  <section class="panel">
+    <div class="tones-grid">
+      <div>
+        <h3>Les quatre tons</h3>
+        <p class="muted small">L'échelle va de 1 (voix la plus grave) à 5 (la plus aiguë). Touche une courbe ou un caractère pour l'entendre.</p>
+        <div class="seg" role="group" aria-label="Syllabe">${TONE_SETS.map((s, i) => `<button type="button" class="${i === toneSet ? "on" : ""}" data-toneset="${i}">${s.base}</button>`).join("")}</div>
+        <div class="quad">${set.hz.map((h, t) => `<button class="qcell" data-say="${h}"><span class="qhz" lang="zh-CN">${h}</span>${py(addTone(set.base, t + 1), "A1", "show")}<span class="qf">${set.fr[t]}</span></button>`).join("")}</div>
+      </div>
+      ${toneChart()}
+    </div>
+    <div class="legend"><span class="t1">1er ton · haut et plat</span><span class="t2">2e · montant</span><span class="t3">3e · bas</span><span class="t4">4e · descendant</span><span class="t5">neutre · léger</span></div>
+  </section>
+  <section class="panel game" id="game">${gameHTML()}</section>
+  <section class="panel">
+    <h3>Les sons pour une oreille française</h3>
+    <div class="sounds">${SOUNDS.map(s => `<div class="snd"><div class="snd-k">${esc(s[0])}</div><p class="small">${esc(s[1])}</p><div class="snd-ex"><button class="mini" data-say="${s[2]}"><span lang="zh-CN">${s[2]}</span>${py(s[3], "A1", "show")}</button><button class="mini" data-say="${s[4]}"><span lang="zh-CN">${s[4]}</span>${py(s[5], "A1", "show")}</button></div></div>`).join("")}</div>
+  </section>
+  <section class="panel">
+    <h3>Quand les tons changent</h3>
+    <div class="sandhi">${SANDHI.map(r => `<div class="sd"><h4>${esc(r.t)}</h4><p class="small muted">${esc(r.d)}</p><div class="snd-ex">${r.ex.map(e => `<button class="mini" data-say="${e[0]}"><span lang="zh-CN">${e[0]}</span>${py(e[1], "A1", "show")}</button>`).join("")}</div></div>`).join("")}</div>
+  </section>`;
+}
+function gameHTML() {
+  if (!game) return `<div class="game-intro"><div><h3>Entraîne ton oreille</h3><p class="muted small">10 syllabes, à toi de reconnaître le ton. ${S.best ? `Ton record : ${S.best}/10.` : ""}</p></div><button class="btn primary" data-game="start">Jouer</button></div>`;
+  if (game.i >= 10) return `<div class="game-intro"><div><h3>${game.score}/10</h3><p class="muted small">${game.score >= 8 ? "Excellente oreille !" : game.score >= 5 ? "Bien ! Les tons 2 et 3 sont les plus souvent confondus." : "C'est normal au début : réécoute les courbes au-dessus, puis retente."}</p></div><button class="btn primary" data-game="start">Rejouer</button></div>`;
+  const q = game.q;
+  return `<div class="game-play">
+    <p class="eyebrow">Syllabe ${game.i + 1} / 10 · score ${game.score}</p>
+    <button class="big-say" data-say="${q.hz}" aria-label="Réécouter">${ICON.sound}</button>
+    <div class="tone-opts">${[1, 2, 3, 4].map(t => `<button class="topt tc${t}b${game.ans ? (t === q.t ? " right" : t === game.ans ? " wrong" : "") : ""}" data-tone="${t}" ${game.ans ? "disabled" : ""}><b>${t}</b><span>${["", "haut", "montant", "bas", "descendant"][t]}</span></button>`).join("")}</div>
+    ${game.ans ? `<div class="game-res"><span lang="zh-CN" class="qhz">${q.hz}</span>${py(addTone(q.base, q.t), "A1", "show")} <span class="muted">${q.fr}</span><button class="btn primary" data-game="next">${game.i === 9 ? "Voir le score" : "Suivante"}</button></div>` : `<p class="muted small">Touche le haut-parleur pour réécouter.</p>`}
+  </div>`;
+}
+function newGameQ() { const s = pick(TONE_SETS), t = 1 + Math.floor(Math.random() * 4); return { hz: s.hz[t - 1], base: s.base, t, fr: s.fr[t - 1] }; }
+function refreshGame() { const g = $("#game"); if (g) { g.innerHTML = gameHTML(); bindGame(); } }
+function bindGame() {
+  const g = $("#game"); if (!g) return;
+  g.querySelectorAll("[data-game]").forEach(b => b.onclick = () => {
+    if (b.dataset.game === "start") { game = { i: 0, score: 0, q: newGameQ(), ans: 0 }; refreshGame(); speak(game.q.hz); }
+    else { game.i++; game.ans = 0; if (game.i < 10) { game.q = newGameQ(); refreshGame(); speak(game.q.hz); } else { if (game.score > S.best) { S.best = game.score; save(); } refreshGame(); } }
+  });
+  g.querySelectorAll("[data-tone]").forEach(b => b.onclick = () => { game.ans = +b.dataset.tone; if (game.ans === game.q.t) game.score++; refreshGame(); });
+}
+
+// ---------- onglet Mots ----------
+let motsFilter = { q: "", lvl: "all" };
+function wordStatus(h) {
+  const w = S.words[h];
+  if (!w) return `<span class="wst new">nouveau</span>`;
+  if (w.b >= 4) return `<span class="wst ok">acquis</span>`;
+  return `<span class="wst mid" aria-label="niveau ${w.b} sur 5">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= w.b ? "on" : ""}"></i>`).join("")}</span>`;
+}
+function viewMots() {
+  const due = dueWords().length, seen = Object.keys(S.words).length;
+  return `
+  <header class="page-h"><p class="eyebrow">Vocabulaire</p><h2>Ton dictionnaire</h2><p class="muted">${ALLW.length} mots, du A1 au B1. Touche un mot pour l'entendre.</p></header>
+  <section class="panel review">
+    <div><h3>${due ? `${due} mot${due > 1 ? "s" : ""} à revoir` : "Révision espacée"}</h3><p class="muted small">${seen} mot${seen > 1 ? "s" : ""} en cours d'apprentissage, ${knownCount()} acquis.</p></div>
+    <button class="btn ${due ? "primary" : "ghost"}" data-review ${seen ? "" : "disabled"}>${due ? "Réviser" : "S'entraîner"}</button>
+  </section>
+  <div class="filters">
+    <label class="search"><span class="sr">Rechercher</span><input id="wq" type="search" placeholder="Chercher : bonjour, nihao, 你好…" value="${esc(motsFilter.q)}" autocomplete="off"></label>
+    <div class="seg" role="group" aria-label="Niveau">${["all", "A1", "A2", "B1"].map(l => `<button type="button" class="${motsFilter.lvl === l ? "on" : ""}" data-lvl="${l}">${l === "all" ? "Tous" : l}</button>`).join("")}</div>
+  </div>
+  <div id="wlist">${wordList()}</div>`;
+}
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "");
+function wordList() {
+  const q = norm(motsFilter.q);
+  const groups = UNITS.filter(u => motsFilter.lvl === "all" || u.lvl === motsFilter.lvl).map(u => {
+    const ws = u.words.filter(w => !q || norm(w[0]).includes(q) || norm(w[1]).includes(q) || norm(w[2]).includes(q));
+    if (!ws.length) return "";
+    return `<section class="wgroup"><h3 class="wg-h"><span lang="zh-CN">${u.hz}</span> ${esc(u.title)} <span class="lvl-tag sm">${u.lvl}</span></h3>
+      <ul class="words">${ws.map(w => `<li><button class="wrow" data-say="${esc(w[3] || w[0])}">
+        <span class="w-hz" lang="zh-CN">${w[0]}</span><span class="w-py">${py(w[1], u.lvl, "show")}</span><span class="w-f">${esc(w[2])}</span>${wordStatus(w[0])}
+      </button></li>`).join("")}</ul></section>`;
+  }).join("");
+  return groups || `<p class="empty muted">Aucun mot ne correspond. Essaie le pinyin sans accents (« xiexie ») ou un mot français.</p>`;
+}
+
+// ---------- onglet Grammaire ----------
+function patternHTML(p) {
+  return `<div class="pattern">${p.split(" + ").map(tok => /[一-鿿]/.test(tok) ? `<span class="pt hz" lang="zh-CN">${esc(tok)}</span>` : `<span class="pt slot">${esc(tok)}</span>`).join('<span class="plus">+</span>')}</div>`;
+}
+function exList(ex, lvl) {
+  return `<ul class="exs">${ex.map(e => `<li><button class="ex" data-say="${esc(e[0])}"><span class="ex-hz" lang="zh-CN">${e[0]}</span>${py(e[1], lvl)}<span class="ex-f">${esc(e[2])}</span></button></li>`).join("")}</ul>`;
+}
+function viewGram() {
+  return `
+  <header class="page-h"><p class="eyebrow">Grammaire</p><h2>Les structures</h2><p class="muted">Une structure par unité, dans l'ordre où tu en as besoin pour parler. Pas de conjugaison, pas d'accord : surtout de l'ordre des mots.</p></header>
+  ${LEVELS.map(L => `<h3 class="sec-h"><span class="lvl-tag">${L.id}</span> ${L.name}</h3>
+  <div class="glist">${UNITS.filter(u => u.lvl === L.id).map(u => `
+    <details class="gcard">
+      <summary><span class="g-hz" lang="zh-CN">${u.hz}</span><span class="g-t"><span class="g-title">${esc(u.gram.title)}</span><span class="small muted">Unité ${UNITS.indexOf(u) + 1} · ${esc(u.title)}</span></span>${isDone(u, "gram") ? `<span class="okmark">${ICON.check}</span>` : ""}</summary>
+      <div class="g-body">${u.gram.patterns.map(patternHTML).join("")}<p>${u.gram.text}</p>${exList(u.gram.ex, u.lvl)}<button class="btn ghost" data-start="${u.id}:gram">S'entraîner</button></div>
+    </details>`).join("")}</div>`).join("")}`;
+}
+
+// ---------- onglet Culture ----------
+function viewCulture() {
+  return `
+  <header class="page-h"><p class="eyebrow">Culture</p><h2>Comprendre tes amis</h2><p class="muted">Des récits courts sur la vie quotidienne en Chine, pour savoir quoi dire, et quand.</p></header>
+  <div class="cgrid">${UNITS.map(u => `
+    <button class="ccard" data-start="${u.id}:cult">
+      <span class="c-hz" lang="zh-CN">${u.cult.hz}</span>
+      <span class="c-title">${esc(u.cult.title)}</span>
+      <span class="small muted">${u.lvl} · Unité ${UNITS.indexOf(u) + 1}</span>
+      ${isDone(u, "cult") ? `<span class="okmark">${ICON.check}</span>` : ""}
+    </button>`).join("")}</div>`;
+}
+
+// ---------- liaisons ----------
+function bindMain() {
+  const m = $("#main");
+  m.querySelectorAll("[data-unit]").forEach(b => b.onclick = () => go("parcours", b.dataset.unit));
+  m.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+  m.querySelectorAll("[data-start]").forEach(b => b.onclick = () => { const [id, k] = b.dataset.start.split(":"); startStep(unitById(id), k); });
+  m.querySelectorAll("[data-review]").forEach(b => b.onclick = startReview);
+  m.querySelectorAll("[data-toneset]").forEach(b => b.onclick = () => { toneSet = +b.dataset.toneset; const sc = window.scrollY; render(); window.scrollTo(0, sc); });
+  m.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => { motsFilter.lvl = b.dataset.lvl; m.querySelectorAll("[data-lvl]").forEach(x => x.classList.toggle("on", x === b)); $("#wlist").innerHTML = wordList(); });
+  const wq = $("#wq"); if (wq) wq.oninput = () => { motsFilter.q = wq.value; $("#wlist").innerHTML = wordList(); };
+  bindGame();
+}
+
+// ================= Leçons =================
+let L = null;
+function startLesson(cfg) {
+  L = Object.assign({ i: 0, score: 0, total: 0, handler: null, finished: false }, cfg);
+  $("#lesson").hidden = false; document.body.classList.add("lesson-open");
+  $("#lTitle").textContent = cfg.title;
+  renderScreen();
+}
+function closeLesson() { try { speechSynthesis.cancel(); } catch (e) {} $("#lesson").hidden = true; document.body.classList.remove("lesson-open"); L = null; render(); }
+const api = {
+  lock() { $("#lNext").disabled = true; },
+  unlock() { $("#lNext").disabled = false; },
+  setNext(label, fn) { $("#lNext").textContent = label; L.handler = fn || null; },
+  result(ok, msg) {
+    L.total++; if (ok) L.score++;
+    const f = $("#lFeedback"); f.className = "l-fb " + (ok ? "good" : "bad"); f.innerHTML = msg; f.hidden = false;
+    L.handler = null; $("#lNext").textContent = "Continuer"; $("#lNext").disabled = false; $("#lNext").focus({ preventScroll: true });
+  }
+};
+function renderScreen() {
+  const body = $("#lBody"); body.innerHTML = ""; $(".l-body").scrollTop = 0;
+  const f = $("#lFeedback"); f.hidden = true; f.className = "l-fb";
+  $("#lNext").disabled = false; $("#lNext").textContent = "Continuer"; L.handler = null;
+  $("#lProg").style.width = (100 * L.i / (L.screens.length + 1)) + "%";
+  L.screens[L.i](body, api);
+}
+function nextScreen() {
+  if (!L) return;
+  if (L.handler) { const h = L.handler; h(); return; }
+  if (L.finished) { closeLesson(); return; }
+  if (L.i < L.screens.length - 1) { L.i++; renderScreen(); return; }
+  finishLesson();
+}
+function finishLesson() {
+  const res = L.onDone ? L.onDone(L.score, L.total) : {};
+  L.finished = true;
+  $("#lProg").style.width = "100%";
+  const body = $("#lBody");
+  $("#lFeedback").hidden = true;
+  body.innerHTML = `<div class="summary${res.seal ? " with-seal" : ""}">
+    ${res.seal ? `<div class="stamp" lang="zh-CN">${res.seal}</div>` : `<div class="sum-ic">${res.ok === false ? "再" : ICON.check}</div>`}
+    <h2>${res.title || "Étape terminée"}</h2>
+    ${L.total ? `<p class="sum-score">${L.score} / ${L.total} bonnes réponses</p>` : ""}
+    <p class="muted">${res.text || ""}</p>
+  </div>`;
+  $("#lNext").textContent = res.ok === false ? "Fermer" : "Terminer";
+  $("#lNext").disabled = false;
+}
+
+// --- écrans ---
+function scrInfo(html) { return el => { el.innerHTML = `<div class="info">${html}</div>`; }; }
+
+function scrFlash(w, lvl, n, tot) {
+  return (el, api) => {
+    el.innerHTML = `<p class="q-kicker">Nouveau mot · ${n} / ${tot}</p>
+      <div class="flash" tabindex="0" role="button" aria-label="Retourner la carte">
+        <div class="fl-front"><span class="fl-hz" lang="zh-CN">${w.h}</span>${py(w.p, lvl)}</div>
+        <div class="fl-back" hidden><span class="fl-f">${esc(w.f)}</span></div>
+        <span class="fl-hint">Touche la carte pour voir le sens</span>
+      </div>
+      <div class="center">${sayBtn(w.tts, "Écouter le mot")}</div>`;
+    const card = $(".flash", el);
+    const flip = () => { $(".fl-back", el).hidden = false; $(".fl-hint", el).hidden = true; card.classList.add("flipped"); };
+    card.onclick = e => { if (e.target.closest("[data-say],.py.m-veil")) return; flip(); };
+    card.onkeydown = e => { if (e.key === " ") { e.preventDefault(); flip(); } };
+    api.setNext(n < tot ? "Mot suivant" : "Au quiz");
+    setTimeout(() => speak(w.tts), 200);
+  };
+}
+
+function distractors(w, n, field) {
+  const pool = shuffle(ALLW.filter(x => x.h !== w.h && x.u === w.u)).concat(shuffle(ALLW.filter(x => x.u !== w.u && Math.abs(x.ui - w.ui) <= 3)));
+  const out = []; const seen = new Set([w[field]]);
+  for (const x of pool) { if (!seen.has(x[field])) { seen.add(x[field]); out.push(x); } if (out.length === n) break; }
+  return out;
+}
+function wordMCQ(w, type, opt = {}) {
+  type = type || pick(["hz2f", "f2hz", "au2f"]);
+  const lvl = w.lvl;
+  let kicker, prompt, options, auto = false;
+  if (type === "hz2f") {
+    kicker = "Que veut dire ce mot ?";
+    prompt = `<div class="qp-hz"><span lang="zh-CN">${w.h}</span>${py(w.p, lvl)}</div>${sayBtn(w.tts)}`;
+    options = shuffle([w, ...distractors(w, 3, "f")]).map(x => ({ html: esc(x.f), ok: x.h === w.h }));
+  } else if (type === "f2hz") {
+    kicker = "Comment dit-on…";
+    prompt = `<div class="qp-f">« ${esc(w.f)} »</div>`;
+    options = shuffle([w, ...distractors(w, 3, "h")]).map(x => ({ html: `<span lang="zh-CN" class="o-hz">${x.h}</span>${py(x.p, lvl)}`, ok: x.h === w.h, say: x.tts }));
+  } else if (type === "au2f") {
+    kicker = "Écoute : que veut dire ce mot ?";
+    prompt = `<button class="big-say" data-say="${esc(w.tts)}" aria-label="Réécouter">${ICON.sound}</button>`;
+    options = shuffle([w, ...distractors(w, 3, "f")]).map(x => ({ html: esc(x.f), ok: x.h === w.h }));
+    auto = true;
+  } else { // ton : quel pinyin ?
+    kicker = "Écoute : quel est le bon pinyin ?";
+    prompt = `<div class="qp-hz"><span lang="zh-CN">${w.h}</span></div><button class="big-say sm" data-say="${esc(w.tts)}" aria-label="Réécouter">${ICON.sound}</button>`;
+    const vars = tonedVariants(w.p, 3);
+    options = shuffle([w.p, ...vars]).map(p => ({ html: py(p, "A1", "show"), ok: p === w.p }));
+    auto = true;
+  }
+  return scrMCQ({ kicker, prompt, options, auto: auto ? w.tts : null, answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}`, onAnswer: ok => opt.onAnswer && opt.onAnswer(ok) });
+}
+function scrMCQ(q) {
+  return (el, api) => {
+    el.innerHTML = `<p class="q-kicker">${q.kicker}</p><div class="q-prompt">${q.prompt}</div>
+      <div class="opts">${q.options.map((o, i) => `<button class="opt" data-i="${i}">${o.html}</button>`).join("")}</div>`;
+    api.lock();
+    if (q.auto) setTimeout(() => speak(q.auto), 250);
+    let done = false;
+    el.querySelectorAll(".opt").forEach(b => b.onclick = e => {
+      if (e.target.closest(".py.m-veil")) return;
+      if (done) return; done = true;
+      const o = q.options[+b.dataset.i];
+      el.querySelectorAll(".opt").forEach((x, i) => { x.disabled = true; if (q.options[i].ok) x.classList.add("right"); });
+      if (!o.ok) b.classList.add("wrong");
+      if (o.say) speak(o.say);
+      if (q.onAnswer) q.onAnswer(o.ok);
+      api.result(o.ok, o.ok ? pick(["Bien joué !", "Exact !", "Parfait !", "对！C'est ça !"]) : `Réponse : ${q.answer}`);
+    });
+  };
+}
+function scrOrder(item, lvl) {
+  return (el, api) => {
+    const tiles = item.t.map((t, i) => ({ h: t[0], p: t[1], i }));
+    const answers = [item.t.map((_, i) => i)].concat(item.alt || []);
+    let bank = shuffle(tiles), guard = 0;
+    while (answers.some(a => a.join() === bank.map(t => t.i).join()) && guard++ < 20) bank = shuffle(tiles);
+    let placed = [];
+    const m = modeFor(lvl); const tm = m === "veil" ? "none" : m;
+    const tileHTML = t => `<button class="tile" data-i="${t.i}"><span lang="zh-CN">${t.h}</span>${tm === "none" ? "" : py(t.p, lvl, tm)}</button>`;
+    el.innerHTML = `<p class="q-kicker">Construis la phrase</p><div class="qp-f">« ${esc(item.fr)} »</div>
+      <div class="answer" aria-label="Ta phrase"></div><div class="bank"></div>`;
+    const draw = () => {
+      $(".answer", el).innerHTML = placed.map(tileHTML).join("") || `<span class="muted small">Touche les blocs dans le bon ordre</span>`;
+      $(".bank", el).innerHTML = bank.map(t => placed.includes(t) ? `<span class="tile ghost">${t.h}</span>` : tileHTML(t)).join("");
+      $(".answer", el).querySelectorAll(".tile").forEach(b => b.onclick = () => { if (checked) return; placed = placed.filter(t => t.i !== +b.dataset.i); draw(); });
+      $(".bank", el).querySelectorAll(".tile:not(.ghost)").forEach(b => b.onclick = () => { if (checked) return; const t = tiles[+b.dataset.i]; placed.push(t); speak(t.h); draw(); });
+      if (!checked) { if (placed.length === tiles.length) api.unlock(); else api.lock(); }
+    };
+    let checked = false;
+    api.setNext("Vérifier", () => {
+      checked = true;
+      const got = placed.map(t => t.i).join();
+      const ok = answers.some(a => a.join() === got);
+      $(".answer", el).classList.add(ok ? "right" : "wrong");
+      const sentence = item.t.map(t => t[0]).join("");
+      speak(sentence);
+      api.result(ok, ok ? `Parfait ! <span lang="zh-CN">${sentence}</span>` : `Bon ordre : <span lang="zh-CN">${sentence}</span> ${py(item.t.map(t => t[1]).join(" "), "A1", "show")}`);
+    });
+    draw();
+  };
+}
+function dialogueHTML(d, lvl) {
+  return `<div class="dlg-tools"><button class="btn ghost sm" data-playall>${ICON.play} Tout écouter</button>
+    <label class="switch"><input type="checkbox" id="trToggle"> <span>Traduction</span></label></div>
+    <ol class="dlg">${d.lines.map((l, i) => { const sp = SPEAKERS[l[0]]; return `<li class="line ${l[0] === "T" ? "me" : ""}" data-line="${i}">
+      <span class="av ${sp.cls}" lang="zh-CN" aria-hidden="true">${sp.av}</span>
+      <div class="bubble"><span class="who">${sp.name} <span class="muted">${esc(sp.py)}</span></span>
+        <button class="l-hz" lang="zh-CN" data-say="${esc(l[1])}" data-pitch="${sp.pitch}">${l[1]}</button>${py(l[2], lvl)}
+        <span class="l-fr" hidden>${esc(l[3])}</span></div></li>`; }).join("")}</ol>`;
+}
+function bindDialogue(el, d) {
+  const tr = $("#trToggle", el);
+  if (tr) tr.onchange = () => el.querySelectorAll(".l-fr").forEach(x => x.hidden = !tr.checked);
+  const pa = $("[data-playall]", el);
+  if (pa) pa.onclick = () => {
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    let i = 0; const lines = el.querySelectorAll(".line");
+    const step = () => {
+      lines.forEach(x => x.classList.remove("playing"));
+      if (i >= d.lines.length || !document.body.contains(el)) return;
+      lines[i].classList.add("playing"); lines[i].scrollIntoView({ block: "nearest", behavior: "smooth" });
+      const l = d.lines[i]; i++;
+      speak(l[1], { pitch: SPEAKERS[l[0]].pitch, onend: () => setTimeout(step, 350) });
+    };
+    step();
+  };
+}
+function scrDialogue(u) {
+  return el => {
+    el.innerHTML = `<p class="q-kicker">Dialogue · ${u.lvl}</p><h2 class="l-h">${esc(u.dlg.title)}</h2>
+      <p class="muted small">Écoute toute la scène, puis touche une réplique pour la répéter. ${modeFor(u.lvl) === "veil" ? "Touche les zones floues pour voir le pinyin." : modeFor(u.lvl) === "fade" ? "Le pinyin est estompé : essaie de lire sans." : ""}</p>
+      ${dialogueHTML(u.dlg, u.lvl)}`;
+    bindDialogue(el, u.dlg);
+  };
+}
+
+// --- étapes ---
+function startStep(u, k) {
+  const step = STEPS.find(s => s.k === k);
+  const title = `${u.hz} · ${step.n}`;
+  const done = (extra) => { S.done[u.id + ":" + k] = true; markActivity(); save(); return extra; };
+  const sealIfComplete = r => { if (unitDone(u) && k !== "defi") r.text = (r.text || "") + " Unité complète : sceau obtenu !"; return r; };
+  let screens = [], onDone;
+
+  if (k === "sons") {
+    const p = u.pron;
+    screens.push(scrInfo(`<p class="q-kicker">Prononciation</p><h2 class="l-h">${esc(p.title)}</h2><p>${p.text}</p>
+      <div class="pron-ex">${p.ex.map(e => `<button class="pex" data-say="${esc(e[3] || e[0])}"><span class="pex-hz" lang="zh-CN">${e[0]}</span>${py(e[1], "A1", "show")}<span class="small muted">${esc(e[2])}</span></button>`).join("")}</div>
+      <p class="muted small">Touche chaque exemple, écoute, puis répète à voix haute. C'est en le disant que ça rentre.</p>`));
+    shuffle(p.ex).slice(0, 2).forEach(e => {
+      const others = shuffle(p.ex.filter(x => x !== e).map(x => x[1]));
+      const opts = shuffle([e[1], ...tonedVariants(e[1], 1), ...others].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4));
+      if (!opts.includes(e[1])) opts[0] = e[1];
+      screens.push(scrMCQ({ kicker: "Écoute : quel pinyin entends-tu ?", prompt: `<button class="big-say" data-say="${esc(e[3] || e[0])}" aria-label="Réécouter">${ICON.sound}</button>`,
+        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: e[3] || e[0], answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` }));
+    });
+    onDone = () => sealIfComplete(done({ title: "Oreille affûtée", text: "Pense à répéter les exemples à voix haute, même seul." }));
+  }
+
+  if (k === "mots") {
+    const ws = ALLW.filter(w => w.u === u.id);
+    ws.forEach((w, i) => screens.push(scrFlash(w, u.lvl, i + 1, ws.length)));
+    shuffle(ws).slice(0, 4).forEach((w, i) => screens.push(wordMCQ(w, ["hz2f", "au2f", "f2hz", "hz2f"][i])));
+    onDone = () => { ws.forEach(w => srsAdd(w.h)); return sealIfComplete(done({ title: `${ws.length} mots ajoutés`, text: "Ils reviendront dans tes révisions demain, puis de plus en plus espacés." })); };
+  }
+
+  if (k === "gram") {
+    const g = u.gram;
+    screens.push(scrInfo(`<p class="q-kicker">Grammaire</p><h2 class="l-h">${esc(g.title)}</h2>${g.patterns.map(patternHTML).join("")}<p>${g.text}</p>${exList(g.ex, u.lvl)}`));
+    g.order.forEach(o => screens.push(scrOrder(o, u.lvl)));
+    onDone = () => sealIfComplete(done({ title: "Structure en poche", text: "Essaie de fabriquer une phrase à toi avec cette structure et envoie-la à un ami." }));
+  }
+
+  if (k === "dlg") {
+    screens.push(scrDialogue(u));
+    const q = u.dlg.q; const right = q.opts[0];
+    screens.push(scrMCQ({ kicker: "As-tu compris ?", prompt: `<div class="qp-f">${esc(q.q)}</div>`, options: shuffle(q.opts).map(o => ({ html: esc(o), ok: o === right })), answer: esc(right) }));
+    screens.push(el => { el.innerHTML = `<p class="q-kicker">À toi de jouer</p><h2 class="l-h">Prends la place de Tom</h2><p class="muted small">Réécoute chaque réplique de Tom et répète-la à voix haute, en imitant la mélodie.</p>${dialogueHTML(u.dlg, u.lvl)}`; bindDialogue(el, u.dlg); el.querySelectorAll(".line:not(.me)").forEach(x => x.classList.add("dim")); });
+    onDone = () => sealIfComplete(done({ title: "Scène jouée", text: "Ce dialogue utilise ce que tu viens d'apprendre : relis-le dans quelques jours, il te paraîtra facile." }));
+  }
+
+  if (k === "cult") {
+    const c = u.cult;
+    screens.push(scrInfo(`<p class="q-kicker">Culture</p><h2 class="l-h">${esc(c.title)}</h2>
+      <div class="cult-word"><button class="pex" data-say="${esc(c.hz)}"><span class="pex-hz" lang="zh-CN">${c.hz}</span>${py(c.py, "A1", "show")}<span class="small muted">${esc(c.fr)}</span></button></div>
+      <div class="prose">${c.text}</div><aside class="fact"><b>Le saviez-vous ?</b> ${c.fact}</aside>`));
+    onDone = () => sealIfComplete(done({ title: "Bonne lecture", text: "Parles-en à tes amis : ils auront sûrement leur propre version de l'histoire." }));
+  }
+
+  if (k === "defi") {
+    const ws = shuffle(ALLW.filter(w => w.u === u.id));
+    ["hz2f", "f2hz", "au2f", "hz2f", "f2hz"].forEach((t, i) => screens.push(wordMCQ(ws[i % ws.length], t, { onAnswer: ok => srsAnswer(ws[i % ws.length].h, ok) })));
+    const tw = ws.find(w => w.p.replace(/[^a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]/g, "").length > 1 && tonedVariants(w.p, 3).length === 3) || ws[5];
+    screens.push(wordMCQ(tw, "tone"));
+    u.gram.order.forEach(o => screens.push(scrOrder(o, u.lvl)));
+    screens.unshift(scrInfo(`<p class="q-kicker">Défi de l'unité</p><h2 class="l-h">Gagne le sceau <span lang="zh-CN">${u.hz[0]}</span></h2><p>${screens.length} questions sur les mots, les tons et la grammaire de l'unité. Il faut <b>${screens.length - 2} bonnes réponses</b> pour obtenir le sceau.</p><p class="muted small">Pas de stress : tu peux recommencer autant de fois que tu veux.</p>`));
+    const need = screens.length - 3;
+    onDone = (score, total) => {
+      if (score >= need) {
+        S.done[u.id + ":defi"] = true; markActivity(); save();
+        return unitDone(u) ? { seal: u.hz[0], title: "Sceau obtenu !", text: `L'unité « ${u.title} » est complète. ${UNITS.indexOf(u) < UNITS.length - 1 ? "La suivante t'attend." : "Tu as terminé tout le parcours !"}` }
+          : { seal: u.hz[0], title: "Défi réussi !", text: "Termine les autres étapes de l'unité pour valider le sceau." };
+      }
+      markActivity();
+      return { ok: false, title: "Presque !", text: `Il fallait ${need} bonnes réponses. Revois les mots de l'unité, puis retente le défi.` };
+    };
+  }
+  startLesson({ title, screens, onDone });
+}
+
+// --- révision ---
+function startReview() {
+  let list = dueWords().slice(0, 10), practice = false;
+  if (!list.length) { practice = true; list = shuffle(Object.keys(S.words).filter(h => WMAP[h])).slice(0, 8); }
+  if (!list.length) return;
+  const screens = []; const requeued = new Set();
+  const mk = h => wordMCQ(WMAP[h], pick(["hz2f", "f2hz", "au2f", "hz2f", "tone"]), {
+    onAnswer: ok => {
+      if (!practice || !ok) srsAnswer(h, ok);
+      if (!ok && !requeued.has(h)) { requeued.add(h); L.screens.push(mk(h)); }
+    }
+  });
+  list.forEach(h => screens.push(mk(h)));
+  startLesson({ title: practice ? "Entraînement libre" : "Révision", screens, onDone: (s, t) => {
+    markActivity();
+    const left = dueWords().length;
+    return { title: practice ? "Entraînement terminé" : "Révision terminée", text: left ? `Encore ${left} mot${left > 1 ? "s" : ""} à revoir : tu peux relancer une révision.` : "Tout est à jour. Les prochains mots reviendront au bon moment." };
+  } });
+}
+
+// ---------- réglages ----------
+function renderSettings() {
+  const st = S.settings;
+  const vtxt = !("speechSynthesis" in window) ? "Ce navigateur ne propose pas de synthèse vocale : l'application fonctionne, mais sans le son."
+    : VOICE ? `Voix chinoise utilisée : ${esc(VOICE.name)}. C'est une voix de synthèse : bonne pour les tons, moins naturelle qu'un locuteur natif.`
+    : voiceChecked ? "Aucune voix chinoise n'a été trouvée sur cet appareil. Sur ordinateur, tu peux en ajouter une dans les réglages de langue du système (chinois simplifié). Sur iPhone et Android, elle est généralement déjà installée."
+    : "Recherche des voix disponibles…";
+  $("#setBody").innerHTML = `
+    <div class="set-group"><h3>Pinyin</h3>
+      <div class="seg wide" role="group">${[["auto", "Selon le niveau"], ["show", "Toujours"], ["hide", "Masqué"]].map(([k, n]) => `<button type="button" class="${st.pinyin === k ? "on" : ""}" data-pinyin="${k}">${n}</button>`).join("")}</div>
+      <p class="small muted">« Selon le niveau » : visible en A1, estompé en A2, masqué en B1 (touche le texte flou pour le révéler). Cela t'habitue peu à peu à lire les caractères.</p></div>
+    <div class="set-group"><h3>Couleurs des tons</h3>
+      <label class="switch"><input type="checkbox" id="sTones" ${st.tones ? "checked" : ""}> <span>Colorer le pinyin selon le ton</span></label>
+      <div class="legend"><span class="t1">1</span><span class="t2">2</span><span class="t3">3</span><span class="t4">4</span><span class="t5">neutre</span></div></div>
+    <div class="set-group"><h3>Voix</h3>
+      <div class="seg wide" role="group">${[[0.6, "Très lente"], [0.8, "Lente"], [1, "Normale"]].map(([k, n]) => `<button type="button" class="${st.rate === k ? "on" : ""}" data-rate="${k}">${n}</button>`).join("")}</div>
+      <p class="small muted">${vtxt}</p>
+      <button class="btn ghost sm" data-say="你好，很高兴认识你！">${ICON.sound} Tester la voix</button></div>
+    <div class="set-group"><h3>Progression</h3>
+      <p class="small muted">Ta progression est enregistrée dans ce navigateur, sur cet appareil uniquement. Si tu changes d'appareil ou effaces les données du navigateur, elle repart de zéro.</p>
+      <button class="btn danger sm" id="resetBtn">Réinitialiser ma progression</button></div>`;
+  $("#setBody").querySelectorAll("[data-pinyin]").forEach(b => b.onclick = () => { S.settings.pinyin = b.dataset.pinyin; save(); renderSettings(); render(); });
+  $("#setBody").querySelectorAll("[data-rate]").forEach(b => b.onclick = () => { S.settings.rate = +b.dataset.rate; save(); renderSettings(); speak("你好"); });
+  $("#sTones").onchange = e => { S.settings.tones = e.target.checked; save(); render(); };
+  const rb = $("#resetBtn"); let armed = false;
+  rb.onclick = () => {
+    if (!armed) { armed = true; rb.textContent = "Confirmer : tout effacer"; rb.classList.add("armed"); return; }
+    const keep = S.settings; S = JSON.parse(JSON.stringify(DEFAULT)); S.settings = keep; save(); closeSettings(); render(); toast("Progression réinitialisée.");
+  };
+}
+function openSettings() { renderSettings(); $("#settings").hidden = false; }
+function closeSettings() { $("#settings").hidden = true; }
+
+// ---------- démarrage ----------
+function init() {
+  $("#gear").innerHTML = ICON.gear;
+  $("#lClose").innerHTML = ICON.close;
+  $("#setClose").innerHTML = ICON.close;
+  $("#gear").onclick = openSettings;
+  $("#setClose").onclick = closeSettings;
+  $("#settings").onclick = e => { if (e.target.id === "settings") closeSettings(); };
+  $("#lClose").onclick = closeLesson;
+  $("#lNext").onclick = nextScreen;
+  $("#brand").onclick = () => go("parcours");
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") { if (!$("#settings").hidden) closeSettings(); else if (L) closeLesson(); }
+    if (e.key === "Enter" && L && !$("#lNext").disabled && !e.target.closest("button, input")) nextScreen();
+  });
+  const h = (location.hash || "").slice(1);
+  if (TABS.some(t => t.k === h)) VIEW.tab = h;
+  render();
+}
+init();
+</script>
+
+</body>
+</html>
