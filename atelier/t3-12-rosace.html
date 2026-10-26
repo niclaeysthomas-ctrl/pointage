@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La Rosace</title>
+<style>
+/* Le cadre d'une pièce : la toile occupe tout ; le titre discret en haut ; un seul bouton en bas. */
+html, body { margin: 0; height: 100%; background: #0F1014; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.titre { position: fixed; left: 16px; top: max(14px, env(safe-area-inset-top)); font: 500 12px/1.3 Georgia, "Times New Roman", serif;
+  letter-spacing: .22em; color: rgba(242,240,234,.8); pointer-events: none; text-shadow: 0 0 8px #000; }
+.ligne { display: block; margin-top: 5px; font: 500 11px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .12em; color: rgba(242,240,234,.55); }
+.retour { position: fixed; right: 14px; top: max(10px, env(safe-area-inset-top)); font: 500 12px Georgia, serif; color: rgba(242,240,234,.6);
+  text-decoration: none; padding: 6px 8px; letter-spacing: .1em; }
+.bas { position: fixed; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); display: flex; justify-content: center; pointer-events: none; }
+button { pointer-events: auto; font: 500 14px Georgia, "Times New Roman", serif; letter-spacing: .16em; color: #F2F0EA; background: rgba(15,16,20,.6);
+  border: 1px solid rgba(242,240,234,.55); padding: 12px 24px; border-radius: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); min-width: 140px; }
+button:active { background: rgba(242,240,234,.18); }
+button[hidden] { display: none; }
+.erreur { position: fixed; left: 12px; right: 12px; top: 60px; color: #F2B8B0; font: 13px ui-monospace, monospace; white-space: pre-wrap; }
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div class="titre"><span id="titre"></span><span class="ligne" id="ligne"></span></div>
+<a class="retour" href="index.html">← ATELIER</a>
+<div class="bas"><button id="geste" type="button"></button></div>
+<script>
+/* ======================= Atelier du Pointage : outils communs ======================= */
+/* Repris de l'« atelier des mondes » d'Eliodor (mêmes noms, pour que ses pièces et les nôtres parlent la même langue),
+   avec la palette du Pointage : gris neutre, le blanc pour seul accent (choix de Thomas, 26/10).
+   Toute pièce peut appeler ces outils ; aucune ne les redéfinit. Le temps se lit avec maintenant(), jamais Date.now(). */
+function graine(s){ return function(){ s|=0; s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function bruit1(seed){ const R = graine(seed), v = Array.from({length:512}, R); return x => { const i = Math.floor(x), f = x - i, a = v[i & 511], b = v[(i+1) & 511], u = f*f*(3-2*f); return a + (b-a)*u; }; }
+function bruit2(seed){ const R = graine(seed), v = Array.from({length:4096}, R);
+  const h = (i,j) => v[((i*73856093) ^ (j*19349663)) & 4095];
+  return (x,y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx*fx*(3-2*fx), w = fy*fy*(3-2*fy);
+    const a = h(i,j), b = h(i+1,j), c = h(i,j+1), d = h(i+1,j+1); return a + (b-a)*u + (c-a)*w + (a-b-c+d)*u*w; }; }
+const mix = (a,b,t) => a.map((x,i) => x + (b[i]-x)*t);
+const rgb = (c,a=1) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const clamp = (x,a=0,b=1) => Math.max(a, Math.min(b, x));
+const doux = u => 1 - Math.pow(1 - clamp(u), 3);
+const lisse = u => { u = clamp(u); return u*u*(3 - 2*u); };
+const maintenant = () => performance.now();
+/* La palette du Pointage : un fond gris-noir, des gris, le blanc cassé pour ce qui est fait. */
+const FOND = [15,16,20], CARTE = [23,24,29], TRAIT = [52,53,61], GRIS = [119,117,125], GRIS_CLAIR = [163,161,168], BLANC = [242,240,234], BLANC_PUR = [255,253,248];
+function toile(w, h, dpr){ const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w*dpr)); c.height = Math.max(1, Math.round(h*dpr)); const x = c.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0); return [c, x]; }
+function grainTexture(){ const g = document.createElement("canvas"); g.width = g.height = 128; const x = g.getContext("2d"), im = x.createImageData(128,128), R = graine(9);
+  for (let i = 0; i < im.data.length; i += 4) { const v = R()*255; im.data[i]=im.data[i+1]=im.data[i+2]=v; im.data[i+3]=255; } x.putImageData(im,0,0); return g; }
+const GRAIN = grainTexture();
+function passeGrain(ctx, W, H, t, a){ ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = ctx.createPattern(GRAIN, "repeat"); ctx.translate((t*.07)%128, (t*.05)%128); ctx.fillRect(-128, -128, W + 256, H + 256); ctx.restore(); }
+function fondu(ctx, W, H, coul, depuis=.82){ const f = ctx.createLinearGradient(0, H*depuis, 0, H); f.addColorStop(0, rgb(coul, 0)); f.addColorStop(1, rgb(coul, 1)); ctx.fillStyle = f; ctx.fillRect(0, H*depuis, W, H*(1-depuis)); }
+/* Les données communes à toutes les pièces du premier tour : la journée de Thomas (fictive, mais à sa forme).
+   Plus tard, l'app les remplacera par les vraies : priorités du jour, minutes, les 28 derniers jours. */
+const JOURNEE = {
+  priorites: [
+    { nom: "990",        domaine: "Langues",  min: 20, serie: 12 },
+    { nom: "CUMBRE",     domaine: "Langues",  min: 20, serie: 11 },
+    { nom: "Lecture",    domaine: "Lecture",  min: 12, serie: 9 },
+    { nom: "LE CLOSING", domaine: "Carrière", min: 30, serie: 3 }
+  ],
+  // les 28 derniers jours, du plus ancien à hier : combien de priorités faites (0 à 4)
+  jours: [4,4,3,4,2,4,4,4,1,0,4,4,3,4,4,4,4,2,4,4,4,4,3,4,4,4,4,4],
+  chaine: 9
+};
+/* Le bouton dit la prochaine priorité ; le cinquième geste boucle la journée ; ensuite « Encore » relance une variante. */
+function libelleGeste(n){ const P = JOURNEE.priorites; return n < 4 ? P[n].nom : n === 4 ? "Boucler" : "Encore"; }
+function ligneGeste(n){ const P = JOURNEE.priorites; if (n === 0) return "chaîne · " + JOURNEE.chaine + " jours"; if (n <= 4) return P[n-1].nom + " · " + Math.min(n,4) + " sur 4"; return "journée bouclée · " + (JOURNEE.chaine + 1) + " jours"; }
+
+</script>
+<script>
+/* ======================= Tour 3, pièce 12 : LA ROSACE (etude_rosace3) ======================= */
+/* Ce qu'on voit : la rosace seule, grande, suspendue dans le noir de la nef ; plus de mur : seul son remplage de pierre la borde.
+   Sous elle, dans l'obscurité, un dallage et une marche qu'on ne devine que là où la lumière les touche. La vedette est la
+   lumière qui traverse : chaque verre allumé pose sa tache au sol, nette, avec l'ombre fine de ses plombs ; les taches se
+   mélangent par addition (bleu + rubis = violet) dans leur halo ; la lumière casse sur le nez des marches et descend.
+   La loi, calculée : le réseau des verres est une partition de Voronoï relaxée par l'algorithme de Lloyd (S. Lloyd, « Least
+   squares quantization in PCM », 1982), 40 itérations sous symétrie dièdre d'ordre N (12, puis 8 et 16). La lumière au sol :
+   rayons parallèles du soleil (pente k, dérive lx) projetés du plan du vitrail sur chaque plan horizontal (la dalle haute,
+   puis, passé le nez de la marche, la dalle basse : le premier plan que le rayon touche), puis l'œil : par plan, une homographie
+   H = P·A. Elle est exacte ligne à ligne (à hauteur fixe, elle est affine en x) : le motif lumineux est reposé au sol par
+   bandes de 2 px, sans approximation visible. Le mélange des couleurs : composition additive (« lighter »), pas un mélange peint.
+   La main : vitrail ancien (verre soufflé, stries, bulles, grisaille, plombs en relief) ; au sol, la pierre multiplie la
+   lumière (albédo calculé, joints) ; poussière en volume dans les faisceaux. Bleu de Chartres (990), rubis (CUMBRE), jaune
+   d'argent (Lecture), vert émeraude (LE CLOSING). Typo : Georgia en capitales espacées, une ligne mono.
+   L'usage : « Ta journée ». Chaque priorité faite allume SON quartier, verre à verre ; un instant après, sa couleur arrive au
+   sol (la tache se dessine, le faisceau s'allume dans la poussière) et son nom s'inscrit DANS sa lumière, couché sur la dalle.
+   Le seuil (Boucler) : le cœur s'allume, une onde de soleil traverse la rosace PUIS le sol ; un éclair blanc, et la nef
+   s'emplit : faisceaux pleins, brume colorée, toute la rosace posée au sol, plus vive. L'état reste.
+   Le doigt : toucher un verre le fait vibrer (sa tache au sol aussi) et dit sa priorité ou son jour ; glisser déplace le
+   soleil : les taches glissent, s'allongent, passent d'une marche à l'autre. Encore : autre graine, autre ordre de symétrie.
+   Le téléphone : rien de lourd pendant l'animation. Tout ce qui est fixe se peint une fois, par petites tranches (≤ 7 ms) ;
+   chaque verre est pré-découpé dans un atlas ; un verre fini est « cuit » ; le sol ne se recalcule que si la lumière change. */
+const etude_rosace3_DONNEES = Object.assign({
+  tons: [
+    { nom: "bleu de Chartres", c: [44, 96, 228] },
+    { nom: "rubis", c: [216, 30, 50] },
+    { nom: "jaune d'argent", c: [250, 186, 44] },
+    { nom: "vert émeraude", c: [22, 170, 104] },
+  ],
+  ordres: [12, 8, 16],     // l'ordre de symétrie, une valeur par relance
+}, JOURNEE);
+
+function etude_rosace3(){
+  const DON = etude_rosace3_DONNEES, PR = DON.priorites, TONS = DON.tons.map(t => t.c);
+  const PLOMB = [18, 18, 21], BLANC_V = [224, 226, 210], COEUR = [255, 236, 190], NOIR = [8, 6, 14];
+  const NUIT = [6, 6, 8];
+  let W = 390, H = 760, DPR = 1, seed = 1194, variante = 0, N = DON.ordres[0];
+  let cells = [], poussiere = [];
+  // la rosace à l'écran
+  let R = 170, cx = 195, cy = 230, top = 50;
+  // le sol : la caméra de la nef (voir mise()) et les marches
+  const HC = 1.25, HM = .08;                 // hauteur du centre de la rosace au-dessus de la dalle haute ; hauteur d'une marche (unités : rayon)
+  let F = 180, E = 2, Zc = 2, K0 = .3, yh = 0, yF0 = 0, yLoin = 0, yPres = 0, ZE = [0, 0, Infinity];
+  // le soleil (le doigt le déplace)
+  let lxM = 0, kM = 1;
+  // l'état des priorités
+  let fait = [false, false, false, false], tG = [Infinity, Infinity, Infinity, Infinity], tSeuil = Infinity, dernierGeste = -1e9;
+  // les calques
+  let L = null, Lvieux = null, tVieux = 0, BG = null, ALB = null, LF = null, LFx = null, rayC = null, TEX = null;
+  let travaux = [], vib = null, cle = "", roseCle = "", solCle = "", rayCle = "", fsSol = 1;
+  const M = { titre: "LA ROSACE", bouton: libelleGeste(0), ligne: ligneGeste(0), dprMax: 1.5 };
+
+  /* ---------- la géométrie : Voronoï + Lloyd dans un demi-secteur, puis le groupe dièdre ---------- */
+  const polaire = (r, a) => [r*Math.cos(a), r*Math.sin(a)];
+
+  function couper(poly, a, b){   // garde le demi-plan plus proche de a que de b (Sutherland-Hodgman)
+    const nx = b[0] - a[0], ny = b[1] - a[1], mx = (a[0] + b[0])/2, my = (a[1] + b[1])/2;
+    const f = p => (p[0] - mx)*nx + (p[1] - my)*ny, out = [];
+    for (let i = 0; i < poly.length; i++){
+      const p = poly[i], q = poly[(i + 1) % poly.length], fp = f(p), fq = f(q);
+      if (fp <= 0) out.push(p);
+      if ((fp <= 0) !== (fq <= 0)){
+        const t = fp/(fp - fq);
+        out.push([p[0] + (q[0] - p[0])*t, p[1] + (q[1] - p[1])*t]);
+      }
+    }
+    return out;
+  }
+
+  function lloyd(n, r0, r1, K, Rn){
+    const A = Math.PI/n, S = [], ech = [], G = 30, rr = u => Math.sqrt(r0*r0 + (r1*r1 - r0*r0)*u);
+    for (let i = 0; i < K; i++) S.push(polaire(rr(Rn()), A*(.08 + .84*Rn())));
+    // échantillons uniformes en aire dans le demi-secteur
+    for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) ech.push(polaire(rr((i + Rn())/G), A*(j + Rn())/G));
+    for (let it = 0; it < 40; it++){
+      const sx = new Float64Array(K), sy = new Float64Array(K), nn = new Float64Array(K);
+      for (const p of ech){
+        let b = 0, bd = 1e9;
+        for (let k = 0; k < K; k++){
+          const dx = p[0] - S[k][0], dy = p[1] - S[k][1], d = dx*dx + dy*dy;
+          if (d < bd){ bd = d; b = k; }
+        }
+        sx[b] += p[0]; sy[b] += p[1]; nn[b]++;
+      }
+      for (let k = 0; k < K; k++) if (nn[k]) S[k] = [sx[k]/nn[k], sy[k]/nn[k]];   // chaque germe va au centroïde de sa cellule
+    }
+    const dom = [polaire(r0*.985, 0)];
+    for (let i = 0; i <= 8; i++) dom.push(polaire(r1, A*i/8));
+    dom.push(polaire(r0*.985, A));
+    return S.map((s, k) => {
+      let p = dom;
+      S.forEach((o, j) => { if (j !== k) p = couper(p, s, o); });
+      return { p, role: Rn(), motif: Math.floor(Rn()*4), ombre: Rn(), acc: 1 + Math.floor(Rn()*3) };
+    });
+  }
+
+  function couleur(f, q){
+    const T = TONS[q];
+    if (f.role < .5) return mix(T, BLANC_PUR, .02 + .16*f.ombre);
+    if (f.role < .7) return mix(T, NOIR, .18 + .22*f.ombre);
+    if (f.role < .83) return mix(BLANC_V, T, .22);
+    return mix(TONS[(q + f.acc) % 4], NOIR, .08*f.ombre);
+  }
+  const cercle = (x, y, r, n = 18) => Array.from({ length: n }, (_, i) => polaire(r, i/n*2*Math.PI)).map(p => [x + p[0], y + p[1]]);
+  const quartier = a => Math.floor((((a + Math.PI/2) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI))/(Math.PI/2) + 1e-9) % 4;
+
+  function geometrie(){
+    const Rn = graine(seed);
+    cells = [];
+    const ajoute = (p, q, o) => {
+      let gx = 0, gy = 0;
+      p.forEach(v => { gx += v[0]; gy += v[1]; });
+      gx /= p.length; gy /= p.length;
+      let rad = 0, x0 = 9, y0 = 9, x1 = -9, y1 = -9;
+      p.forEach(v => {
+        rad = Math.max(rad, Math.hypot(v[0] - gx, v[1] - gy));
+        x0 = Math.min(x0, v[0]); y0 = Math.min(y0, v[1]); x1 = Math.max(x1, v[0]); y1 = Math.max(y1, v[1]);
+      });
+      const path = new Path2D();
+      p.forEach((v, i) => i ? path.lineTo(v[0], v[1]) : path.moveTo(v[0], v[1]));
+      path.closePath();
+      const ang = Math.atan2(gy, gx), prog = ((ang + Math.PI/2 + 2*Math.PI) % (Math.PI/2))/(Math.PI/2);
+      cells.push(Object.assign({
+        p, q, g: [gx, gy], rad, bb: [x0, y0, x1, y1], path, ang, r: Math.hypot(gx, gy),
+        gain: 1, t0: Infinity, cuit: false, l: 0, lf: 0, kind: "v", motif: 0,
+        d: .25 + prog*1.55 + Math.hypot(gx, gy)*.45 + Rn()*.5,
+      }, o));
+    };
+    // l'oculus : quatre lobes (un par priorité) et le cœur (aujourd'hui)
+    for (let q = 0; q < 4; q++){
+      const a = -Math.PI/4 + q*Math.PI/2;
+      ajoute(cercle(.112*Math.cos(a), .112*Math.sin(a), .082, 20), q, { col: TONS[q], kind: "lobe", d: .05, motif: 3 });
+    }
+    ajoute(cercle(0, 0, .052, 16), 4, { col: COEUR, kind: "coeur", d: .2, motif: 2 });
+    // deux zones de verres : N secteurs, puis N secteurs plus fins
+    const K = { 8: [8, 10], 12: [6, 7], 16: [4, 5] }[N] || [6, 7];
+    [[N, .27, .585, K[0]], [N, .615, .852, K[1]]].forEach(([n, r0, r1, k], z) => {
+      const Fz = lloyd(n, r0, r1, k, Rn);
+      for (let s = 0; s < n; s++) for (const m of [1, -1]){
+        const phi = -Math.PI/2 + 2*Math.PI*s/n, co = Math.cos(phi), si = Math.sin(phi);
+        Fz.forEach(f => {
+          const p = f.p.map(v => { const x = v[0], y = v[1]*m; return [x*co - y*si, x*si + y*co]; });
+          let gx = 0, gy = 0;
+          p.forEach(v => { gx += v[0]; gy += v[1]; });
+          const q = quartier(Math.atan2(gy, gx));
+          ajoute(p, q, { col: couleur(f, q), motif: f.motif, zone: z });
+        });
+      }
+    });
+    // la couronne des jours : 28 médaillons, sept par quartier
+    DON.jours.forEach((n, k) => {
+      const a = -Math.PI/2 + (k + .5)*2*Math.PI/DON.jours.length, q = quartier(a), v = n/4;
+      ajoute(cercle(.926*Math.cos(a), .926*Math.sin(a), .054, 18), q, {
+        col: mix(TONS[q], BLANC_PUR, .08 + .22*v), kind: "jour", jour: k, n,
+        gain: .12 + .88*Math.pow(v, 1.3), d: 2.15 + (k % 7)*.17, motif: 2,
+      });
+    });
+    const Rp = graine(seed + 5);
+    poussiere = Array.from({ length: 170 }, () => ({
+      c: Math.floor(Rp()*cells.length), b: Rp(), v: .00003 + Rp()*.00006, w: Rp()*2 - 1, ph: Rp()*6.3, s: .6 + Rp()*1.1,
+    }));
+  }
+
+  /* ---------- la mise en page : la rosace en haut, grande ; la lumière au sol dessous ---------- */
+  function mise(){
+    top = H > 600 ? 52 : Math.max(14, H*.045);
+    R = Math.min(W*.46, H*.27);
+    cx = W/2;
+    cy = top + R;
+    const fm = clamp(R*.05, 7.5, 10);
+    yLoin = cy + R + fm*3 + 4;                       // le bord lointain de la tache (le bas du vitrail)
+    yPres = H - (H > 600 ? 64 : 10);                 // le bord proche (le haut du vitrail, une marche plus bas)
+    // la caméra : rapport de perspective rho entre le bord lointain et le bord proche de la tache
+    const rho = 1.45, Ybas = HC - 1, Yhaut = HC + 1 + HM;
+    K0 = (rho - 1)/(Yhaut - Ybas);
+    Zc = 1 + K0*Yhaut;                                // la profondeur du bord proche vaut 1
+    // la marche : son nez coupe le tiers lointain de la tache ; fixe dans la nef (le soleil bouge, pas la pierre)
+    ZE = [K0*(HC - .2), Infinity, Infinity];
+    const hTache = Math.max(40, yPres - yLoin);
+    F = Math.min(W*.62, hTache/(HM + .9*(1 - 1/rho)));
+    for (let it = 0; it < 4; it++){
+      E = Math.max(.9, (hTache/F - HM)/(1 - 1/rho));
+      yh = yPres - F*(E + HM);
+      // la tache ne doit pas déborder de l'écran : on mesure sa demi-largeur la plus grande
+      let large = 0;
+      for (let v = -1; v <= 1; v += .05){
+        const Y = HC - v, lev = niveau(Y, K0), r = rangee(Y, lev, K0);
+        large = Math.max(large, r.s*Math.sqrt(Math.max(0, 1 - v*v)));
+      }
+      if (large <= W*.485) break;
+      F *= W*.485/large;
+    }
+    yF0 = Math.max(0, Math.floor(yh + F*E/Zc) - 2);   // le pied du mur, perdu dans le noir
+  }
+
+  /* ---------- le rayon de soleil : quel plan il touche, et où il tombe à l'écran ---------- */
+  function niveau(Y, k){
+    for (let i = 0; i < 2; i++){
+      const z = k*(Y + i*HM);
+      if (z < ZE[i]) return i;
+    }
+    return 1;
+  }
+  function rangee(Y, lev, k){   // la ligne du vitrail de hauteur Y, posée sur la marche lev : affine en x
+    const drop = Y + lev*HM, z = k*drop, D = Math.max(.2, Zc - z), s = F/D;
+    return { y: yh + F*(E + lev*HM)/D, s, xc: cx + s*lxM*(drop - HC) };
+  }
+  function auSol(u, v){
+    const k = K0*kM, Y = HC - v, lev = niveau(Y, k), r = rangee(Y, lev, k);
+    return [r.xc + r.s*u, r.y, r.s, lev];
+  }
+
+  /* ---------- la texture de pierre (512², calculée par tranches) ---------- */
+  function* texture(){
+    const T = document.createElement("canvas");
+    T.width = T.height = 512;
+    const tx = T.getContext("2d"), im = tx.createImageData(512, 512), n = bruit2(seed % 97 + 3), Rn = graine(5);
+    yield;
+    for (let y0 = 0; y0 < 512; y0 += 12){
+      for (let y = y0; y < Math.min(512, y0 + 12); y++) for (let x = 0; x < 512; x++){
+        let v = .5*n(x/52, y/52) + .3*n(x/15 + 50, y/15) + .2*n(x/4.5 + 9, y/4.5 + 3) + (Rn() - .5)*.16;
+        if (Rn() < .005) v -= .4;                 // les pores de la pierre
+        const c = 70 + v*78, i = (y*512 + x)*4;
+        im.data[i] = c + 5; im.data[i + 1] = c + 3; im.data[i + 2] = c; im.data[i + 3] = 255;
+      }
+      tx.putImageData(im, 0, 0, 0, y0, 512, 12);
+      vider(T);
+      yield;
+    }
+    TEX = T;
+  }
+
+  /* ---------- le noir de la nef, le dallage à peine deviné, et l'albédo de la pierre (une fois par taille) ---------- */
+  function* fond(){
+    if (!TEX) yield* texture();
+    const d = Math.min(DPR, 1, Math.sqrt(1.6e6/(W*H)));   // un noir lisse n'a pas besoin de plus
+    const [c, x] = toile(W, H, d);
+    x.fillStyle = rgb(NUIT);
+    x.fillRect(0, 0, W, H);
+    // une lueur très basse au fond de la nef, pour que le noir ait une profondeur
+    const g = x.createRadialGradient(cx, cy, R*.6, cx, cy, Math.max(W, H));
+    g.addColorStop(0, "rgba(22,22,28,1)");
+    g.addColorStop(1, "rgba(5,5,7,1)");
+    x.fillStyle = g;
+    x.fillRect(0, 0, W, H);
+    vider(c);
+    yield;
+    // la marche dans le noir : seulement le fil du nez, presque invisible
+    const scr = (X, z, lev) => { const D = Math.max(.2, Zc - z); return [cx + F*X/D, yh + F*(E + lev*HM)/D]; };
+    for (let i = 0; i < 1; i++){
+      const a = scr(0, ZE[i], i), b = scr(0, ZE[i], i + 1);
+      const gg = x.createLinearGradient(0, 0, W, 0);
+      gg.addColorStop(0, "rgba(120,118,112,0)");
+      gg.addColorStop(.5, "rgba(120,118,112,.08)");
+      gg.addColorStop(1, "rgba(120,118,112,0)");
+      x.fillStyle = "rgba(0,0,0,.3)";
+      x.fillRect(0, a[1], W, b[1] - a[1]);           // la contremarche, dans l'ombre
+      x.fillStyle = gg;
+      x.fillRect(0, a[1] - .6, W, 1);                // le nez
+    }
+    vider(c);
+    yield;
+    // l'albédo du sol : la pierre (grain), les joints des dalles ; la contremarche est noire (aucune lumière ne l'atteint)
+    fsSol = Math.min(DPR, 1.25);
+    const aw = Math.ceil(W*fsSol), ah = Math.max(2, Math.ceil((H - yF0)*fsSol));
+    const A = document.createElement("canvas");
+    A.width = aw; A.height = ah;
+    const ax = A.getContext("2d");
+    ax.fillStyle = "rgb(255,253,248)";
+    ax.fillRect(0, 0, aw, ah);
+    ax.globalAlpha = .38;
+    ax.fillStyle = ax.createPattern(TEX, "repeat");
+    ax.fillRect(0, 0, aw, ah);
+    ax.globalAlpha = 1;
+    vider(A);
+    yield;
+    ax.setTransform(fsSol, 0, 0, fsSol, 0, -yF0*fsSol);
+    const Rn = graine(31);
+    for (let i = 0; i < 2; i++){
+      const z0 = i ? ZE[i - 1] : 0, z1 = Math.min(ZE[i], Zc - F*(E + i*HM)/Math.max(1, H + 4 - yh));   // pas au-delà du bas de l'écran
+      ax.save();
+      const a = scr(0, z0, i), b = scr(0, z1, i);
+      ax.beginPath();
+      ax.rect(0, a[1], W, b[1] - a[1]);
+      ax.clip();
+      // chaque dalle un peu différente
+      const dz = .16, dX = .42;
+      let j = 0;
+      for (let z = z0; z < z1; z += dz, j++){
+        const zb = Math.min(z + dz, z1);
+        for (let X = -6 + (j % 2)*dX/2; X < 6; X += dX){
+          const p = scr(X, z, i), q = scr(X + dX, z, i), r = scr(X + dX, zb, i), s = scr(X, zb, i);
+          if (Math.max(p[0], q[0], r[0], s[0]) < 0 || Math.min(p[0], q[0], r[0], s[0]) > W) continue;
+          ax.fillStyle = `rgba(${Rn() < .5 ? "20,18,16" : "250,248,240"},${.05 + Rn()*.1})`;
+          ax.beginPath();
+          ax.moveTo(...p); ax.lineTo(...q); ax.lineTo(...r); ax.lineTo(...s);
+          ax.closePath();
+          ax.fill();
+          ax.strokeStyle = "rgba(40,38,36,.75)";
+          ax.lineWidth = .9;
+          ax.beginPath();
+          ax.moveTo(...s); ax.lineTo(...p); ax.lineTo(...q);
+          ax.stroke();
+        }
+        if (j % 2 === 1){ vider(A); yield; }
+      }
+      ax.restore();
+      vider(A);
+      yield;
+    }
+    for (let i = 0; i < 1; i++){
+      const a = scr(0, ZE[i], i), b = scr(0, ZE[i], i + 1);
+      ax.fillStyle = "rgb(0,0,0)";
+      ax.fillRect(0, a[1] + .8, W, b[1] - a[1] - .8);
+      ax.fillStyle = "rgba(255,255,255,.9)";        // le nez de la marche, usé, plus clair
+      ax.fillRect(0, a[1] - 1.2, W, 1.6);
+    }
+    vider(A);
+    yield;
+    // le grain, cuit une fois dans le noir (pas de passe plein écran à chaque image)
+    x.setTransform(1, 0, 0, 1, 0, 0);
+    x.globalAlpha = .05;
+    for (let gy = 0; gy < c.height; gy += 128) for (let gx = 0; gx < c.width; gx += 128) x.drawImage(GRAIN, gx, gy);
+    x.globalAlpha = 1;
+    vider(c);
+    yield;
+    ALB = A;
+    BG = c;
+    LF = null;
+  }
+
+  /* ---------- les calques de la rosace : verre clair, verre éteint, plombs et remplage ---------- */
+  function* rose(){
+    const dr = Math.min(DPR, 1.3, Math.sqrt(1.1e6)/(2.4*R)), Dp = Math.ceil(2.4*R*dr), S = R*dr, O = 1.2*R*dr;
+    const mk = () => { const c = document.createElement("canvas"); c.width = c.height = Dp; return [c, c.getContext("2d")]; };
+    const unit = x => x.setTransform(S, 0, 0, S, O, O), id = x => x.setTransform(1, 0, 0, 1, 0, 0);
+    const [ms, mx] = mk(), [cl, clx] = mk(), [so, sx] = mk(), [pl, px] = mk(), [mt, mtx] = mk();
+    const tout = new Path2D();
+    cells.forEach(c => tout.addPath(c.path));
+    unit(mx);
+    mx.fillStyle = "#fff";
+    mx.fill(tout);
+    yield;
+    // la matière du verre soufflé : épaisseur (bruit), stries concentriques, graines
+    const im = mtx.createImageData(Dp, Dp), n = bruit2(seed + 11), Rn = graine(seed + 13);
+    yield;
+    const bande = Math.max(4, Math.floor(5000/Dp));
+    for (let y0 = 0; y0 < Dp; y0 += bande){
+      for (let y = y0; y < Math.min(Dp, y0 + bande); y++) for (let xx = 0; xx < Dp; xx++){
+        const u = (xx - O)/S, v = (y - O)/S, r = Math.hypot(u, v);
+        let val = .8 + .3*(n(u*9, v*9) - .5) + .12*(n(u*34 + 7, v*34) - .5) + .05*Math.sin(r*150 + n(u*3, v*3)*9) + (Rn() - .5)*.05;
+        if (Rn() < .0016) val -= .35;
+        const c = clamp(val, .4, 1)*255, i = (y*Dp + xx)*4;
+        im.data[i] = im.data[i + 1] = im.data[i + 2] = c;
+        im.data[i + 3] = 255;
+      }
+      mtx.putImageData(im, 0, 0, 0, y0, Dp, bande);
+      vider(mt);
+      yield;
+    }
+    // chaque verre : sa couleur, plus épais au bord, plus clair là où le verre s'amincit
+    unit(clx);
+    for (let i = 0; i < cells.length; i++){
+      const c = cells[i], Ri = graine(seed*7 + i);
+      const g = clx.createRadialGradient(c.g[0] + (Ri() - .5)*c.rad*.6, c.g[1] + (Ri() - .5)*c.rad*.6, 0, c.g[0], c.g[1], c.rad*1.25);
+      g.addColorStop(0, rgb(mix(c.col, BLANC_PUR, .26)));
+      g.addColorStop(.55, rgb(c.col));
+      g.addColorStop(1, rgb(mix(c.col, NOIR, .38)));
+      clx.fillStyle = g;
+      clx.fill(c.path);
+      if (i % 30 === 29){ vider(cl); yield; }
+    }
+    id(clx);
+    clx.globalCompositeOperation = "multiply";
+    clx.drawImage(mt, 0, 0);
+    clx.globalCompositeOperation = "source-over";
+    vider(cl);
+    yield;
+    // la grisaille peinte et les bulles
+    unit(clx);
+    const gri = a => `rgba(34,22,14,${a})`;
+    for (let i = 0; i < cells.length; i++){
+      const c = cells[i], Ri = graine(seed*13 + i), sh = Math.max(.35, 1 - .028/c.rad);
+      const inset = c.p.map(v => [c.g[0] + (v[0] - c.g[0])*sh, c.g[1] + (v[1] - c.g[1])*sh]);
+      clx.save();
+      clx.clip(c.path);
+      clx.strokeStyle = gri(.5);
+      clx.lineWidth = .0055;
+      clx.beginPath();
+      inset.forEach((v, k) => k ? clx.lineTo(...v) : clx.moveTo(...v));
+      clx.closePath();
+      clx.stroke();
+      if (c.motif === 1){                                         // les hachures
+        const a = c.ang + .8;
+        clx.strokeStyle = gri(.28);
+        clx.lineWidth = .0028;
+        clx.beginPath();
+        for (let s = -c.rad; s < c.rad; s += .011){
+          clx.moveTo(c.g[0] + Math.cos(a)*s - Math.sin(a)*c.rad, c.g[1] + Math.sin(a)*s + Math.cos(a)*c.rad);
+          clx.lineTo(c.g[0] + Math.cos(a)*s + Math.sin(a)*c.rad, c.g[1] + Math.sin(a)*s - Math.cos(a)*c.rad);
+        }
+        clx.stroke();
+      }
+      if (c.motif === 2 || c.motif === 0){                        // la feuille, orientée vers le centre
+        const a = c.ang, l = c.rad*.55, w = l*.42, ux = Math.cos(a), uy = Math.sin(a);
+        clx.fillStyle = gri(.32);
+        clx.strokeStyle = gri(.6);
+        clx.lineWidth = .004;
+        clx.beginPath();
+        clx.moveTo(c.g[0] - ux*l, c.g[1] - uy*l);
+        clx.quadraticCurveTo(c.g[0] - uy*w, c.g[1] + ux*w, c.g[0] + ux*l, c.g[1] + uy*l);
+        clx.quadraticCurveTo(c.g[0] + uy*w, c.g[1] - ux*w, c.g[0] - ux*l, c.g[1] - uy*l);
+        clx.fill();
+        clx.stroke();
+        clx.beginPath();
+        clx.moveTo(c.g[0] - ux*l, c.g[1] - uy*l);
+        clx.lineTo(c.g[0] + ux*l, c.g[1] + uy*l);
+        clx.stroke();
+      }
+      if (c.motif === 3){                                         // les perles
+        clx.fillStyle = gri(.45);
+        const per = inset.length;
+        for (let k = 0; k < per; k++){
+          const a = inset[k], b = inset[(k + 1) % per], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+          for (let s = .5; s < l/.016; s++){
+            const t = s*.016/l;
+            clx.beginPath();
+            clx.arc(a[0] + (b[0] - a[0])*t, a[1] + (b[1] - a[1])*t, .0035, 0, 6.283);
+            clx.fill();
+          }
+        }
+      }
+      for (let k = 0; k < 2 + Ri()*6; k++){                       // les bulles
+        const bx = c.g[0] + (Ri() - .5)*c.rad*1.3, by = c.g[1] + (Ri() - .5)*c.rad*1.3, br = .002 + Ri()*.0045;
+        clx.fillStyle = "rgba(255,255,250,.42)";
+        clx.beginPath();
+        clx.ellipse(bx, by, br, br*(.6 + Ri()*.4), Ri()*3, 0, 6.283);
+        clx.fill();
+        clx.strokeStyle = "rgba(0,0,0,.3)";
+        clx.lineWidth = .0012;
+        clx.stroke();
+      }
+      clx.restore();
+      if (i % 20 === 19){ vider(cl); yield; }
+    }
+    id(clx);
+    clx.globalCompositeOperation = "destination-in";
+    clx.drawImage(ms, 0, 0);
+    clx.globalCompositeOperation = "source-over";
+    vider(cl);
+    yield;
+    // le verre éteint : la même matière, sans couleur, dans le noir de la nef
+    sx.drawImage(cl, 0, 0);
+    sx.globalCompositeOperation = "saturation";
+    sx.fillStyle = "#808080";
+    sx.fillRect(0, 0, Dp, Dp);
+    sx.globalCompositeOperation = "multiply";
+    sx.fillStyle = "rgb(50,50,58)";
+    sx.fillRect(0, 0, Dp, Dp);
+    sx.globalCompositeOperation = "destination-in";
+    sx.drawImage(cl, 0, 0);
+    sx.globalCompositeOperation = "source-over";
+    vider(so);
+    yield;
+    // le remplage de pierre : le disque moins les verres, plus les anneaux et les rayons ; seul bord de la rosace
+    unit(px);
+    px.fillStyle = "#fff";
+    px.beginPath();
+    px.arc(0, 0, 1.0, 0, 6.283);
+    px.fill();
+    id(px);
+    px.globalCompositeOperation = "destination-out";
+    px.drawImage(ms, 0, 0);
+    px.globalCompositeOperation = "source-over";
+    vider(pl);
+    yield;
+    unit(px);
+    const anneaux = [[.25, .046], [.6, .036], [.857, .016], [.993, .022]], rayons = [];
+    for (let k = 0; k < N; k++) rayons.push([-Math.PI/2 + 2*Math.PI*k/N, .26, .59, .03]);
+    for (let k = 0; k < N; k++) rayons.push([-Math.PI/2 + 2*Math.PI*k/N, .6, .857, .024]);
+    px.strokeStyle = "#fff";
+    px.lineCap = "butt";
+    anneaux.forEach(([r, w]) => { px.lineWidth = w; px.beginPath(); px.arc(0, 0, r, 0, 6.283); px.stroke(); });
+    rayons.forEach(([a, r0, r1, w]) => {
+      px.lineWidth = w;
+      px.beginPath();
+      px.moveTo(r0*Math.cos(a), r0*Math.sin(a));
+      px.lineTo(r1*Math.cos(a), r1*Math.sin(a));
+      px.stroke();
+    });
+    vider(pl);
+    yield;
+    id(px);
+    px.globalCompositeOperation = "source-in";
+    for (let y = 0; y < Dp; y += 512) for (let xx = 0; xx < Dp; xx += 512) px.drawImage(TEX, xx, y);
+    vider(pl);
+    yield;
+    px.globalCompositeOperation = "source-atop";
+    px.fillStyle = "rgba(8,7,7,.42)";                          // la pierre dans la pénombre de la nef
+    px.fillRect(0, 0, Dp, Dp);
+    vider(pl);
+    yield;
+    // le biseau : arête claire vers la lumière (haut gauche), ombre de l'autre côté
+    unit(px);
+    const bis = px.createLinearGradient(-1, -1, 1, 1);
+    bis.addColorStop(0, "rgba(230,224,210,.42)");
+    bis.addColorStop(.5, "rgba(120,116,110,.08)");
+    bis.addColorStop(1, "rgba(0,0,0,.6)");
+    px.strokeStyle = bis;
+    px.lineWidth = .006;
+    anneaux.forEach(([r, w]) => {
+      [r - w/2, r + w/2].forEach(rr => { px.beginPath(); px.arc(0, 0, rr, 0, 6.283); px.stroke(); });
+    });
+    rayons.forEach(([a, r0, r1, w]) => {
+      const nx = -Math.sin(a)*w/2, ny = Math.cos(a)*w/2;
+      [1, -1].forEach(s => {
+        px.beginPath();
+        px.moveTo(r0*Math.cos(a) + s*nx, r0*Math.sin(a) + s*ny);
+        px.lineTo(r1*Math.cos(a) + s*nx, r1*Math.sin(a) + s*ny);
+        px.stroke();
+      });
+    });
+    px.globalCompositeOperation = "source-over";
+    vider(pl);
+    yield;
+    // les plombs : joue d'ombre, plomb, arête claire (le relief), par paquets de verres
+    px.lineJoin = "round";
+    const paquets = [];
+    for (let i = 0; i < cells.length; i += 60){
+      const pq = new Path2D();
+      cells.slice(i, i + 60).forEach(c => pq.addPath(c.path));
+      paquets.push(pq);
+    }
+    for (const [dx, coul, lw] of [[.004, "rgba(0,0,0,.5)", .01], [0, rgb(PLOMB), .013], [-.0022, "rgba(160,160,170,.3)", .0035]]){
+      for (const pq of paquets){
+        px.save();
+        px.translate(dx, dx);
+        px.strokeStyle = coul;
+        px.lineWidth = lw;
+        px.stroke(pq);
+        px.restore();
+        vider(pl);
+        yield;
+      }
+    }
+    const lobes = new Path2D();
+    cells.forEach(c => { if (c.kind !== "v") lobes.addPath(c.path); });
+    px.strokeStyle = "rgba(0,0,0,.55)";
+    px.lineWidth = .006;
+    px.stroke(lobes);
+    // les médaillons : une croisée de plomb
+    px.strokeStyle = rgb(PLOMB);
+    px.lineWidth = .008;
+    cells.forEach(c => {
+      if (c.kind !== "jour") return;
+      const a = c.ang, r = .054;
+      px.beginPath();
+      px.moveTo(c.g[0] - Math.cos(a)*r, c.g[1] - Math.sin(a)*r);
+      px.lineTo(c.g[0] + Math.cos(a)*r, c.g[1] + Math.sin(a)*r);
+      px.stroke();
+    });
+    // le bord extérieur de la pierre, à peine éclairé
+    px.strokeStyle = "rgba(150,146,138,.18)";
+    px.lineWidth = .004;
+    px.beginPath();
+    px.arc(0, 0, .998, Math.PI*.9, Math.PI*1.75);
+    px.stroke();
+    vider(pl);
+    yield;
+    // l'atlas : chaque verre découpé une fois dans son propre rectangle, plombs déjà ôtés
+    // (ce trou de plomb est ce qui dessine, au sol, les ombres fines entre les taches)
+    const bo = c => {
+      const a = Math.max(0, Math.floor(O + c.bb[0]*S) - 2), b = Math.max(0, Math.floor(O + c.bb[1]*S) - 2);
+      return [a, b, Math.min(Dp - a, Math.ceil((c.bb[2] - c.bb[0])*S) + 4), Math.min(Dp - b, Math.ceil((c.bb[3] - c.bb[1])*S) + 4)];
+    };
+    let ux = 0, uy = 0, uh = 0;
+    const places = cells.map(c => {
+      const b = bo(c);
+      if (ux + b[2] > Dp){ ux = 0; uy += uh + 1; uh = 0; }
+      const r = [ux, uy];
+      ux += b[2] + 1;
+      uh = Math.max(uh, b[3]);
+      return { b, a: r };
+    });
+    const at = document.createElement("canvas");
+    at.width = Dp;
+    at.height = uy + uh + 1;
+    const atx = at.getContext("2d");
+    for (let i = 0; i < cells.length; i++){
+      const { b, a } = places[i];
+      atx.save();
+      atx.beginPath();
+      atx.rect(a[0], a[1], b[2], b[3]);
+      atx.clip();
+      atx.drawImage(cl, b[0], b[1], b[2], b[3], a[0], a[1], b[2], b[3]);
+      atx.setTransform(S, 0, 0, S, O - b[0] + a[0], O - b[1] + a[1]);
+      atx.globalCompositeOperation = "destination-in";
+      atx.fill(cells[i].path);
+      atx.globalCompositeOperation = "destination-out";
+      atx.lineWidth = .0105;
+      atx.lineJoin = "round";
+      atx.stroke(cells[i].path);
+      atx.restore();
+      cells[i].sp = { b, a };
+      if (i % 30 === 29){ vider(at); yield; }
+    }
+    vider(at);
+    const [bk, bkx] = mk(), [al, alx] = mk(), [co, cox] = mk(), [gw, gwx] = mk(), [g2, g2x] = mk(), [pa, pax] = mk();
+    const demi = Math.ceil(Dp/2), tm = document.createElement("canvas");
+    tm.width = tm.height = demi;
+    const h1 = document.createElement("canvas"), h2 = document.createElement("canvas");
+    h1.width = h1.height = Math.ceil(Dp/4);
+    h2.width = h2.height = Math.ceil(Dp/9);
+    yield;
+    L = {
+      Dp, S, O, dr, atlas: at, clair: cl, sombre: so, plomb: pl, masque: ms,
+      bake: bk, bx: bkx, allum: al, ax: alx, compo: co, kx: cox, glow: gw, gl: gwx, glow2: g2, gl2: g2x, pat: pa, px: pax,
+      h1, h1x: h1.getContext("2d"), h2, h2x: h2.getContext("2d"),
+      cleG: "", tGl: -1e9, job: null, version: 0, tSol: -1e9, tJob: -1e9, tRose: -1e9, tmp: tm, tx: tm.getContext("2d"),
+    };
+    yield* rebakeGen();
+    vider(L.glow);
+    yield;
+    peindreSol(L.allum, 0);
+    vider(LF);
+    yield;
+    composer(maintenant(), false);
+    vider(L.compo);
+    yield;
+    Lvieux = null;
+  }
+
+  /* ---------- cuire les verres allumés dans les calques (un verre pris dans l'atlas, sans découpe) ---------- */
+  const unitL = x => x.setTransform(L.S, 0, 0, L.S, L.O, L.O), idL = x => x.setTransform(1, 0, 0, 1, 0, 0);
+  function poser(x, c, alpha, op){
+    const { b, a } = c.sp;
+    x.globalAlpha = alpha;
+    if (op) x.globalCompositeOperation = op;
+    x.drawImage(L.atlas, a[0], a[1], b[2], b[3], b[0], b[1], b[2], b[3]);
+    x.globalAlpha = 1;
+    x.globalCompositeOperation = "source-over";
+  }
+  function* rebakeGen(){
+    roseCle = solCle = rayCle = "";
+    if (!L) return;
+    L.job = null;
+    const t = maintenant();
+    L.bx.globalCompositeOperation = "copy";
+    L.bx.drawImage(L.sombre, 0, 0);
+    L.bx.globalCompositeOperation = "source-over";
+    L.ax.clearRect(0, 0, L.Dp, L.Dp);
+    let n = 0;
+    for (const c of cells){
+      c.inGlow = false;
+      c.cuit = t - c.t0 > 1500;
+      if (!c.cuit) continue;
+      poser(L.bx, c, c.gain);
+      poser(L.ax, c, c.gain);
+      if (++n % 120 === 0){ vider(L.bake); yield; }
+    }
+    vider(L.bake);
+    vider(L.allum);
+    yield;
+    yield* refaireGlow(lxM + "|" + kM + "|" + Math.round(lisse((t - tSeuil - 300)/2600)*4), t);
+  }
+  function rebake(){ const g = rebakeGen(); while (!g.next().done); }
+
+  /* ---------- le calque « soleil » (verres cuits + lueur + soleil derrière), refait en trois images, en double tampon ---------- */
+  function voile(X, src, a0, a1, rad){
+    const T = L.tx, Dh = L.tmp.width;
+    const gx = L.O + clamp(-lxM*1.4, -.8, .8)*L.S, gy = L.O + clamp(-.25 + (kM - 1)*.9, -.85, .35)*L.S;
+    T.globalCompositeOperation = "copy";
+    T.drawImage(src, 0, 0, Dh, Dh);
+    T.globalCompositeOperation = "destination-in";
+    const g = T.createRadialGradient(gx/2, gy/2, 0, gx/2, gy/2, rad/2);
+    g.addColorStop(0, `rgba(255,255,255,${a0})`);
+    g.addColorStop(1, `rgba(255,255,255,${a1})`);
+    T.fillStyle = g;
+    T.fillRect(0, 0, Dh, Dh);
+    X.globalCompositeOperation = "lighter";
+    X.drawImage(L.tmp, 0, 0, L.Dp, L.Dp);
+    X.globalCompositeOperation = "source-over";
+  }
+  function* refaireGlow(cleG, t){
+    const pris = cells.filter(c => c.cuit), sr = lisse((t - tSeuil - 300)/2600);
+    const G = L.gl2;
+    G.setTransform(1, 0, 0, 1, 0, 0);
+    G.globalCompositeOperation = "copy";
+    G.drawImage(L.bake, 0, 0);
+    G.globalCompositeOperation = "source-over";
+    vider(L.glow2);
+    yield;
+    voile(G, L.masque, .08, 0, 1.1*L.S);                                     // un reste de jour derrière le vitrail éteint
+    vider(L.glow2);
+    yield;
+    if (pris.length) voile(G, L.allum, .45 + .15*sr, .05 + .05*sr, 1.3*L.S); // le soleil derrière les verres allumés
+    // l'échange des tampons : le nouveau calque devient visible d'un coup
+    [L.glow, L.glow2] = [L.glow2, L.glow];
+    [L.gl, L.gl2] = [L.gl2, L.gl];
+    cells.forEach(c => { c.inGlow = false; });
+    pris.forEach(c => { c.inGlow = true; });
+    L.cleG = cleG;
+    L.tGl = t;
+    L.version++;
+    roseCle = "";
+  }
+
+  /* ---------- le sol : le motif lumineux reposé ligne à ligne par l'homographie ---------- */
+  function bandes(X, src, alpha, n){
+    const Ds = src.width, Ss = Ds/2.4, Os = Ds/2, k = K0*kM, fs = fsSol;
+    X.globalAlpha = alpha;
+    for (let j = 0; j < n; j++){
+      const v0 = -1 + 2*j/n, v1 = -1 + 2*(j + 1)/n, vm = (v0 + v1)/2;
+      const lev = niveau(HC - vm, k);
+      const a = rangee(HC - v0, lev, k), b = rangee(HC - v1, lev, k);
+      const sy0 = Os + v0*Ss, sy1 = Os + v1*Ss, sh = sy1 - sy0;
+      const sm = (a.s + b.s)/2, ax = sm/Ss, ay = (b.y - a.y)/sh, c = (b.xc - a.xc)/sh;
+      const e = a.xc - ax*Os - c*sy0, f = a.y - ay*sy0;
+      X.setTransform(fs*ax, 0, fs*c, fs*ay, fs*e, fs*(f - yF0));
+      X.drawImage(src, 0, sy0, Ds, sh, 0, sy0, Ds, sh);
+    }
+    X.setTransform(1, 0, 0, 1, 0, 0);
+    X.globalAlpha = 1;
+  }
+  function peindreSol(src, sr){
+    const aw = ALB.width, ah = ALB.height;
+    if (!LF || LF.width !== aw || LF.height !== ah){
+      LF = document.createElement("canvas");
+      LF.width = aw; LF.height = ah;
+      LFx = LF.getContext("2d");
+    }
+    const X = LFx;
+    X.setTransform(1, 0, 0, 1, 0, 0);
+    X.globalCompositeOperation = "source-over";
+    X.fillStyle = "#000";
+    X.fillRect(0, 0, aw, ah);
+    // le halo : le même motif, très réduit, reposé au sol ; c'est là que les couleurs voisines s'additionnent
+    L.h1x.globalCompositeOperation = "copy";
+    L.h1x.drawImage(src, 0, 0, L.h1.width, L.h1.height);
+    L.h2x.globalCompositeOperation = "copy";
+    L.h2x.drawImage(L.h1, 0, 0, L.h2.width, L.h2.height);
+    X.globalCompositeOperation = "lighter";
+    const hauteur = Math.abs(yPres - yLoin);
+    bandes(X, L.h2, .55 + .35*sr, 20);
+    // la tache nette : les verres et l'ombre fine de leurs plombs
+    const nb = Math.round(clamp(hauteur/2.4, 50, 150));
+    bandes(X, src, 1, nb);
+    // la pierre multiplie la lumière : grain, joints, nez des marches ; la contremarche reste noire
+    X.globalCompositeOperation = "multiply";
+    X.drawImage(ALB, 0, 0);
+    if (sr > 0){                                                 // au seuil, la lumière s'ajoute à elle-même : plus d'éclat
+      X.globalCompositeOperation = "lighter";
+      X.globalAlpha = .6*sr;
+      X.drawImage(LF, 0, 0);
+      X.globalAlpha = 1;
+    }
+    X.globalCompositeOperation = "source-over";
+  }
+
+  /* ---------- l'image ---------- */
+  const VIDE = toile(1, 1, 1)[1];
+  const vider = c => VIDE.drawImage(c, 0, 0, 1, 1);   // force le tramage d'une toile pendant SA tranche de travail
+  function avancer(budget){
+    const h0 = performance.now();
+    while (travaux.length && performance.now() - h0 < budget){
+      if (travaux[0].next().done) travaux.shift();
+    }
+  }
+  function espace(x, s, X, Y, sp, al, trait){
+    const ws = [...s].map(ch => x.measureText(ch).width), w = ws.reduce((a, b) => a + b + sp, -sp);
+    let u = al === "right" ? X - w : al === "center" ? X - w/2 : X;
+    [...s].forEach((ch, i) => {
+      if (trait) x.strokeText(ch, u, Y);
+      else x.fillText(ch, u, Y);
+      u += ws[i] + sp;
+    });
+  }
+
+  function frame(ctx, t){
+    avancer(5);
+    if (!BG){
+      ctx.fillStyle = rgb(NUIT);
+      ctx.fillRect(0, 0, W, H);
+      return;
+    }
+    ctx.globalCompositeOperation = "copy";                       // le fond est opaque : il remplace l'image précédente
+    ctx.drawImage(BG, 0, 0, W, H);
+    ctx.globalCompositeOperation = "source-over";
+    const sr = lisse((t - tSeuil - 300)/2600);
+    if (!L){                                                     // la rosace se reconstruit (Encore) : l'ancienne s'efface
+      if (Lvieux){
+        ctx.globalAlpha = clamp(1 - (t - tVieux)/700);
+        ctx.drawImage(Lvieux.compo, cx - 1.2*R, cy - 1.2*R, 2.4*R, 2.4*R);
+        ctx.globalAlpha = 1;
+      }
+      return;
+    }
+    // l'état de chaque verre : dans la rosace (l), puis au sol un instant après (lf)
+    let nl = 0, nCuit = 0, actif = false, cuits = 0, manque = false;
+    for (const c of cells){
+      c.l = lisse((t - c.t0)/550);
+      c.lf = lisse((t - c.t0 - 260)/700);
+      if (c.l > 0) nl++;
+      if (!c.cuit && t - c.t0 > 1500 && cuits < 12){             // cuire : au plus 12 verres par image
+        cuits++;
+        poser(L.bx, c, c.gain);
+        poser(L.ax, c, c.gain);
+        c.cuit = true;
+      }
+      if (c.cuit){
+        nCuit++;
+        if (!c.inGlow) manque = true;
+      }
+      else if (t >= c.t0) actif = true;
+    }
+    const vibA = vib && t - vib.t < 2200, ondeA = t - tSeuil > 0 && t - tSeuil < 3600, ouvre = sr > 0 && sr < 1;
+    const bouge = actif || vibA || ondeA || ouvre;
+    const k = K0*kM;
+
+    // trois travaux lourds possibles : le calque soleil, le sol (et ses faisceaux), la rosace composée.
+    // Un seul par image, celui qui attend depuis le plus longtemps : aucune image ne les cumule.
+    const cleG = lxM + "|" + kM + "|" + Math.round(sr*4);
+    const veutGlow = !!L.job || ((cleG !== L.cleG || manque) && t - L.tGl > (bouge ? 400 : 120));
+    const cleF = bouge ? "t" + Math.floor(t/50) : lxM + "|" + kM + "|" + nl + "|" + nCuit + "|" + sr;
+    const veutSol = nl > 0 && cleF !== solCle;
+    const cleR = bouge ? "t" + Math.floor(t/16) : "g" + L.version + "|" + nCuit;
+    const veutRose = cleR !== roseCle;
+    let choix = null;
+    if (veutRose && roseCle === "") choix = "rose";
+    else {
+      let vieux = Infinity;
+      for (const [n, tt, v] of [["glow", L.tJob, veutGlow], ["sol", L.tSol, veutSol], ["rose", L.tRose, veutRose]]){
+        if (v && tt < vieux){ vieux = tt; choix = n; }
+      }
+    }
+    if (choix === "glow"){
+      if (!L.job) L.job = refaireGlow(cleG, t);
+      if (L.job.next().done) L.job = null;
+      L.tJob = t;
+    }
+    else if (choix === "sol"){
+      solCle = cleF;
+      L.tSol = t;
+      sol(t, sr, vibA);
+      faisceaux(sr);
+    }
+    else if (choix === "rose"){
+      roseCle = cleR;
+      L.tRose = t;
+      composer(t, vibA);
+    }
+
+    // 1. la lumière au sol
+    if (nl && LF){
+      ctx.globalCompositeOperation = "lighter";
+      ctx.drawImage(LF, 0, yF0, LF.width/fsSol, LF.height/fsSol);
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // 2. les faisceaux dans la poussière, et la poussière elle-même
+    if (nl && rayC){
+      const ray = .32 + .68*sr;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const rh = rayC.height, r0 = Math.max(0, Math.floor((cy - R)*rh/H));   // au-dessus de la rosace, il n'y a pas de faisceau
+      ctx.drawImage(rayC, 0, r0, rayC.width, rh - r0, 0, r0*H/rh, W, (rh - r0)*H/rh);
+      const nb = sr > 0 ? poussiere.length : 110;
+      for (let i = 0; i < nb; i++){
+        const p = poussiere[i], c = cells[p.c];
+        if (!c || c.lf <= 0 || c.fx === undefined) continue;
+        const b = (p.b + t*p.v) % 1, Cx = cx + c.g[0]*R, Cy = cy + c.g[1]*R;     // c.fx, c.fy : sa tache au sol (calculée avec les faisceaux)
+        const x = Cx + (c.fx - Cx)*b + p.w*c.rad*R*.6 + Math.sin(t/1700 + p.ph)*4;
+        const y = Cy + (c.fy - Cy)*b + Math.cos(t/2100 + p.ph)*3;
+        const a = c.lf*ray*(.4 + .35*Math.sin(t/400 + p.ph*3))*c.gain;
+        if (a <= .02) continue;
+        ctx.globalAlpha = Math.min(1, a);
+        ctx.fillStyle = c.pc || (c.pc = rgb(mix(c.col, BLANC_PUR, .6)));
+        ctx.fillRect(x, y, p.s, p.s);
+      }
+      ctx.restore();
+    }
+
+    // 3. la rosace : une lueur à peine autour, puis le vitrail
+    if (nl){
+      const part = clamp(nl/cells.length);
+      const g = ctx.createRadialGradient(cx, cy, R*.95, cx, cy, R*1.45);
+      g.addColorStop(0, `rgba(130,110,150,${.12*part + .1*sr})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = g;
+      ctx.fillRect(cx - 1.5*R, cy - 1.5*R, 3*R, 3*R);
+      ctx.restore();
+    }
+    ctx.drawImage(L.compo, cx - 1.2*R, cy - 1.2*R, 2.4*R, 2.4*R);
+
+    // 4. l'éclair du seuil
+    const fl = t - tSeuil;
+    if (fl > 0 && fl < 1000){
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = `rgba(255,244,222,${.42*Math.exp(-fl/320)*clamp(fl/80)})`;
+      ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+    }
+
+    // 5. les noms, couchés sur la dalle, dans leur lumière
+    noms(ctx, t, k);
+    // 6. la ligne mono : la loi en clair
+    const fm = clamp(R*.05, 7.5, 10), haut = Math.atan(1/Math.hypot(lxM, k))*180/Math.PI;
+    ctx.font = `${fm}px ui-monospace, Consolas, monospace`;
+    ctx.fillStyle = "rgba(170,166,160,.5)";
+    espace(ctx, `D${N} · LLOYD ×40 · ${cells.length} VERRES · H = P·A · SOLEIL ${Math.round(haut)}°`, cx, cy + R + fm*1.9, .6, "center");
+  }
+
+  /* ---------- le sol : le motif lumineux du moment (verres cuits + verres qui arrivent), reposé au sol ---------- */
+  function sol(t, sr, vibA){
+    let src = L.allum;
+    const ws = (t - tSeuil - 900)/1500;
+    const arrivent = cells.some(c => !c.cuit && c.lf > 0);
+    if (arrivent || vibA || (ws > 0 && ws < 1.6)){
+      const P = L.px;
+      P.globalCompositeOperation = "copy";
+      P.drawImage(L.allum, 0, 0);
+      P.globalCompositeOperation = "source-over";
+      for (const c of cells){
+        if (c.cuit || c.lf <= 0) continue;
+        poser(P, c, c.lf*c.gain);
+        if (c.lf < 1) poser(P, c, .8*Math.sin(Math.PI*c.lf)*c.gain, "lighter");   // la tache arrive : elle éclate puis se pose
+      }
+      if (vibA){
+        const a = Math.exp(-(t - vib.t)/650)*(.55 + .45*Math.sin((t - vib.t)/38));
+        poser(P, vib.c, .95*a, "lighter");
+      }
+      if (ws > 0 && ws < 1.6) onde(P, ws, L.Dp);                // l'onde du seuil, en retard, arrive au sol
+      src = L.pat;
+    }
+    peindreSol(src, sr);
+  }
+
+  /* ---------- les faisceaux : de chaque verre allumé à sa tache, au quart de la résolution ; la brume du seuil ---------- */
+  function faisceaux(sr){
+    const rw = Math.ceil(W/4), rh = Math.ceil(H/4), ray = .32 + .68*sr;
+    if (!rayC || rayC.width !== rw || rayC.height !== rh){
+      rayC = document.createElement("canvas");
+      rayC.width = rw;
+      rayC.height = rh;
+    }
+    const rx = rayC.getContext("2d");
+    rx.setTransform(1, 0, 0, 1, 0, 0);
+    rx.globalCompositeOperation = "source-over";
+    rx.clearRect(0, 0, rw, rh);
+    rx.setTransform(rw/W, 0, 0, rh/H, 0, 0);
+    rx.globalCompositeOperation = "lighter";
+    cells.forEach((c, i) => {
+      if (c.lf <= 0) return;
+      const C = [cx + c.g[0]*R, cy + c.g[1]*R], Fp = auSol(c.g[0], c.g[1]);
+      c.fx = Fp[0];
+      c.fy = Fp[1];
+      if (c.kind === "v" && i % 2) return;
+      const dx = Fp[0] - C[0], dy = Fp[1] - C[1], l = Math.hypot(dx, dy) || 1, nx = -dy/l, ny = dx/l;
+      const wc = c.rad*R*.7, wf = c.rad*Fp[2]*.7;
+      const eclat = 1 + 2.2*Math.sin(Math.PI*c.lf);            // le faisceau s'allume fort quand la couleur descend
+      rx.globalAlpha = Math.min(1, c.lf*c.gain*ray*.06*eclat);
+      rx.fillStyle = c.cs || (c.cs = rgb(c.col));
+      rx.beginPath();
+      rx.moveTo(C[0] + nx*wc, C[1] + ny*wc);
+      rx.lineTo(Fp[0] + nx*wf, Fp[1] + ny*wf);
+      rx.lineTo(Fp[0] - nx*wf, Fp[1] - ny*wf);
+      rx.lineTo(C[0] - nx*wc, C[1] - ny*wc);
+      rx.fill();
+    });
+    rx.globalAlpha = 1;
+    if (sr > 0){                                                 // la brume colorée du seuil : la nef entière s'emplit
+      const yc = (cy + yPres)/2, g = rx.createRadialGradient(cx, yc, R*.2, cx, yc, Math.max(W, H)*.75);
+      g.addColorStop(0, `rgba(120,90,130,${.16*sr})`);
+      g.addColorStop(.55, `rgba(60,70,130,${.08*sr})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      rx.fillStyle = g;
+      rx.fillRect(0, 0, W, H);
+    }
+  }
+
+  function onde(X, ws, Dp){   // un anneau de lumière qui part du cœur et traverse tous les verres allumés
+    const T = L.tx, Dh = L.tmp.width;
+    T.globalCompositeOperation = "copy";
+    T.drawImage(L.allum, 0, 0, Dh, Dh);
+    T.globalCompositeOperation = "destination-in";
+    const g = T.createRadialGradient(Dh/2, Dh/2, 0, Dh/2, Dh/2, L.S*.525);
+    const p = clamp(ws/1.4, 0, 1);
+    [[p - .18, 0], [p, .95], [Math.min(1, p + .08), 0]].forEach(([o, a]) => g.addColorStop(clamp(o), `rgba(255,255,255,${a})`));
+    T.fillStyle = g;
+    T.fillRect(0, 0, Dh, Dh);
+    X.globalCompositeOperation = "lighter";
+    X.drawImage(L.tmp, 0, 0, Dp, Dp);
+    X.globalCompositeOperation = "source-over";
+  }
+
+  /* ---------- la rosace composée : calque soleil + ce qui s'allume + plombs et remplage ---------- */
+  function composer(t, vibA){
+    const K = L.kx;
+    idL(K);
+    K.globalCompositeOperation = "copy";
+    K.drawImage(L.glow, 0, 0);
+    K.globalCompositeOperation = "source-over";
+    for (const c of cells){
+      if (c.inGlow || c.l <= 0) continue;                        // ce qui n'est pas encore dans le calque soleil
+      poser(K, c, c.l*c.gain);
+      const fl = Math.sin(Math.PI*clamp((t - c.t0)/1100));
+      if (fl > 0) poser(K, c, .75*fl*c.gain, "lighter");
+    }
+    if (vibA){
+      const a = Math.exp(-(t - vib.t)/650)*(.55 + .45*Math.sin((t - vib.t)/38));
+      poser(K, vib.c, .95*a, "lighter");
+    }
+    const ws = (t - tSeuil)/1500;
+    if (ws > 0 && ws < 1.6) onde(K, ws, L.Dp);
+    K.drawImage(L.plomb, 0, 0);
+  }
+
+  function noms(ctx, t, k){
+    PR.forEach((p, q) => {
+      // le nom se couche au milieu de la tache de son quartier (vu au sol, le vitrail est renversé)
+      const a = -Math.PI/4 + q*Math.PI/2, u = .5*Math.sign(Math.cos(a)), v = .6*Math.sign(Math.sin(a));
+      const P0 = auSol(u, v), P1 = auSol(u, v + .06);
+      const squash = clamp(Math.abs(P1[1] - P0[1])/(.06*P0[2]), .55, 1);
+      const lit = lisse((t - tG[q] - 700)/1300), nom = p.nom.toUpperCase();
+      let fsz = clamp(P0[2]*.12, 11, 20);
+      ctx.save();
+      ctx.font = `500 ${fsz}px Georgia, "Times New Roman", serif`;
+      const large = ctx.measureText(nom).width + nom.length*fsz*.3;
+      fsz *= Math.min(1, P0[2]*.86/large);                       // le nom tient dans la demi-tache
+      const sp = fsz*.3, fm = clamp(fsz*.5, 7, 9.5);
+      const demi = (large*fsz/clamp(P0[2]*.12, 11, 20))/2;
+      ctx.translate(clamp(P0[0], demi + 8, W - demi - 8), P0[1]);   // jamais coupé par le bord
+      ctx.scale(1, squash);
+      ctx.font = `500 ${fsz}px Georgia, "Times New Roman", serif`;
+      ctx.textBaseline = "middle";
+      if (lit < 1){                                             // avant le geste : une inscription à peine lisible dans le noir
+        ctx.fillStyle = `rgba(150,146,140,${.2*(1 - lit)})`;
+        espace(ctx, nom, 0, 0, sp, "center");
+      }
+      if (lit > 0){
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = `rgba(4,4,8,${.7*lit})`;              // le creux de la lettre gravée, qui la détache de la lumière
+        ctx.lineWidth = Math.max(2.4, fsz*.2);
+        espace(ctx, nom, 0, 0, sp, "center", true);
+        ctx.fillStyle = rgb(mix(TONS[q], BLANC_PUR, .7), lit);
+        espace(ctx, nom, 0, 0, sp, "center");
+        ctx.font = `${fm}px ui-monospace, Consolas, monospace`;
+        const sous = (p.min + " min").toUpperCase();
+        ctx.lineWidth = 2.4;
+        espace(ctx, sous, 0, fsz*.95, 1.2, "center", true);
+        ctx.fillStyle = rgb(mix(TONS[q], BLANC_PUR, .75), .9*lit);
+        espace(ctx, sous, 0, fsz*.95, 1.2, "center");
+      }
+      ctx.restore();
+    });
+  }
+
+  /* ---------- les gestes et l'état ---------- */
+  const nFaits = () => fait.filter(Boolean).length;
+  const boucle = () => tSeuil < Infinity;
+  function textes(){
+    const n = nFaits();
+    M.bouton = boucle() ? "Encore" : n < 4 ? PR[fait.indexOf(false)].nom : "Boucler";
+    M.ligne = boucle() ? ligneGeste(5)
+      : n ? n + " sur 4 · " + PR.filter((p, i) => fait[i]).map(p => p.nom).join(" · ")
+      : ligneGeste(0);
+  }
+  function etat(liste, bouclee){
+    const Lr = (liste || []).filter(i => i >= 0 && i < 4);
+    fait = [0, 1, 2, 3].map(i => Lr.includes(i));
+    const b = !!bouclee && Lr.length === 4;
+    tSeuil = b ? -1e9 : Infinity;
+    tG = fait.map(f => f ? -1e9 : Infinity);
+    cells.forEach(c => {
+      c.t0 = b || (c.q < 4 && fait[c.q]) ? -1e9 : Infinity;
+      c.cuit = false;
+    });
+    textes();
+    rebake();
+  }
+  function faire(i){
+    if (i < 0 || i > 3 || fait[i] || boucle()) return;
+    const t = maintenant();
+    fait[i] = true;
+    tG[i] = t;
+    cells.forEach(c => { if (c.q === i) c.t0 = t + c.d*1000; });
+    textes();
+    const p = PR[i];
+    M.ligne = p.nom + " · " + DON.tons[i].nom + " · " + nFaits() + " sur 4";
+  }
+  function boucler(){
+    if (boucle() || nFaits() < 4) return;
+    const t = maintenant();
+    tSeuil = t;
+    cells.forEach(c => { if (c.q === 4) c.t0 = t + 150; });
+    textes();
+  }
+  function encore(){
+    seed += 211;
+    variante++;
+    N = DON.ordres[variante % DON.ordres.length];
+    if (L){ Lvieux = L; tVieux = maintenant(); }
+    L = null;
+    geometrie();
+    travaux.push(rose());
+    etat([], false);
+  }
+  function geste(i){
+    if (i !== undefined) return faire(i);
+    const t = maintenant();
+    if (t - dernierGeste < 900) return;
+    dernierGeste = t;
+    if (boucle()) return encore();
+    const q = fait.indexOf(false);
+    if (q >= 0) faire(q);
+    else boucler();
+  }
+
+  M.taille = (w, h, dpr) => {
+    W = w; H = h; DPR = Math.min(dpr || 1, 1.5);
+    const kk = W + "×" + H + "×" + DPR;
+    if (kk === cle) return;
+    cle = kk;
+    mise();
+    BG = null;
+    if (L) Lvieux = null;
+    L = null;
+    LF = null;
+    travaux = [fond(), rose()];
+  };
+  M.frame = frame;
+  M.geste = geste;
+  M.faire = faire;
+  M.retirer = i => { if (!fait[i]) return; etat([0, 1, 2, 3].filter(k => k !== i && fait[k]), false); };
+  M.boucler = boucler;
+  M.etat = etat;
+  M.faits = () => [0, 1, 2, 3].filter(i => fait[i]);
+  M.boucle = boucle;
+  M.aller = n => { n = clamp(n | 0, 0, 5); etat([0, 1, 2, 3].slice(0, Math.min(n, 4)), n >= 5); };
+  M.tap = (x, y) => {
+    const u = (x - cx)/R, v = (y - cy)/R;
+    if (Math.hypot(u, v) > 1) return;
+    for (let i = cells.length - 1; i >= 0; i--){
+      const c = cells[i];
+      if (u < c.bb[0] || u > c.bb[2] || v < c.bb[1] || v > c.bb[3]) continue;
+      let dedans = false;
+      for (let a = 0, b = c.p.length - 1; a < c.p.length; b = a++){
+        const A = c.p[a], B = c.p[b];
+        if ((A[1] > v) !== (B[1] > v) && u < (B[0] - A[0])*(v - A[1])/(B[1] - A[1]) + A[0]) dedans = !dedans;
+      }
+      if (!dedans) continue;
+      vib = { c, t: maintenant() };
+      M.ligne = c.kind === "jour" ? "J-" + (DON.jours.length - c.jour) + " · " + c.n + " sur 4"
+        : c.kind === "coeur" ? "aujourd'hui · " + nFaits() + " sur 4"
+        : PR[c.q].nom + " · " + DON.tons[c.q].nom + (c.l > .5 ? "" : " · éteint");
+      return;
+    }
+  };
+  M.glisse = (dx, dy) => {
+    lxM = clamp(lxM - dx*.004, -.55, .55);
+    kM = clamp(kM*Math.exp(dy*.003), .84, 1.08);
+  };
+  geometrie();
+  mise();
+  travaux = [fond(), rose()];
+  return M;
+}
+window.ETUDE = etude_rosace3;
+
+</script>
+<script>
+/* Le moteur : une image par rafraîchissement, le doigt, le bouton. */
+(function(){
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), bouton = document.getElementById("geste");
+  const montrerErreur = e => { const p = document.createElement("div"); p.className = "erreur"; p.textContent = "Erreur : " + (e && e.message || e); document.body.appendChild(p); };
+  let m; try { m = window.ETUDE(); } catch (e) { montrerErreur(e); return; }
+  document.getElementById("titre").textContent = m.titre || "";
+  let W = 0, H = 0, D = 1;
+  function dimension(){ D = Math.min(window.devicePixelRatio || 1, m.dprMax || 2); W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W*D); cv.height = Math.round(H*D); ctx.setTransform(D, 0, 0, D, 0, 0); m.taille(W, H, D); }
+  dimension(); addEventListener("resize", dimension);
+  let libelle = null, ligne = null, pire = 0, n = 0;
+  function boucle(){
+    const t0 = performance.now();
+    try { ctx.setTransform(D, 0, 0, D, 0, 0); m.frame(ctx, maintenant()); } catch (e) { montrerErreur(e); return; }
+    const dt = performance.now() - t0; if (++n > 30) pire = Math.max(pire, dt); window.__PIRE = pire;
+    if (m.bouton !== libelle) { libelle = m.bouton; bouton.textContent = libelle || ""; bouton.hidden = !libelle; }
+    if ((m.ligne || "") !== ligne) { ligne = m.ligne || ""; document.getElementById("ligne").textContent = ligne; }
+    requestAnimationFrame(boucle);
+  }
+  bouton.onclick = () => { try { m.geste?.(); } catch (e) { montrerErreur(e); } };
+  let p0 = null, dernier = null;
+  cv.addEventListener("pointerdown", e => { p0 = dernier = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!p0) return; const dx = e.clientX - dernier[0], dy = e.clientY - dernier[1]; dernier = [e.clientX, e.clientY];
+    if (Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 8) m.glisse?.(dx, dy); });
+  cv.addEventListener("pointerup", e => { if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) <= 8) m.tap?.(e.clientX, e.clientY); p0 = null; });
+  window.__ETUDE = m;
+  requestAnimationFrame(boucle);
+})();
+</script>
+</body></html>
