@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La Rosace</title>
+<style>
+/* Le cadre d'une pièce : la toile occupe tout ; le titre discret en haut ; un seul bouton en bas. */
+html, body { margin: 0; height: 100%; background: #0F1014; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.titre { position: fixed; left: 16px; top: max(14px, env(safe-area-inset-top)); font: 500 12px/1.3 Georgia, "Times New Roman", serif;
+  letter-spacing: .22em; color: rgba(242,240,234,.8); pointer-events: none; text-shadow: 0 0 8px #000; }
+.ligne { display: block; margin-top: 5px; font: 500 11px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .12em; color: rgba(242,240,234,.55); }
+.retour { position: fixed; right: 14px; top: max(10px, env(safe-area-inset-top)); font: 500 12px Georgia, serif; color: rgba(242,240,234,.6);
+  text-decoration: none; padding: 6px 8px; letter-spacing: .1em; }
+.bas { position: fixed; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); display: flex; justify-content: center; pointer-events: none; }
+button { pointer-events: auto; font: 500 14px Georgia, "Times New Roman", serif; letter-spacing: .16em; color: #F2F0EA; background: rgba(15,16,20,.6);
+  border: 1px solid rgba(242,240,234,.55); padding: 12px 24px; border-radius: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); min-width: 140px; }
+button:active { background: rgba(242,240,234,.18); }
+button[hidden] { display: none; }
+.erreur { position: fixed; left: 12px; right: 12px; top: 60px; color: #F2B8B0; font: 13px ui-monospace, monospace; white-space: pre-wrap; }
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div class="titre"><span id="titre"></span><span class="ligne" id="ligne"></span></div>
+<a class="retour" href="index.html">← ATELIER</a>
+<div class="bas"><button id="geste" type="button"></button></div>
+<script>
+/* ======================= Atelier du Pointage : outils communs ======================= */
+/* Repris de l'« atelier des mondes » d'Eliodor (mêmes noms, pour que ses pièces et les nôtres parlent la même langue),
+   avec la palette du Pointage : gris neutre, le blanc pour seul accent (choix de Thomas, 26/10).
+   Toute pièce peut appeler ces outils ; aucune ne les redéfinit. Le temps se lit avec maintenant(), jamais Date.now(). */
+function graine(s){ return function(){ s|=0; s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function bruit1(seed){ const R = graine(seed), v = Array.from({length:512}, R); return x => { const i = Math.floor(x), f = x - i, a = v[i & 511], b = v[(i+1) & 511], u = f*f*(3-2*f); return a + (b-a)*u; }; }
+function bruit2(seed){ const R = graine(seed), v = Array.from({length:4096}, R);
+  const h = (i,j) => v[((i*73856093) ^ (j*19349663)) & 4095];
+  return (x,y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx*fx*(3-2*fx), w = fy*fy*(3-2*fy);
+    const a = h(i,j), b = h(i+1,j), c = h(i,j+1), d = h(i+1,j+1); return a + (b-a)*u + (c-a)*w + (a-b-c+d)*u*w; }; }
+const mix = (a,b,t) => a.map((x,i) => x + (b[i]-x)*t);
+const rgb = (c,a=1) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+const clamp = (x,a=0,b=1) => Math.max(a, Math.min(b, x));
+const doux = u => 1 - Math.pow(1 - clamp(u), 3);
+const lisse = u => { u = clamp(u); return u*u*(3 - 2*u); };
+const maintenant = () => performance.now();
+/* La palette du Pointage : un fond gris-noir, des gris, le blanc cassé pour ce qui est fait. */
+const FOND = [15,16,20], CARTE = [23,24,29], TRAIT = [52,53,61], GRIS = [119,117,125], GRIS_CLAIR = [163,161,168], BLANC = [242,240,234], BLANC_PUR = [255,253,248];
+function toile(w, h, dpr){ const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w*dpr)); c.height = Math.max(1, Math.round(h*dpr)); const x = c.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0); return [c, x]; }
+function grainTexture(){ const g = document.createElement("canvas"); g.width = g.height = 128; const x = g.getContext("2d"), im = x.createImageData(128,128), R = graine(9);
+  for (let i = 0; i < im.data.length; i += 4) { const v = R()*255; im.data[i]=im.data[i+1]=im.data[i+2]=v; im.data[i+3]=255; } x.putImageData(im,0,0); return g; }
+const GRAIN = grainTexture();
+function passeGrain(ctx, W, H, t, a){ ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = ctx.createPattern(GRAIN, "repeat"); ctx.translate((t*.07)%128, (t*.05)%128); ctx.fillRect(-128, -128, W + 256, H + 256); ctx.restore(); }
+function fondu(ctx, W, H, coul, depuis=.82){ const f = ctx.createLinearGradient(0, H*depuis, 0, H); f.addColorStop(0, rgb(coul, 0)); f.addColorStop(1, rgb(coul, 1)); ctx.fillStyle = f; ctx.fillRect(0, H*depuis, W, H*(1-depuis)); }
+/* Les données communes à toutes les pièces du premier tour : la journée de Thomas (fictive, mais à sa forme).
+   Plus tard, l'app les remplacera par les vraies : priorités du jour, minutes, les 28 derniers jours. */
+const JOURNEE = {
+  priorites: [
+    { nom: "990",        domaine: "Langues",  min: 20, serie: 12 },
+    { nom: "CUMBRE",     domaine: "Langues",  min: 20, serie: 11 },
+    { nom: "Lecture",    domaine: "Lecture",  min: 12, serie: 9 },
+    { nom: "LE CLOSING", domaine: "Carrière", min: 30, serie: 3 }
+  ],
+  // les 28 derniers jours, du plus ancien à hier : combien de priorités faites (0 à 4)
+  jours: [4,4,3,4,2,4,4,4,1,0,4,4,3,4,4,4,4,2,4,4,4,4,3,4,4,4,4,4],
+  chaine: 9
+};
+/* Le bouton dit la prochaine priorité ; le cinquième geste boucle la journée ; ensuite « Encore » relance une variante. */
+function libelleGeste(n){ const P = JOURNEE.priorites; return n < 4 ? P[n].nom : n === 4 ? "Boucler" : "Encore"; }
+function ligneGeste(n){ const P = JOURNEE.priorites; if (n === 0) return "chaîne · " + JOURNEE.chaine + " jours"; if (n <= 4) return P[n-1].nom + " · " + Math.min(n,4) + " sur 4"; return "journée bouclée · " + (JOURNEE.chaine + 1) + " jours"; }
+
+</script>
+<script>
+/* ======================= Tour 2, pièce 09 : LA ROSACE (etude_rosace) ======================= */
+/* Ce qu'on voit : une grande rosace de cathédrale vue de la nef, à contre-jour, dans un mur de pierre grise taillée (assises,
+   joints, layage au ciseau, épaufrures), sous un arc de claveaux ; en bas, le dallage en perspective. Au repos, le vitrail est
+   éteint : verres gris, réseau de plomb en relief, remplage de pierre, une lueur à peine derrière. Quatre quartiers, un par
+   priorité, le nom gravé dans l'écoinçon de pierre de son quartier ; au centre, l'oculus : quatre lobes et le cœur (aujourd'hui).
+   La couronne extérieure : 28 médaillons, un par jour du mois, plus ou moins lumineux selon ce que le jour a tenu.
+   La loi, calculée : le réseau des verres est une partition de Voronoï relaxée par l'algorithme de Lloyd (S. Lloyd, « Least
+   squares quantization in PCM », 1982) : 40 itérations, chaque germe va au centroïde de sa cellule, sous contrainte de symétrie
+   dièdre d'ordre N (12, puis 8 et 16 aux relances ; la géométrie gothique) : on relaxe un demi-secteur, la rosace en est les
+   2N images par rotation et miroir. La lumière au sol : chaque verre allumé est projeté depuis la position du soleil, rayon
+   parallèle sur le plan du dallage puis perspective de l'œil : la composée est une homographie H = P·A (3 × 3), recalculée à
+   chaque image ; la hauteur du soleil se lit dans la ligne mono.
+   La main : vitrail ancien. Verre soufflé (épaisseurs inégales, stries, bulles), grisaille peinte (filets, hachures, feuilles,
+   perles), plombs à joue sombre et arête claire ; couleurs franches : bleu de Chartres (990), rubis (CUMBRE), jaune d'argent
+   (Lecture), vert émeraude (LE CLOSING). Pierre : texture calculée, layage, hachures d'ombre. Typo : Georgia gravée, mono.
+   L'usage : « Ta journée ». Chaque priorité faite allume SON quartier : le soleil passe derrière, ses verres s'allument un à un
+   dans le sens de la course, ses médaillons de jours suivent, son lobe d'oculus s'allume, son nom gravé prend sa couleur, et
+   les taches colorées tombent sur le dallage. Elles y restent.
+   Le seuil (Boucler) : le cœur s'allume, une onde de soleil traverse toute la rosace ; la lumière envahit la nef (rayons dans
+   la poussière en suspension, reflet sur la pierre) et pose au sol la rosace entière, déformée en perspective. L'état reste.
+   Le doigt : toucher un verre le fait vibrer de lumière et dit sa priorité (ou son jour) ; glisser déplace le soleil : les
+   taches au sol glissent, la lueur suit. Encore : autre graine, autre ordre de symétrie.
+   Le téléphone : tout ce qui est fixe (mur, sol, verres clairs et sombres, plombs) se peint une fois, par tranches de 9 ms ;
+   chaque verre est pré-découpé dans un atlas, puis « cuit » une fois allumé ; ce qui ne bouge pas ne se recompose pas. */
+const etude_rosace_DONNEES = Object.assign({
+  tons: [ { nom: "bleu de Chartres", c: [44, 96, 228] }, { nom: "rubis", c: [216, 30, 50] },
+          { nom: "jaune d'argent", c: [250, 186, 44] }, { nom: "vert émeraude", c: [22, 170, 104] } ],
+  ordres: [12, 8, 16],     // l'ordre de symétrie, une valeur par relance
+}, JOURNEE);
+
+function etude_rosace(){
+  const DON = etude_rosace_DONNEES, PR = DON.priorites, TONS = DON.tons.map(t => t.c);
+  const PLOMB = [20, 20, 23], BLANC_V = [224, 226, 210], COEUR = [255, 236, 190], NOIR = [8, 6, 14];
+  let W = 390, H = 760, DPR = 1, seed = 1194, variante = 0, N = DON.ordres[0];
+  let cells = [], poussiere = [], R = 150, cx = 195, cy = 230, Hc = 1.8, E = 1.8, yb = 500, kBase = .6, top = 46;
+  const Zc = 6;
+  let lxM = -.14, kM = 1, etape = 0, tSeuil = Infinity, tG = [Infinity, Infinity, Infinity, Infinity];
+  let roseCle = "", solCle = "", rayCle = "", L = null, BG = null, TEX = null, travaux = [], vib = null, cle = "", floorC = null, rayC = null;
+  const M = { titre: "LA ROSACE", bouton: libelleGeste(0), ligne: ligneGeste(0), dprMax: 1.5 };
+
+  /* ---------- la géométrie : Voronoï + Lloyd dans un demi-secteur, puis le groupe dièdre ---------- */
+  const polaire = (r, a) => [r*Math.cos(a), r*Math.sin(a)];
+  function couper(poly, a, b){   // garde le demi-plan plus proche de a que de b (Sutherland-Hodgman)
+    const nx = b[0] - a[0], ny = b[1] - a[1], mx = (a[0] + b[0])/2, my = (a[1] + b[1])/2, f = p => (p[0] - mx)*nx + (p[1] - my)*ny, out = [];
+    for (let i = 0; i < poly.length; i++){ const p = poly[i], q = poly[(i + 1) % poly.length], fp = f(p), fq = f(q);
+      if (fp <= 0) out.push(p);
+      if ((fp <= 0) !== (fq <= 0)){ const t = fp/(fp - fq); out.push([p[0] + (q[0] - p[0])*t, p[1] + (q[1] - p[1])*t]); } }
+    return out; }
+  function lloyd(n, r0, r1, K, Rn){
+    const A = Math.PI/n, S = [], ech = [], G = 30, rr = (u) => Math.sqrt(r0*r0 + (r1*r1 - r0*r0)*u);
+    for (let i = 0; i < K; i++) S.push(polaire(rr(Rn()), A*(.08 + .84*Rn())));
+    for (let i = 0; i < G; i++) for (let j = 0; j < G; j++) ech.push(polaire(rr((i + Rn())/G), A*(j + Rn())/G));   // échantillons uniformes en aire
+    for (let it = 0; it < 40; it++){
+      const sx = new Float64Array(K), sy = new Float64Array(K), nn = new Float64Array(K);
+      for (const p of ech){ let b = 0, bd = 1e9; for (let k = 0; k < K; k++){ const dx = p[0] - S[k][0], dy = p[1] - S[k][1], d = dx*dx + dy*dy; if (d < bd){ bd = d; b = k; } }
+        sx[b] += p[0]; sy[b] += p[1]; nn[b]++; }
+      for (let k = 0; k < K; k++) if (nn[k]) S[k] = [sx[k]/nn[k], sy[k]/nn[k]];   // chaque germe va au centroïde de sa cellule
+    }
+    const dom = [polaire(r0*.985, 0)]; for (let i = 0; i <= 8; i++) dom.push(polaire(r1, A*i/8)); dom.push(polaire(r0*.985, A));
+    return S.map((s, k) => { let p = dom; S.forEach((o, j) => { if (j !== k) p = couper(p, s, o); });
+      return { p, role: Rn(), motif: Math.floor(Rn()*4), ombre: Rn(), acc: 1 + Math.floor(Rn()*3) }; });
+  }
+  function couleur(f, q){ const T = TONS[q];
+    if (f.role < .5) return mix(T, BLANC_PUR, .02 + .16*f.ombre);
+    if (f.role < .7) return mix(T, NOIR, .18 + .22*f.ombre);
+    if (f.role < .83) return mix(BLANC_V, T, .22);
+    return mix(TONS[(q + f.acc) % 4], NOIR, .08*f.ombre); }
+  const cercle = (x, y, r, n = 18) => Array.from({ length: n }, (_, i) => polaire(r, i/n*2*Math.PI)).map(p => [x + p[0], y + p[1]]);
+  const quartier = a => Math.floor((((a + Math.PI/2) % (2*Math.PI) + 2*Math.PI) % (2*Math.PI))/(Math.PI/2) + 1e-9) % 4;
+
+  function geometrie(){
+    const Rn = graine(seed); cells = [];
+    const ajoute = (p, q, o) => { let gx = 0, gy = 0; p.forEach(v => { gx += v[0]; gy += v[1]; }); gx /= p.length; gy /= p.length;
+      let rad = 0, x0 = 9, y0 = 9, x1 = -9, y1 = -9; p.forEach(v => { rad = Math.max(rad, Math.hypot(v[0] - gx, v[1] - gy)); x0 = Math.min(x0, v[0]); y0 = Math.min(y0, v[1]); x1 = Math.max(x1, v[0]); y1 = Math.max(y1, v[1]); });
+      const path = new Path2D(); p.forEach((v, i) => i ? path.lineTo(v[0], v[1]) : path.moveTo(v[0], v[1])); path.closePath();
+      const ang = Math.atan2(gy, gx), prog = ((ang + Math.PI/2 + 2*Math.PI) % (Math.PI/2))/(Math.PI/2);
+      cells.push(Object.assign({ p, q, g: [gx, gy], rad, bb: [x0, y0, x1, y1], path, ang, r: Math.hypot(gx, gy), gain: 1, t0: Infinity, cuit: false, l: 0, kind: "v",
+        motif: 0, d: .25 + prog*1.55 + Math.hypot(gx, gy)*.45 + Rn()*.5 }, o)); };
+    // l'oculus : quatre lobes (un par priorité) et le cœur (aujourd'hui)
+    for (let q = 0; q < 4; q++){ const a = -Math.PI/4 + q*Math.PI/2; ajoute(cercle(.112*Math.cos(a), .112*Math.sin(a), .082, 20), q, { col: TONS[q], kind: "lobe", d: .05, motif: 3 }); }
+    ajoute(cercle(0, 0, .052, 16), 4, { col: COEUR, kind: "coeur", d: .2, motif: 2 });
+    // deux zones de verres : N secteurs, puis 2N secteurs
+    const K = { 8: [8, 10], 12: [6, 7], 16: [4, 5] }[N] || [6, 7];
+    [[N, .27, .585, K[0]], [N, .615, .852, K[1]]].forEach(([n, r0, r1, k], z) => {
+      const F = lloyd(n, r0, r1, k, Rn);
+      for (let s = 0; s < n; s++) for (const m of [1, -1]){ const phi = -Math.PI/2 + 2*Math.PI*s/n, co = Math.cos(phi), si = Math.sin(phi);
+        F.forEach(f => { const p = f.p.map(v => { const x = v[0], y = v[1]*m; return [x*co - y*si, x*si + y*co]; });
+          let gx = 0, gy = 0; p.forEach(v => { gx += v[0]; gy += v[1]; }); const q = quartier(Math.atan2(gy, gx));
+          ajoute(p, q, { col: couleur(f, q), motif: f.motif, zone: z }); }); }
+    });
+    // la couronne des jours : 28 médaillons, sept par quartier
+    DON.jours.forEach((n, k) => { const a = -Math.PI/2 + (k + .5)*2*Math.PI/DON.jours.length, q = quartier(a), v = n/4;
+      ajoute(cercle(.926*Math.cos(a), .926*Math.sin(a), .054, 18), q, { col: mix(TONS[q], BLANC_PUR, .08 + .22*v), kind: "jour", jour: k, n,
+        gain: .12 + .88*Math.pow(v, 1.3), d: 2.15 + (k % 7)*.17, motif: 2 }); });
+    const Rp = graine(seed + 5);
+    poussiere = Array.from({ length: 130 }, () => ({ c: Math.floor(Rp()*cells.length), b: Rp(), v: .00003 + Rp()*.00006, w: Rp()*2 - 1, ph: Rp()*6.3, s: .6 + Rp()*1.1 }));
+  }
+
+  /* ---------- la mise en page : la rosace tient aussi dans 390 × 480 ---------- */
+  function mise(){
+    top = H > 600 ? 50 : Math.max(14, H*.05);
+    R = Math.min(W*.4, (H*.75 - top)/(1.17 + 1.38), H*.42);
+    cx = W/2; cy = top + 1.17*R; Hc = clamp((H*.74 - cy)/R, 1.38, 2.3); yb = cy + Hc*R; E = Hc;
+    const zmax = Zc*(H - yb)/(R*E + H - yb); kBase = .64*zmax/(Hc + 1);
+  }
+
+  /* ---------- la texture de pierre (512², calculée par tranches) ---------- */
+  function* texture(){
+    const T = document.createElement("canvas"); T.width = T.height = 512; const tx = T.getContext("2d"), im = tx.createImageData(512, 512), n = bruit2(seed % 97 + 3), Rn = graine(5);
+    for (let y0 = 0; y0 < 512; y0 += 32){
+      for (let y = y0; y < y0 + 32; y++) for (let x = 0; x < 512; x++){
+        let v = .5*n(x/52, y/52) + .3*n(x/15 + 50, y/15) + .2*n(x/4.5 + 9, y/4.5 + 3) + (Rn() - .5)*.16;
+        if (Rn() < .005) v -= .4;                 // les pores de la pierre
+        const c = 70 + v*78, i = (y*512 + x)*4; im.data[i] = c + 5; im.data[i + 1] = c + 3; im.data[i + 2] = c; im.data[i + 3] = 255; }
+      yield; }
+    tx.putImageData(im, 0, 0); TEX = T;
+  }
+
+  /* ---------- le mur, l'arc et le dallage (une fois par taille) ---------- */
+  function* fond(){
+    if (!TEX) yield* texture();
+    const d = Math.min(DPR, Math.sqrt(2e6/(W*H))), [c, x] = toile(W, H, d), Rn = graine(77), pat = x.createPattern(TEX, "repeat");
+    x.fillStyle = "rgb(34,33,32)"; x.fillRect(0, 0, W, H);
+    const surface = (bx, by, bw, bh) => { const ox = Rn()*Math.max(0, 500/d - bw - bh), oy = Rn()*200/d;
+      x.save(); x.translate(bx - ox, by - oy); x.scale(1/d, 1/d); x.fillStyle = pat; x.fillRect(0, 0, (bw + ox + 4)*d, (bh + oy + 4)*d); x.restore(); };
+    function bloc(bx, by, bw, bh, sombre){
+      const g = 1.1; x.save(); x.beginPath(); x.rect(bx + g, by + g, bw - 2*g, bh - 2*g); x.clip(); surface(bx, by, bw, bh);
+      x.fillStyle = `rgba(6,6,8,${sombre + Rn()*.22})`; x.fillRect(bx, by, bw, bh);
+      if (Rn() < .3){ x.fillStyle = `rgba(${Rn() < .5 ? "120,104,84" : "84,92,104"},.07)`; x.fillRect(bx, by, bw, bh); }
+      // le layage : les coups de ciseau, en biais, serrés
+      const an = .9 + Rn()*.5, ca = Math.cos(an), sa = Math.sin(an), pas = 2.4 + Rn();
+      x.strokeStyle = "rgba(10,9,8,.16)"; x.lineWidth = .6; x.beginPath();
+      for (let s = -bh; s < bw + bh; s += pas){ const j = (Rn() - .5)*.8; x.moveTo(bx + s + j, by); x.lineTo(bx + s + j + ca/sa*bh*.9, by + bh*.9*(.6 + Rn()*.4)); } x.stroke();
+      // hachures d'ombre sur le bas et la droite ; arête claire en haut à gauche
+      x.strokeStyle = "rgba(0,0,0,.42)"; x.lineWidth = 1.6; x.beginPath(); x.moveTo(bx + g, by + bh - g - .8); x.lineTo(bx + bw - g - .8, by + bh - g - .8); x.lineTo(bx + bw - g - .8, by + g); x.stroke();
+      x.strokeStyle = "rgba(205,198,186,.13)"; x.lineWidth = 1; x.beginPath(); x.moveTo(bx + g + .5, by + bh - g); x.lineTo(bx + g + .5, by + g + .5); x.lineTo(bx + bw - g, by + g + .5); x.stroke();
+      x.strokeStyle = "rgba(0,0,0,.18)"; x.lineWidth = .5; x.beginPath();
+      for (let k = 0; k < 9; k++){ const u = bx + bw*(.55 + .43*Rn()), v = by + bh*(.45 + .5*Rn()), l = 4 + Rn()*7; x.moveTo(u, v); x.lineTo(u + l*.7, v - l*.7); } x.stroke();
+      // les épaufrures : éclats aux arêtes, ombre dedans, lumière au bord
+      for (let k = 0; k < 2 + Rn()*3; k++){ const side = Rn(), r = 2 + Rn()*5, u = side < .5 ? bx + Rn()*bw : bx + (Rn() < .5 ? 0 : bw), v = side < .5 ? by + (Rn() < .5 ? 0 : bh) : by + Rn()*bh;
+        x.fillStyle = "rgba(14,13,12,.55)"; x.beginPath(); for (let i = 0; i < 6; i++){ const a = i/6*6.283, rr = r*(.5 + Rn()*.6); x.lineTo(u + Math.cos(a)*rr, v + Math.sin(a)*rr*.7); } x.fill();
+        x.strokeStyle = "rgba(190,184,172,.14)"; x.lineWidth = .6; x.stroke(); }
+      // une coulure de suie
+      if (Rn() < .35){ const u = bx + Rn()*bw, gg = x.createLinearGradient(u, by, u, by + bh); gg.addColorStop(0, "rgba(0,0,0,.22)"); gg.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = gg; x.fillRect(u - 3 - Rn()*6, by, 6 + Rn()*12, bh); }
+      x.restore(); }
+    // les assises, du pied du mur vers le haut
+    const ch = .3*R; let y = yb - .26*R, rang = 0;
+    bloc(-2, y, W + 4, .26*R, .42);   // la plinthe
+    while (y > -ch){ const y0 = y - ch; let xx = -Rn()*.5*R - (rang % 2)*.3*R;
+      while (xx < W){ const bw = R*(.42 + Rn()*.48); bloc(xx, y0, bw, ch, .3); xx += bw; } y = y0; rang++; yield; }
+    // l'arc : les claveaux autour de la rosace, et les moulures
+    x.save(); x.beginPath(); x.arc(cx, cy, 1.17*R, 0, 6.283); x.fillStyle = "rgb(26,25,24)"; x.fill();
+    const nv = 40; for (let i = 0; i < nv; i++){ const a0 = i/nv*6.283 - Math.PI/2 + .004, a1 = (i + 1)/nv*6.283 - Math.PI/2 - .004;
+      x.save(); x.beginPath(); x.arc(cx, cy, 1.155*R, a0, a1); x.arc(cx, cy, 1.0*R, a1, a0, true); x.closePath(); x.clip(); surface(cx - 1.2*R, cy - 1.2*R, 2.4*R, 2.4*R);
+      x.fillStyle = `rgba(6,6,8,${.18 + Rn()*.18})`; x.fillRect(cx - 1.2*R, cy - 1.2*R, 2.4*R, 2.4*R); x.restore(); }
+    [[1.005, "rgba(0,0,0,.75)", 4], [1.035, "rgba(210,204,190,.16)", 1.2], [1.085, "rgba(0,0,0,.45)", 1.2], [1.1, "rgba(210,204,190,.12)", 1], [1.16, "rgba(0,0,0,.6)", 2.2], [1.175, "rgba(210,204,190,.14)", 1.6]]
+      .forEach(([r, s, w]) => { x.strokeStyle = s; x.lineWidth = w; x.beginPath(); x.arc(cx, cy, r*R, 0, 6.283); x.stroke(); });
+    x.restore(); yield;
+    // le dallage, en vraie perspective (le même œil que la projection des taches)
+    const f = R*Zc, cyH = yb - R*E, scr = (X, Z) => [cx + f*X/(Zc - Z), cyH + f*E/(Zc - Z)], zEnd = Zc - f*E/(H - cyH);
+    x.save(); x.beginPath(); x.rect(0, yb, W, H - yb); x.clip(); x.fillStyle = "rgb(30,29,28)"; x.fillRect(0, yb, W, H - yb);
+    const dz = .5, dxl = .78; let j = 0;
+    for (let z = 0; z < zEnd + dz; z += dz, j++){ const z1 = Math.min(z + dz, Zc - .3);
+      for (let X = -16 + (j % 2)*dxl/2; X < 16; X += dxl){ const a = scr(X, z), b = scr(X + dxl, z), c2 = scr(X + dxl, z1), e = scr(X, z1);
+        if (Math.max(a[0], b[0], c2[0], e[0]) < 0 || Math.min(a[0], b[0], c2[0], e[0]) > W) continue;
+        x.save(); x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.lineTo(...c2); x.lineTo(...e); x.closePath(); x.clip(); surface(Math.min(a[0], e[0]), a[1], Math.abs(b[0] - a[0]) + 40, e[1] - a[1] + 2);
+        x.fillStyle = `rgba(8,8,9,${.26 + Rn()*.2})`; x.fill();
+        x.strokeStyle = "rgba(0,0,0,.08)"; x.lineWidth = .5; x.beginPath(); for (let k = 1; k < 5; k++){ const v = a[1] + (e[1] - a[1])*k/5; x.moveTo(0, v); x.lineTo(W, v); } x.stroke();   // hachure d'usure
+        x.restore();
+        x.strokeStyle = "rgba(4,4,5,.85)"; x.lineWidth = .9; x.beginPath(); x.moveTo(...a); x.lineTo(...b); x.lineTo(...c2); x.stroke(); }
+      yield; }
+    const usure = x.createRadialGradient(cx, H, 10, cx, H, W*.6); usure.addColorStop(0, "rgba(170,164,152,.07)"); usure.addColorStop(1, "rgba(170,164,152,0)"); x.fillStyle = usure; x.fillRect(0, yb, W, H - yb);
+    const pied = x.createLinearGradient(0, yb, 0, yb + .25*R); pied.addColorStop(0, "rgba(0,0,0,.55)"); pied.addColorStop(1, "rgba(0,0,0,0)"); x.fillStyle = pied; x.fillRect(0, yb, W, .25*R);
+    x.restore();
+    // la voûte et les bords dans l'ombre
+    const v = x.createRadialGradient(cx, cy, R*.9, cx, cy, Math.max(W, H)*.85); v.addColorStop(0, "rgba(5,5,7,0)"); v.addColorStop(1, "rgba(5,5,7,.7)"); x.fillStyle = v; x.fillRect(0, 0, W, H);
+    BG = c;
+  }
+
+  /* ---------- les calques de la rosace : verre clair, verre éteint, plombs et remplage ---------- */
+  function* rose(){
+    const dr = Math.min(DPR, 1.3, Math.sqrt(1.1e6)/(2.4*R)), Dp = Math.ceil(2.4*R*dr), S = R*dr, O = 1.2*R*dr;
+    const mk = () => { const c = document.createElement("canvas"); c.width = c.height = Dp; return [c, c.getContext("2d")]; };
+    const unit = x => x.setTransform(S, 0, 0, S, O, O), id = x => x.setTransform(1, 0, 0, 1, 0, 0);
+    const [ms, mx] = mk(), [cl, clx] = mk(), [so, sx] = mk(), [pl, px] = mk(), [mt, mtx] = mk();
+    const tout = new Path2D(); cells.forEach(c => tout.addPath(c.path));
+    unit(mx); mx.fillStyle = "#fff"; mx.fill(tout); yield;
+    // la matière du verre soufflé : épaisseur (bruit), stries concentriques, graines
+    const im = mtx.createImageData(Dp, Dp), n = bruit2(seed + 11), Rn = graine(seed + 13);
+    for (let y0 = 0; y0 < Dp; y0 += 20){
+      for (let y = y0; y < Math.min(Dp, y0 + 20); y++) for (let xx = 0; xx < Dp; xx++){ const u = (xx - O)/S, v = (y - O)/S, r = Math.hypot(u, v);
+        let val = .8 + .3*(n(u*9, v*9) - .5) + .12*(n(u*34 + 7, v*34) - .5) + .05*Math.sin(r*150 + n(u*3, v*3)*9) + (Rn() - .5)*.05;
+        if (Rn() < .0016) val -= .35;
+        const c = clamp(val, .4, 1)*255, i = (y*Dp + xx)*4; im.data[i] = im.data[i + 1] = im.data[i + 2] = c; im.data[i + 3] = 255; }
+      yield; }
+    mtx.putImageData(im, 0, 0);
+    // chaque verre : sa couleur, plus épais au bord, plus clair là où le verre s'amincit
+    unit(clx);
+    for (let i = 0; i < cells.length; i++){ const c = cells[i], Ri = graine(seed*7 + i);
+      const g = clx.createRadialGradient(c.g[0] + (Ri() - .5)*c.rad*.6, c.g[1] + (Ri() - .5)*c.rad*.6, 0, c.g[0], c.g[1], c.rad*1.25);
+      g.addColorStop(0, rgb(mix(c.col, BLANC_PUR, .26))); g.addColorStop(.55, rgb(c.col)); g.addColorStop(1, rgb(mix(c.col, NOIR, .38)));
+      clx.fillStyle = g; clx.fill(c.path);
+      if (i % 50 === 49) yield; }
+    id(clx); clx.globalCompositeOperation = "multiply"; clx.drawImage(mt, 0, 0); clx.globalCompositeOperation = "source-over"; yield;
+    // la grisaille peinte et les bulles
+    unit(clx); const gri = a => `rgba(34,22,14,${a})`;
+    for (let i = 0; i < cells.length; i++){ const c = cells[i], Ri = graine(seed*13 + i), sh = Math.max(.35, 1 - .028/c.rad);
+      const inset = c.p.map(v => [c.g[0] + (v[0] - c.g[0])*sh, c.g[1] + (v[1] - c.g[1])*sh]);
+      clx.save(); clx.clip(c.path);
+      clx.strokeStyle = gri(.5); clx.lineWidth = .0055; clx.beginPath(); inset.forEach((v, k) => k ? clx.lineTo(...v) : clx.moveTo(...v)); clx.closePath(); clx.stroke();
+      if (c.motif === 1){ const a = c.ang + .8; clx.strokeStyle = gri(.28); clx.lineWidth = .0028; clx.beginPath();
+        for (let s = -c.rad; s < c.rad; s += .011){ clx.moveTo(c.g[0] + Math.cos(a)*s - Math.sin(a)*c.rad, c.g[1] + Math.sin(a)*s + Math.cos(a)*c.rad); clx.lineTo(c.g[0] + Math.cos(a)*s + Math.sin(a)*c.rad, c.g[1] + Math.sin(a)*s - Math.cos(a)*c.rad); } clx.stroke(); }
+      if (c.motif === 2 || c.motif === 0){ const a = c.ang, l = c.rad*.55, w = l*.42, ux = Math.cos(a), uy = Math.sin(a);   // la feuille, orientée vers le centre
+        clx.fillStyle = gri(.32); clx.strokeStyle = gri(.6); clx.lineWidth = .004; clx.beginPath();
+        clx.moveTo(c.g[0] - ux*l, c.g[1] - uy*l); clx.quadraticCurveTo(c.g[0] - uy*w, c.g[1] + ux*w, c.g[0] + ux*l, c.g[1] + uy*l); clx.quadraticCurveTo(c.g[0] + uy*w, c.g[1] - ux*w, c.g[0] - ux*l, c.g[1] - uy*l);
+        clx.fill(); clx.stroke(); clx.beginPath(); clx.moveTo(c.g[0] - ux*l, c.g[1] - uy*l); clx.lineTo(c.g[0] + ux*l, c.g[1] + uy*l); clx.stroke(); }
+      if (c.motif === 3){ clx.fillStyle = gri(.45); const per = inset.length; for (let k = 0; k < per; k++){ const a = inset[k], b = inset[(k + 1) % per], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        for (let s = .5; s < l/.016; s++){ const t = s*.016/l; clx.beginPath(); clx.arc(a[0] + (b[0] - a[0])*t, a[1] + (b[1] - a[1])*t, .0035, 0, 6.283); clx.fill(); } } }
+      for (let k = 0; k < 2 + Ri()*6; k++){ const bx = c.g[0] + (Ri() - .5)*c.rad*1.3, by = c.g[1] + (Ri() - .5)*c.rad*1.3, br = .002 + Ri()*.0045;   // les bulles
+        clx.fillStyle = "rgba(255,255,250,.42)"; clx.beginPath(); clx.ellipse(bx, by, br, br*(.6 + Ri()*.4), Ri()*3, 0, 6.283); clx.fill();
+        clx.strokeStyle = "rgba(0,0,0,.3)"; clx.lineWidth = .0012; clx.stroke(); }
+      clx.restore();
+      if (i % 40 === 39) yield; }
+    id(clx); clx.globalCompositeOperation = "destination-in"; clx.drawImage(ms, 0, 0); clx.globalCompositeOperation = "source-over"; yield;
+    // le verre éteint : la même matière, sans couleur, dans l'ombre
+    sx.drawImage(cl, 0, 0); sx.globalCompositeOperation = "saturation"; sx.fillStyle = "#808080"; sx.fillRect(0, 0, Dp, Dp);
+    sx.globalCompositeOperation = "multiply"; sx.fillStyle = "rgb(62,62,68)"; sx.fillRect(0, 0, Dp, Dp);
+    sx.globalCompositeOperation = "destination-in"; sx.drawImage(cl, 0, 0); sx.globalCompositeOperation = "source-over"; yield;
+    // le remplage de pierre : le disque moins les verres, plus les anneaux et les rayons
+    unit(px); px.fillStyle = "#fff"; px.beginPath(); px.arc(0, 0, 1.0, 0, 6.283); px.fill();
+    id(px); px.globalCompositeOperation = "destination-out"; px.drawImage(ms, 0, 0); px.globalCompositeOperation = "source-over"; unit(px);
+    const anneaux = [[.25, .046], [.6, .036], [.857, .016], [.993, .022]], rayons = [];
+    for (let k = 0; k < N; k++) rayons.push([-Math.PI/2 + 2*Math.PI*k/N, .26, .59, .03]);
+    for (let k = 0; k < N; k++) rayons.push([-Math.PI/2 + 2*Math.PI*k/N, .6, .857, .024]);
+    const pierre = new Path2D();
+    px.strokeStyle = "#fff"; px.lineCap = "butt";
+    anneaux.forEach(([r, w]) => { px.lineWidth = w; px.beginPath(); px.arc(0, 0, r, 0, 6.283); px.stroke(); });
+    rayons.forEach(([a, r0, r1, w]) => { px.lineWidth = w; px.beginPath(); px.moveTo(r0*Math.cos(a), r0*Math.sin(a)); px.lineTo(r1*Math.cos(a), r1*Math.sin(a)); px.stroke(); });
+    id(px); px.globalCompositeOperation = "source-in";
+    for (let y = 0; y < Dp; y += 512) for (let xx = 0; xx < Dp; xx += 512) px.drawImage(TEX, xx, y);
+    px.globalCompositeOperation = "source-atop"; px.fillStyle = "rgba(10,9,8,.12)"; px.fillRect(0, 0, Dp, Dp);
+    // le biseau : arête claire vers la lumière (haut gauche), ombre de l'autre côté
+    unit(px); const bis = px.createLinearGradient(-1, -1, 1, 1); bis.addColorStop(0, "rgba(230,224,210,.5)"); bis.addColorStop(.5, "rgba(120,116,110,.1)"); bis.addColorStop(1, "rgba(0,0,0,.6)");
+    px.strokeStyle = bis; px.lineWidth = .006;
+    anneaux.forEach(([r, w]) => { [r - w/2, r + w/2].forEach(rr => { px.beginPath(); px.arc(0, 0, rr, 0, 6.283); px.stroke(); }); });
+    rayons.forEach(([a, r0, r1, w]) => { const nx = -Math.sin(a)*w/2, ny = Math.cos(a)*w/2; [1, -1].forEach(s => { px.beginPath(); px.moveTo(r0*Math.cos(a) + s*nx, r0*Math.sin(a) + s*ny); px.lineTo(r1*Math.cos(a) + s*nx, r1*Math.sin(a) + s*ny); px.stroke(); }); });
+    px.globalCompositeOperation = "source-over"; yield;
+    // les plombs : joue d'ombre, plomb, arête claire (le relief)
+    px.lineJoin = "round"; px.save(); px.translate(.004, .004); px.strokeStyle = "rgba(0,0,0,.5)"; px.lineWidth = .01; px.stroke(tout); px.restore();
+    px.strokeStyle = rgb(PLOMB); px.lineWidth = .013; px.stroke(tout);
+    px.save(); px.translate(-.0022, -.0022); px.strokeStyle = "rgba(160,160,170,.34)"; px.lineWidth = .0035; px.stroke(tout); px.restore();
+    const lobes = new Path2D(); cells.forEach(c => { if (c.kind !== "v") lobes.addPath(c.path); });
+    px.strokeStyle = "rgba(0,0,0,.55)"; px.lineWidth = .006; px.stroke(lobes);
+    // les médaillons : une croisée de plomb
+    px.strokeStyle = rgb(PLOMB); px.lineWidth = .008; cells.forEach(c => { if (c.kind === "jour"){ const a = c.ang, r = .054;
+      px.beginPath(); px.moveTo(c.g[0] - Math.cos(a)*r, c.g[1] - Math.sin(a)*r); px.lineTo(c.g[0] + Math.cos(a)*r, c.g[1] + Math.sin(a)*r); px.stroke(); } });
+    yield;
+    // l'atlas : chaque verre découpé une fois dans son propre rectangle (aucune découpe ni toile neuve pendant l'animation)
+    const bo = c => { const a = Math.max(0, Math.floor(O + c.bb[0]*S) - 2), b = Math.max(0, Math.floor(O + c.bb[1]*S) - 2);
+      return [a, b, Math.min(Dp - a, Math.ceil((c.bb[2] - c.bb[0])*S) + 4), Math.min(Dp - b, Math.ceil((c.bb[3] - c.bb[1])*S) + 4)]; };
+    let ux = 0, uy = 0, uh = 0; const places = cells.map(c => { const b = bo(c); if (ux + b[2] > Dp){ ux = 0; uy += uh + 1; uh = 0; } const r = [ux, uy]; ux += b[2] + 1; uh = Math.max(uh, b[3]); return { b, a: r }; });
+    const at = document.createElement("canvas"); at.width = Dp; at.height = uy + uh + 1; const atx = at.getContext("2d");
+    for (let i = 0; i < cells.length; i++){ const { b, a } = places[i];
+      atx.save(); atx.beginPath(); atx.rect(a[0], a[1], b[2], b[3]); atx.clip(); atx.drawImage(cl, b[0], b[1], b[2], b[3], a[0], a[1], b[2], b[3]);
+      atx.globalCompositeOperation = "destination-in"; atx.setTransform(S, 0, 0, S, O - b[0] + a[0], O - b[1] + a[1]); atx.fill(cells[i].path); atx.restore();
+      cells[i].sp = { b, a }; if (i % 60 === 59) yield; }
+    const [bk, bkx] = mk(), [al, alx] = mk(), [co, cox] = mk(), [gw, gwx] = mk(), tm = document.createElement("canvas"); tm.width = tm.height = Math.ceil(Dp/2); const tmx = tm.getContext("2d");
+    L = { Dp, S, O, dr, atlas: at, clair: cl, sombre: so, plomb: pl, masque: ms, bake: bk, bx: bkx, allum: al, ax: alx, compo: co, kx: cox, glow: gw, gl: gwx, cleG: "", tGl: -1e9, tmp: tm, tx: tmx };
+    rebake();
+  }
+
+  /* ---------- cuire les verres allumés dans le calque (une découpe groupée, ou un verre à la fois) ---------- */
+  const unitL = x => x.setTransform(L.S, 0, 0, L.S, L.O, L.O), idL = x => x.setTransform(1, 0, 0, 1, 0, 0);
+  function poser(x, c, alpha, op){ const { b, a } = c.sp; x.globalAlpha = alpha; if (op) x.globalCompositeOperation = op;   // le verre pris dans l'atlas, sans découpe
+    x.drawImage(L.atlas, a[0], a[1], b[2], b[3], b[0], b[1], b[2], b[3]); x.globalAlpha = 1; x.globalCompositeOperation = "source-over"; }
+  function rebake(){ if (!L) return; const t = maintenant();
+    L.bx.globalCompositeOperation = "copy"; L.bx.drawImage(L.sombre, 0, 0); L.bx.globalCompositeOperation = "source-over"; L.ax.clearRect(0, 0, L.Dp, L.Dp);
+    const groupe = new Path2D(); let nb = 0;
+    roseCle = solCle = rayCle = L.cleG = "";
+    cells.forEach(c => { c.cuit = t - c.t0 > 1500; if (!c.cuit) return; if (c.gain < 1){ poser(L.bx, c, c.gain); poser(L.ax, c, c.gain); } else { groupe.addPath(c.path); nb++; } });
+    if (nb) [L.bx, L.ax].forEach(x => { x.save(); unitL(x); x.clip(groupe); idL(x); x.drawImage(L.clair, 0, 0); x.restore(); });
+  }
+
+  /* ---------- l'homographie : verre (plan du mur) → tache au sol → écran ---------- */
+  function homographie(){
+    const k = kBase*kM, f = R*Zc, cyH = yb - R*E;
+    const P = [[f, -cx, cx*Zc], [0, -cyH, cyH*Zc + f*E], [0, -1, Zc]];     // l'œil : (x, z) du sol → écran
+    const A = [[1, lxM, 0], [0, k, 0], [0, 0, 1]];                         // le soleil : (X, Y) du mur → (x, z) du sol
+    return P.map(r => [0, 1, 2].map(j => r[0]*A[0][j] + r[1]*A[1][j] + r[2]*A[2][j]));
+  }
+  const proj = (Hm, x, y) => { const Y = Hc - y, w = Hm[2][0]*x + Hm[2][1]*Y + Hm[2][2]; return [(Hm[0][0]*x + Hm[0][1]*Y + Hm[0][2])/w, (Hm[1][0]*x + Hm[1][1]*Y + Hm[1][2])/w]; };
+
+  /* ---------- l'image ---------- */
+  function avancer(budget){ const h0 = performance.now(); while (travaux.length && performance.now() - h0 < budget){ if (travaux[0].next().done) travaux.shift(); } }
+  function espace(x, s, X, Y, sp, al){ const ws = [...s].map(ch => x.measureText(ch).width), w = ws.reduce((a, b) => a + b + sp, -sp);
+    let u = al === "right" ? X - w : al === "center" ? X - w/2 : X; [...s].forEach((ch, i) => { x.fillText(ch, u, Y); u += ws[i] + sp; }); }
+
+  function frame(ctx, t){
+    avancer(travaux.length && !BG ? 14 : 9);
+    ctx.fillStyle = rgb(FOND); ctx.fillRect(0, 0, W, H);
+    if (!BG) return;
+    ctx.drawImage(BG, 0, 0, W, H);
+    const s = clamp((t - tSeuil)/6000), sr = lisse((t - tSeuil - 300)/2600), Hm = homographie();
+    // l'état de chaque verre
+    let nl = 0, nCuit = 0, actif = false; cells.forEach(c => { c.l = lisse((t - c.t0)/550); if (c.l > 0) nl++; if (c.cuit) nCuit++; else if (t >= c.t0) actif = true; });
+    // ce qui ne bouge pas ne se recompose pas : la clé dit si la rosace, le sol ou les rayons ont changé
+    const vibA = vib && t - vib.t < 2200, ondeA = t - tSeuil > 0 && t - tSeuil < 2400, cleS = actif || (sr > 0 && sr < 1) ? "t" + Math.floor(t/40) : lxM + "|" + kM + "|" + sr + "|" + nl;
+    const cleR = actif || vibA || ondeA || (sr > 0 && sr < 1) ? "t" + t : cleS;
+    // le reflet sur la pierre et la nef envahie (au seuil)
+    if (sr > 0){ ctx.save(); ctx.globalCompositeOperation = "lighter";
+      const g = ctx.createRadialGradient(cx, yb, R*.2, cx, yb, R*2.2); g.addColorStop(0, `rgba(150,96,120,${.2*sr})`); g.addColorStop(.5, `rgba(70,80,150,${.1*sr})`); g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const g2 = ctx.createRadialGradient(cx, cy, R, cx, cy, R*1.9); g2.addColorStop(0, `rgba(120,110,150,${.14*sr})`); g2.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+      ctx.restore(); }
+    // les taches de couleur au sol : chaque verre allumé projeté par l'homographie
+    if (nl){ const fs = .5, fw = Math.ceil(W*fs), fh = Math.ceil((H - yb)*fs) + 1;
+      if (!floorC || floorC.width !== fw || floorC.height !== fh){ floorC = document.createElement("canvas"); floorC.width = fw; floorC.height = fh; solCle = ""; }
+      const fx = floorC.getContext("2d"), force = .5 + .45*sr;
+      if (cleS !== solCle){ solCle = cleS; fx.setTransform(1, 0, 0, 1, 0, 0); fx.clearRect(0, 0, fw, fh); fx.setTransform(fs, 0, 0, fs, 0, -yb*fs); fx.globalCompositeOperation = "lighter";
+      cells.forEach(c => { if (c.l <= 0) return; fx.globalAlpha = Math.min(1, c.l*c.gain*force); fx.fillStyle = c.cs || (c.cs = rgb(c.col)); fx.beginPath();
+        c.p.forEach((v, i) => { const q = proj(Hm, c.g[0] + (v[0] - c.g[0])*.84, c.g[1] + (v[1] - c.g[1])*.84); i ? fx.lineTo(q[0], q[1]) : fx.moveTo(q[0], q[1]); }); fx.fill(); }); fx.globalAlpha = 1; }
+      ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.drawImage(floorC, 0, yb, fw/fs, fh/fs); ctx.restore(); }
+    // la rosace
+    if (L){ const K = L.kx, gx = L.O + clamp(-lxM*1.4, -.8, .8)*L.S, gy = L.O + clamp(-.25 - (kM - 1)*-.9, -.85, .35)*L.S;
+      const T = L.tx, Dh = L.tmp.width, voile = (X, src, a0, a1, rx, ry, rad) => { T.globalCompositeOperation = "copy"; T.drawImage(src, 0, 0, Dh, Dh); T.globalCompositeOperation = "destination-in";
+        const g = T.createRadialGradient(rx/2, ry/2, 0, rx/2, ry/2, rad/2); g.addColorStop(0, `rgba(255,255,255,${a0})`); g.addColorStop(1, `rgba(255,255,255,${a1})`); T.fillStyle = g; T.fillRect(0, 0, Dh, Dh);
+        X.globalCompositeOperation = "lighter"; X.drawImage(L.tmp, 0, 0, L.Dp, L.Dp); X.globalCompositeOperation = "source-over"; };
+      // le calque « soleil » : verres cuits + lueur + soleil derrière, refait quand le soleil bouge (au plus 4 fois par seconde pendant l'allumage)
+      const cleG = lxM + "|" + kM + "|" + Math.round(sr*24) + "|" + nCuit;
+      if (cleG !== L.cleG && (!actif || !(t - L.tGl < 250))){ L.cleG = cleG; L.tGl = t; const G = L.gl; idL(G);
+        G.globalCompositeOperation = "copy"; G.drawImage(L.bake, 0, 0); G.globalCompositeOperation = "source-over";
+        voile(G, L.masque, .1, 0, gx, gy, 1.1*L.S);                                                  // la lueur derrière le vitrail éteint
+        if (nCuit) voile(G, L.allum, .45 + .15*sr, .05 + .05*sr, gx, gy, 1.3*L.S);                  // le soleil derrière les verres allumés
+        roseCle = ""; }
+      if (cleR !== roseCle){ roseCle = cleR;
+      idL(K); K.globalCompositeOperation = "copy"; K.drawImage(L.glow, 0, 0); K.globalCompositeOperation = "source-over";
+      let cuits = 0; cells.forEach(c => { if (c.cuit) return; if (c.l > 0){ poser(K, c, c.l*c.gain); const fl = Math.sin(Math.PI*clamp((t - c.t0)/1100)); if (fl > 0) poser(K, c, .75*fl*c.gain, "lighter"); }
+        if (t - c.t0 > 1500 && cuits < 10){ cuits++; poser(L.bx, c, c.gain); poser(L.ax, c, c.gain); c.cuit = true; } });   // au plus 10 verres cuits par image : sinon un quartier entier d'un coup coûtait 30 à 50 ms
+      if (vibA){ const a = Math.exp(-(t - vib.t)/650)*(.55 + .45*Math.sin((t - vib.t)/38)); poser(K, vib.c, .95*a, "lighter"); }
+      const ws = (t - tSeuil)/1500; if (ws > 0 && ws < 1.6){                                       // l'onde du seuil
+        T.globalCompositeOperation = "copy"; T.drawImage(L.allum, 0, 0, Dh, Dh); T.globalCompositeOperation = "destination-in";
+        const g = T.createRadialGradient(L.O/2, L.O/2, 0, L.O/2, L.O/2, L.S*.525); const p = clamp(ws/1.4, 0, 1);
+        [[p - .18, 0], [p, .95], [Math.min(1, p + .08), 0]].forEach(([o, a]) => g.addColorStop(clamp(o), `rgba(255,255,255,${a})`));
+        T.fillStyle = g; T.fillRect(0, 0, Dh, Dh); K.globalCompositeOperation = "lighter"; K.drawImage(L.tmp, 0, 0, L.Dp, L.Dp); K.globalCompositeOperation = "source-over"; }
+      K.drawImage(L.plomb, 0, 0); }
+      ctx.drawImage(L.compo, cx - 1.2*R, cy - 1.2*R, 2.4*R, 2.4*R); }
+    else { ctx.fillStyle = "rgb(30,30,34)"; ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.283); ctx.fill(); }
+    // les rayons dans la poussière : de chaque verre allumé à sa tache
+    const ray = .3 + .7*sr;
+    if (nl){ const rw = Math.ceil(W/4), rh = Math.ceil(H/4);
+      if (!rayC || rayC.width !== rw || rayC.height !== rh){ rayC = document.createElement("canvas"); rayC.width = rw; rayC.height = rh; rayCle = ""; }
+      const rx = rayC.getContext("2d");
+      if (cleS !== rayCle){ rayCle = cleS; rx.setTransform(1, 0, 0, 1, 0, 0); rx.clearRect(0, 0, rw, rh); rx.setTransform(rw/W, 0, 0, rh/H, 0, 0); rx.globalCompositeOperation = "lighter";
+      cells.forEach((c, i) => { if (c.l <= 0 || (c.kind === "v" && i % 2)) return; const C = [cx + c.g[0]*R, cy + c.g[1]*R], F = proj(Hm, c.g[0], c.g[1]), F2 = proj(Hm, c.g[0] + c.rad*.7, c.g[1]);
+        const dx = F[0] - C[0], dy = F[1] - C[1], l = Math.hypot(dx, dy) || 1, nx = -dy/l, ny = dx/l, wc = c.rad*R*.7, wf = Math.hypot(F2[0] - F[0], F2[1] - F[1]);
+        rx.globalAlpha = Math.min(1, c.l*c.gain*ray*.055); rx.fillStyle = c.cs || (c.cs = rgb(c.col)); rx.beginPath(); rx.moveTo(C[0] + nx*wc, C[1] + ny*wc); rx.lineTo(F[0] + nx*wf, F[1] + ny*wf); rx.lineTo(F[0] - nx*wf, F[1] - ny*wf); rx.lineTo(C[0] - nx*wc, C[1] - ny*wc); rx.fill(); });
+      rx.globalAlpha = 1; rx.globalCompositeOperation = "destination-out"; const gm = rx.createRadialGradient(cx, cy, R*.7, cx, cy, R*1.25); gm.addColorStop(0, "rgba(0,0,0,.8)"); gm.addColorStop(1, "rgba(0,0,0,0)");
+      rx.fillStyle = gm; rx.fillRect(0, 0, W, H); }   // le faisceau naît derrière le verre : il ne voile pas la rosace
+      ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.drawImage(rayC, 0, 0, W, H);
+      // la poussière en suspension, seulement dans les faisceaux
+      poussiere.forEach(p => { const c = cells[p.c]; if (!c || c.l <= 0) return; const b = (p.b + t*p.v) % 1, F = proj(Hm, c.g[0], c.g[1]), C = [cx + c.g[0]*R, cy + c.g[1]*R];
+        const x = C[0] + (F[0] - C[0])*b + p.w*c.rad*R*.6 + Math.sin(t/1700 + p.ph)*4, y = C[1] + (F[1] - C[1])*b + Math.cos(t/2100 + p.ph)*3;
+        const a = c.l*ray*(.35 + .35*Math.sin(t/400 + p.ph*3))*c.gain; if (a <= .02) return;
+        ctx.globalAlpha = Math.min(1, a); ctx.fillStyle = c.pc || (c.pc = rgb(mix(c.col, BLANC_PUR, .6))); ctx.fillRect(x, y, p.s, p.s); });
+      ctx.globalAlpha = 1;
+      ctx.restore(); }
+    // les noms gravés dans les écoinçons
+    const fsz = clamp(R*.075, 9.5, 15), sp = fsz*.3, fm = clamp(R*.052, 7.5, 10);
+    PR.forEach((p, q) => { const droite = q < 2, haut = q === 0 || q === 3, X = clamp(cx + (droite ? 1.32 : -1.32)*R, 12, W - 12), al = droite ? "right" : "left";
+      const Y = haut ? cy - 1.02*R : cy + 1.02*R + fsz*.9, lit = lisse((t - tG[q] - 250)/1300), nom = p.nom.toUpperCase();
+      ctx.font = `500 ${fsz}px Georgia, "Times New Roman", serif`;
+      ctx.fillStyle = "rgba(205,198,186,.32)"; espace(ctx, nom, X, Y + .9, sp, al);      // le bord inférieur de l'entaille, éclairé
+      ctx.fillStyle = "rgba(6,6,7,.85)"; espace(ctx, nom, X, Y, sp, al);                 // le creux
+      if (lit > 0){ ctx.fillStyle = rgb(mix(TONS[q], BLANC_PUR, .25), lit*.95); espace(ctx, nom, X, Y, sp, al);
+        ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = rgb(TONS[q], lit*.35); espace(ctx, nom, X + .6, Y + .4, sp, al); ctx.restore(); }
+      ctx.font = `${fm}px ui-monospace, Consolas, monospace`; ctx.fillStyle = lit > 0 ? rgb(mix(TONS[q], BLANC, .5), .35 + .45*lit) : "rgba(160,156,150,.4)";
+      espace(ctx, (DON.tons[q].nom + " · " + p.min + " min").toUpperCase(), X, Y + fm*1.6, 1, al); });
+    // la ligne mono : la loi en clair
+    const k = kBase*kM, haut = Math.atan(1/Math.hypot(lxM, k))*180/Math.PI;
+    ctx.font = `${fm}px ui-monospace, Consolas, monospace`; ctx.fillStyle = "rgba(170,166,160,.5)";
+    espace(ctx, `D${N} · LLOYD ×40 · ${cells.length} VERRES · SOLEIL ${Math.round(haut)}°`, cx, yb + fm*1.7, .6, "center");
+    passeGrain(ctx, W, H, t, .05);
+  }
+
+  /* ---------- les gestes ---------- */
+  function etat(n){
+    etape = n; tSeuil = Infinity; tG = [Infinity, Infinity, Infinity, Infinity];
+    cells.forEach(c => { c.t0 = Infinity; c.cuit = false; });
+    for (let q = 0; q < Math.min(n, 4); q++){ tG[q] = -1e9; cells.forEach(c => { if (c.q === q) c.t0 = -1e9; }); }
+    if (n >= 5){ tSeuil = -1e9; cells.forEach(c => { c.t0 = -1e9; }); }
+    M.bouton = libelleGeste(n); M.ligne = ligne(n); rebake();
+  }
+  const ligne = n => n === 0 ? ligneGeste(0) : n <= 4 ? PR[n - 1].nom + " · " + DON.tons[n - 1].nom + " · " + n + " sur 4" : ligneGeste(5);
+  function geste(){
+    const t = maintenant();
+    if (etape >= 5){ seed += 211; variante++; N = DON.ordres[variante % DON.ordres.length]; geometrie(); L = null; travaux.push(rose()); etat(0); return; }
+    if (etape > 0 && t - Math.min(t, etape <= 4 ? tG[etape - 1] : tSeuil) < 900) return;
+    if (etape < 4){ tG[etape] = t; cells.forEach(c => { if (c.q === etape) c.t0 = t + c.d*1000; }); }
+    else { tSeuil = t; cells.forEach(c => { if (c.q === 4) c.t0 = t + 150; }); }
+    etape++; M.bouton = libelleGeste(etape); M.ligne = ligne(etape);
+  }
+  M.taille = (w, h, dpr) => { W = w; H = h; DPR = Math.min(dpr || 1, 1.5); const k = W + "×" + H + "×" + DPR; if (k === cle) return; cle = k;
+    mise(); BG = null; L = null; travaux = [fond(), rose()]; };
+  M.frame = frame; M.geste = geste; M.aller = n => etat(clamp(n | 0, 0, 5));
+  M.tap = (x, y) => { const u = (x - cx)/R, v = (y - cy)/R; if (Math.hypot(u, v) > 1) return;
+    for (let i = cells.length - 1; i >= 0; i--){ const c = cells[i]; if (u < c.bb[0] || u > c.bb[2] || v < c.bb[1] || v > c.bb[3]) continue;
+      let dedans = false; for (let a = 0, b = c.p.length - 1; a < c.p.length; b = a++){ const A = c.p[a], B = c.p[b];
+        if ((A[1] > v) !== (B[1] > v) && u < (B[0] - A[0])*(v - A[1])/(B[1] - A[1]) + A[0]) dedans = !dedans; }
+      if (!dedans) continue;
+      vib = { c, t: maintenant() };
+      M.ligne = c.kind === "jour" ? "J-" + (DON.jours.length - c.jour) + " · " + c.n + " sur 4"
+        : c.kind === "coeur" ? "aujourd'hui · " + Math.min(etape, 4) + " sur 4"
+        : PR[c.q].nom + " · " + DON.tons[c.q].nom + (c.l > .5 ? "" : " · éteint");
+      return; } };
+  M.glisse = (dx, dy) => { lxM = clamp(lxM - dx*.0045, -.85, .85); kM = clamp(kM*Math.exp(dy*.004), .5, 1.35); };
+  geometrie(); mise(); travaux = [fond(), rose()];
+  return M;
+}
+window.ETUDE = etude_rosace;
+
+</script>
+<script>
+/* Le moteur : une image par rafraîchissement, le doigt, le bouton. */
+(function(){
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), bouton = document.getElementById("geste");
+  const montrerErreur = e => { const p = document.createElement("div"); p.className = "erreur"; p.textContent = "Erreur : " + (e && e.message || e); document.body.appendChild(p); };
+  let m; try { m = window.ETUDE(); } catch (e) { montrerErreur(e); return; }
+  document.getElementById("titre").textContent = m.titre || "";
+  let W = 0, H = 0, D = 1;
+  function dimension(){ D = Math.min(window.devicePixelRatio || 1, m.dprMax || 2); W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W*D); cv.height = Math.round(H*D); ctx.setTransform(D, 0, 0, D, 0, 0); m.taille(W, H, D); }
+  dimension(); addEventListener("resize", dimension);
+  let libelle = null, ligne = null, pire = 0, n = 0;
+  function boucle(){
+    const t0 = performance.now();
+    try { ctx.setTransform(D, 0, 0, D, 0, 0); m.frame(ctx, maintenant()); } catch (e) { montrerErreur(e); return; }
+    const dt = performance.now() - t0; if (++n > 30) pire = Math.max(pire, dt); window.__PIRE = pire;
+    if (m.bouton !== libelle) { libelle = m.bouton; bouton.textContent = libelle || ""; bouton.hidden = !libelle; }
+    if ((m.ligne || "") !== ligne) { ligne = m.ligne || ""; document.getElementById("ligne").textContent = ligne; }
+    requestAnimationFrame(boucle);
+  }
+  bouton.onclick = () => { try { m.geste?.(); } catch (e) { montrerErreur(e); } };
+  let p0 = null, dernier = null;
+  cv.addEventListener("pointerdown", e => { p0 = dernier = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!p0) return; const dx = e.clientX - dernier[0], dy = e.clientY - dernier[1]; dernier = [e.clientX, e.clientY];
+    if (Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 8) m.glisse?.(dx, dy); });
+  cv.addEventListener("pointerup", e => { if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) <= 8) m.tap?.(e.clientX, e.clientY); p0 = null; });
+  window.__ETUDE = m;
+  requestAnimationFrame(boucle);
+})();
+</script>
+</body></html>

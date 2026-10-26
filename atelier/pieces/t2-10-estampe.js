@@ -1,0 +1,476 @@
+/* ======================= Tour 2, pièce 10 : L'ESTAMPE (etude_estampe) ======================= */
+/* Ce qu'on voit : une estampe (ukiyo-e) en train d'être imprimée sur un washi gris clair très fibreux : une
+   mer qui se creuse en une grande vague, trois barques, une montagne au loin, le soleil de l'aube. Au repos, seule la planche de
+   trait (keyban) est imprimée, gris sur gris ; dans la marge, l'équerre de repérage (kentō).
+   La loi : la houle trochoïdale de Gerstner (Theorie der Wellen, Prague, 1802). Chaque rangée de mer, à sa distance z, est la
+   coupe d'une somme de cinq ondes : x = x₀ − Σ QA·D sin θ, h = Σ A cos θ, θ = k D·x₀ − ωt, avec ω² = gk (eaux profondes), vue
+   depuis 9 m. Les crêtes pointues sortent de la loi. L'écume naît où le jacobien J = ∂x/∂x₀ = 1 − Σ QkA D² cos θ passe sous 0,7
+   (la pente dépasse le seuil : la crête déferle) ; la marge affiche ΣQkA et la part d'écume. La grande vague : deux ondes de
+   Gerstner en phase (houle longue, crête raide), étirées en hauteur comme le graveur l'exagère ; sa lèvre s'enroule au seuil.
+   Le doigt lâche un paquet d'ondes qui court à la vitesse de groupe c_g = ω/2k. Les rangées proches cachent les autres.
+   La main : une toile par planche, repérée sur le kentō ; le bois est un bruit de veinage périodique (cernes, pigment qui manque
+   le long du fil, éclats) ; l'encre multiplie le papier, le gofun blanc se pose dessus.
+   L'usage : « Ta journée ». Chaque priorité imprime UNE planche, le baren frotte et la couleur se pose sous lui. 990 : le bleu
+   de Prusse de la mer. CUMBRE : le rose de l'aube, le soleil et son reflet. Lecture : l'ocre de la montagne et des barques.
+   LE CLOSING : le gris-bleu des creux, le blanc d'écume sur toutes les crêtes. Le nom s'imprime dans sa colonne du cartouche
+   (gaufré à blanc avant), un petit sceau rouge le scelle. Seuil (Boucler) : la houle s'anime, la raideur monte, la vague se
+   lève et s'enroule, l'écume éclate en griffes et en embruns balistiques ; un dernier passage pose le bokashi du ciel sur toute
+   la largeur, puis la signature et le sceau 波. L'image reste. Encore : une autre mer. Toucher la mer : une onde court sur la
+   rangée. Glisser : la dernière planche se décale (sa barre sort du kentō), un ressort la ramène.
+   Le budget : papier, bois et sceaux se préparent par tranches de 6 ms ; une planche (< 0,6 Mpx) n'est redessinée que si la mer
+   bouge ; une image = une file de pas (la loi, une planche, une passe de composition), un ou deux par image affichée. */
+
+const etude_estampe_DONNEES = Object.assign({
+  planches: [
+    { couleur: "bleu de Prusse", encre: [34, 78, 152], sceau: "英" },
+    { couleur: "rose de l'aube", encre: [238, 74, 104], sceau: "西" },
+    { couleur: "ocre", encre: [226, 156, 40], sceau: "読" },
+    { couleur: "gris-bleu, écume", encre: [104, 124, 148], sceau: "金" }
+  ],
+  keyban: [86, 84, 90], bokashi: [22, 46, 104], blanc: [248, 246, 238], vermillon: [204, 46, 32],
+  papier: [207, 205, 199], table: [24, 25, 29], artiste: "THOMAS", sceauArtiste: "波"
+}, JOURNEE);
+
+function etude_estampe(){
+  const { sin, cos, min, max, PI, ceil, abs, floor, round, pow, sqrt, hypot, log, exp, atan2 } = Math;
+  const D = etude_estampe_DONNEES, PR = D.priorites, PC = D.planches;
+  const SERIF = "Georgia, 'Times New Roman', serif", MONO = "ui-monospace, Menlo, Consolas, monospace",
+        CJK = "'Noto Serif CJK JP','Hiragino Mincho ProN','Yu Mincho','Noto Serif CJK SC','Songti SC',serif";
+  const M = { titre: "L'ESTAMPE", dprMax: 1.5 };
+  const NR = 12, HC = 9, ZN = 13, JC = .7, TP = 3300, TPB = 2500, AV = 250, TAU = PI*2, FB = [.03, .06, .095, .13];
+  const NOMS = ["B", "R", "O", "G", "BK"];
+  let W = 390, H = 760, DPR = 1.5, seed = 1802, etape = 0, dernier = 0, simT = 0, gv = 0, geoOk = false;
+  let SX, SY, SW, SH, IX, IY, IW, IH, LS, PAD = 22, yh, F, RB, STEP, GX, NG, CART;
+  let COMP = [], MT = null, MTc = null, NUA = [], BAR = [], SOL = null, nb, AC = .7, GR = [], hs;
+  let ROWS = [], BIG = null, Y = [], JG = [], E = [], EA, YB, S = .85, rise = 0, bigA = 0, leanW = 0, lcp = 0, griffes = 0, ecume = 0;
+  const PLA = [0, 1, 2, 3, 4, 5].map(() => ({ t0: -1e9, fait: false, ox: 0, oy: 0, vx: 0, vy: 0, bx: 0, by: 0, fini: false }));
+  let tSeuil = -1e9, embruns = null, ondes = [], temp = { txt: "", fin: 0 };
+  let L = {}, TEX = {}, papier = null, genA = null, SCEAUX = [], CP = null, CPb = null, cpSale = true, job = null;
+
+  /* — bruits, bois, sceaux — */
+  function bruitP(s, Px, Py){ const R = graine(s), v = Array.from({ length: Px*Py }, R);
+    return (x, y) => { const i = floor(x), j = floor(y), fx = x - i, fy = y - j, u = fx*fx*(3 - 2*fx), w = fy*fy*(3 - 2*fy);
+      const I = ((i % Px) + Px) % Px, J = ((j % Py) + Py) % Py, I1 = (I + 1) % Px, J1 = (J + 1) % Py;
+      const a = v[J*Px + I], b = v[J*Px + I1], c = v[J1*Px + I], d = v[J1*Px + I1]; return a + (b - a)*u + (c - a)*w + (a - b - c + d)*u*w; }; }
+  /* le bois : cernes, pigment qui manque le long du fil, éclats (tuile périodique) */
+  function* texBois(k){
+    const [col, sd, [pl, ve, trs, se, nv]] = ENC[k], T = 256, cv = document.createElement("canvas"); cv.width = cv.height = T;
+    const c = cv.getContext("2d"), im = c.createImageData(T, T), d = im.data, R = graine(sd);
+    const w1 = bruitP(sd + 1, 4, 4), w2 = bruitP(sd + 2, 16, 16), h1 = bruitP(sd + 3, 12, 40), h2 = bruitP(sd + 4, 32, 64);
+    for (let y = 0, i = 0; y < T; y++){ for (let x = 0; x < T; x++, i += 4){
+      const u = x/T, v = y/T, vein = pow(.5 + .5*cos((v*nv + .9*w1(u*4, v*4) + .22*w2(u*16, v*16))*TAU), 5);
+      let a = pl - ve*vein - .07*w2(u*16 + 5, v*16 + 3);
+      const tr = .65*h1(u*12, v*40) + .35*h2(u*32, v*64); if (tr > se) a -= (tr - se)*trs;
+      if (R() < .02) a -= .45*R();
+      a += (R() - .5)*.09; d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = clamp(a)*255; }
+      if ((y & 31) === 31) yield; }
+    c.putImageData(im, 0, 0); TEX[k] = cv;
+  }
+  /* l'atelier se prépare par tranches : les bois, les sceaux, la feuille */
+  function* preparer(){ for (const k of ["K", ...NOMS, "W"]) if (!TEX[k]) yield* texBois(k);
+    if (!SCEAUX.length){ for (let j = 0; j < 5; j++){ SCEAUX.push(j < 4 ? sceau(PC[j].sceau, CART.sealS, 300 + j + seed) : sceau(D.sceauArtiste, CART.colW*1.15, 999 + seed)); yield; } }
+    if (!papier) yield* peindrePapier(); }
+  function sceau(car, taille, sd){
+    const s = ceil(taille*DPR), cv = document.createElement("canvas"); cv.width = cv.height = s;
+    const c = cv.getContext("2d"), R = graine(sd);
+    c.fillStyle = rgb(D.vermillon); c.beginPath();
+    [[.04, .05], [.5, .02], [.97, .04], [.98, .5], [.95, .97], [.5, .98], [.03, .96], [.02, .5]].forEach((p, k) => {
+      const x = (p[0] + (R() - .5)*.03)*s, y = (p[1] + (R() - .5)*.03)*s; k ? c.lineTo(x, y) : c.moveTo(x, y); }); c.fill();
+    op(c, "destination-out"); c.strokeStyle = c.fillStyle = "#000"; c.lineWidth = s*.05; c.strokeRect(s*.12, s*.12, s*.76, s*.76);
+    c.font = `700 ${s*.62}px ${CJK}`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(car, s/2, s*.53);
+    for (let k = 0; k < 40; k++){ c.globalAlpha = .25 + .5*R(); c.beginPath(); c.arc(R()*s, R()*s, R()*s*.035 + .3, 0, TAU); c.fill(); }
+    return cv;
+  }
+
+  /* — la composition (une graine = une mer) — */
+  function construire(){
+    const R = graine(seed); nb = bruit1(seed + 3); MTc = null; geoOk = false;
+    const h0 = (seed*.618) % 1; hs = (i, s) => { const v = sin(i*127.1 + s*311.7 + h0*91.3)*43758.5453; return v - floor(v); };
+    // cinq ondes : longueur (m), amplitude (m), direction, part de la raideur
+    COMP = [[48, 1.35, .22, .36], [27, .78, -.38, .26], [15, .42, .55, .18], [8.2, .2, -.8, .12], [4.6, .1, .14, .08]].map(([lam, A, da, p]) => {
+      const k = TAU/lam, d = da + (R() - .5)*.2; return { k, A: A*(.85 + .3*R()), dx: -cos(d), dz: sin(d), w: sqrt(9.81*k), ph: R()*TAU, p }; });
+    AC = .64 + .07*R();
+    MT = { xp: .17 + .07*R(), hl: .16 + .04*R(), hr: .22 + .05*R(), ph: R()*9, cr: .93 + .04*R() };
+    SOL = { u: .46 + .07*R(), v: .5 + .2*R() };
+    NUA = [{ u0: .17, u1: .42 + .1*R(), v: .31 + .04*R(), ph: R()*9, haut: true }, { u0: MT.xp - .2 - .05*R(), u1: MT.xp + .15 + .06*R(), v: .3 + .1*R(), ph: R()*9 }];
+    BAR = [{ i: 6, u: .16 + .14*R(), L: 7.5 }, { i: 7, u: .4 + .08*R(), L: 6.5 }, { i: 8, u: .04 + .1*R(), L: 6 }];
+    GR = Array.from({ length: 16 }, () => [R(), R(), R(), R()]);
+    PLA.forEach(q => { q.bx = (R() - .5)*1.6; q.by = (R() - .5)*1.6; });
+    SCEAUX = []; papier = null; genA = preparer(); Object.values(L).forEach(l => { l.pat = null; l.gv = -1; });
+  }
+  function layout(){
+    MTc = null; geoOk = false;
+    const mT = clamp(H*.075, 10, 60), mB = clamp(H*.1, 12, 84);
+    let sw = W - 24, sh = H - mT - mB; if (sw > sh*.82) sw = sh*.82;
+    SW = sw; SH = sh; SX = (W - sw)/2; SY = mT;
+    const mx = SW*.065, mt = SW*.06;
+    IX = SX + mx; IY = SY + mt; IW = SW - 2*mx; IH = SH - mt - (SW*.06 + 26);
+    yh = IH*(IH/IW > 1.25 ? .47 : .44);
+    F = (IH*.97 - yh)*ZN/HC; RB = clamp(IW*.085, 16, 40); STEP = max(2.6, IW/130); GX = max(2, IW/150); NG = floor(IW/GX) + 2;
+    LS = IW > 480 ? 1.1 : min(DPR, 1.25);
+    const fs = clamp(IH*.021, 7.5, 11), lh = fs*1.28, colW = fs*1.95, pc = fs*.75, sealS = colW*.78;
+    CART = { fs, lh, colW, pc, sealS, x1: IW*.955, y0: IW*.045 }; CART.x0 = CART.x1 - 4*colW - 2*pc; CART.y1 = CART.y0 + 2*pc + 10*lh + sealS + fs*.4;
+    ROWS = []; Y = []; JG = []; E = [];
+    for (let i = 0; i < NR; i++){ const n = ceil(IW*1.16/STEP) + 1; ROWS.push({ z: zRow(i), n, xs: new Float32Array(n), ys: new Float32Array(n), J: new Float32Array(n) });
+      Y.push(new Float32Array(NG)); JG.push(new Float32Array(NG)); E.push(new Float32Array(NG)); }
+    EA = new Float32Array(NG); YB = new Float32Array(NG);
+    const nbg = ceil(IW*1.5/2) + 1; BIG = { n: nbg, xs: new Float32Array(nbg), ys: new Float32Array(nbg), hu: new Float32Array(nbg), J: new Float32Array(nbg), fx: FB.map(() => new Float32Array(nbg)), fy: FB.map(() => new Float32Array(nbg)) };
+    ["K", ...NOMS, "W"].forEach(k => { const cv = (L[k] && L[k].cv) || document.createElement("canvas"), ls = k === "K" ? LS : min(LS, 1);
+      cv.width = ceil((IW + 2*PAD)*ls); cv.height = ceil((IH + 2*PAD)*ls); L[k] = { cv, c: cv.getContext("2d"), pat: null, gv: -1, ls }; });
+    for (const k of [0, 1]){ const cv = (k ? CPb : CP) || document.createElement("canvas"); cv.width = ceil((SW + 28)*DPR); cv.height = ceil((SH + 28)*DPR); if (k) CPb = cv; else CP = cv; } job = null;
+    papier = null; SCEAUX = []; genA = preparer(); embruns = null; cpSale = true;
+  }
+  const zRow = i => i === 0 ? 700 : 260*pow(ZN/260, (i - 1)/(NR - 2));
+  // les bois : encre, graine, [plein, veinage, trous, seuil des trous, cernes par tuile]
+  const ENC = { K: [D.keyban, 11, [1, .2, 1.4, .76, 13]], B: [PC[0].encre, 21, [.97, .34, 2.2, .64, 9]], R: [PC[1].encre, 31, [.96, .3, 2.4, .62, 7]],
+    O: [PC[2].encre, 41, [.97, .36, 2.2, .63, 11]], G: [PC[3].encre, 51, [.95, .3, 2.2, .64, 8]], W: [D.blanc, 61, [.95, .22, 2.6, .58, 10]], BK: [D.bokashi, 71, [.97, .38, 2, .66, 6]] };
+  function motif(k){ const Lk = L[k]; if (Lk.pat) return Lk.pat; const e = ENC[k];
+    Lk.pat = Lk.c.createPattern(TEX[k], "repeat"); Lk.pat.setTransform(new DOMMatrix().scaleSelf(1/Lk.ls, 1/Lk.ls).rotateSelf(((e[1]*37) % 11 - 5)*.7)); return Lk.pat; }
+
+  /* — le washi : pâte marbrée, bords frangés, fibres de kōzo, éclats d'écorce — */
+  function* peindrePapier(){
+    const m = 14, pw = CP.width, ph = CP.height, cv = document.createElement("canvas"); cv.width = pw; cv.height = ph;
+    const c = cv.getContext("2d", { willReadFrequently: true }), im = c.createImageData(pw, ph), d = im.data, R = graine(seed*3 + 1);
+    const n1 = bruit2(seed + 11), n2 = bruit2(seed + 12), n3 = bruit2(seed + 13), P = D.papier, x0 = m*DPR, y0 = m*DPR, x1 = (m + SW)*DPR, y1 = (m + SH)*DPR;
+    for (let y = 0; y < ph; y++){
+      for (let x = 0; x < pw; x++){
+        const de = min(x - x0, x1 - x, y - y0, y1 - y)/DPR; if (de < -4) continue;
+        const X = x/DPR, Yp = y/DPR, bord = de + 6.4*(n3(X*.45, Yp*.45) - .5), a = clamp(bord/1.2); if (a <= 0) continue;
+        const v = (n1(X/40, Yp/40) - .5)*13 + (n2(X/6.5, Yp/6.5) - .5)*10 + (R() - .5)*7 + (1 - clamp(bord/7))*7, i = (y*pw + x)*4;
+        d[i] = P[0] + v + 1; d[i + 1] = P[1] + v; d[i + 2] = P[2] + v - 2; d[i + 3] = a*255;
+      }
+      if ((y & 15) === 15) yield;
+    }
+    c.putImageData(im, 0, 0); yield;
+    const fin = document.createElement("canvas"); fin.width = pw; fin.height = ph; const f = fin.getContext("2d", { willReadFrequently: true });
+    for (let k = 9; k >= 1; k--){ f.fillStyle = `rgba(0,0,0,${.07})`; const e = k*1.4*DPR; f.fillRect(x0 - e*.6, y0 - e*.3 + 4*DPR, x1 - x0 + e*1.2, y1 - y0 + e*.9); }
+    f.drawImage(cv, 0, 0); f.getImageData(0, 0, 1, 1); yield;
+    f.setTransform(DPR, 0, 0, DPR, m*DPR, m*DPR); f.lineCap = "round";
+    const N = SW*SH/48;
+    for (const [col, al, lw, part] of [[255, .3, .45, .27], [255, .2, .8, .27], [255, .14, 1.2, .27], [118, .14, .5, .09], [94, .1, .9, .09]]){
+      f.beginPath();
+      f.strokeStyle = `rgba(${col},${col - 2},${col - 8},${al})`; f.lineWidth = lw*.7;
+      for (let k = 0; k < N*part; k++){ if (k % 300 === 299){ f.stroke(); f.getImageData(0, 0, 1, 1); yield; f.beginPath(); } const x = R()*SW, y = R()*SH, l = (8 + 50*R()*R())*(R() < .04 ? 3 : 1), a = R()*6.3, cu = (R() - .5)*l*.6, ex = x + cos(a)*l, ey = y + sin(a)*l;
+        f.moveTo(x, y); f.quadraticCurveTo((x + ex)/2 - sin(a)*cu, (y + ey)/2 + cos(a)*cu, ex, ey); }
+      f.stroke(); yield;
+    }
+    f.fillStyle = "rgba(70,62,52,.5)";
+    for (let k = 0; k < SW*SH/1400; k++){ f.beginPath(); const l = .5 + 2.2*R(); f.ellipse(R()*SW, R()*SH, l, l*.35, R()*3, 0, TAU); f.fill(); }
+    const gp = document.createElement("canvas"); gp.width = pw; gp.height = ph; gp.getContext("2d").drawImage(fin, 0, 0); papier = { cv: gp, m }; cpSale = true;
+  }
+
+  /* — la loi : rangées de Gerstner, enveloppes, grande vague, lèvre, griffes — */
+  function reech(xs, ys, J, n, out, oj, mx){ out.fill(mx ? -1e9 : 1e9);
+    for (let s = 0; s < n - 1; s++){ let xa = xs[s], xb = xs[s + 1], ya = ys[s], yb = ys[s + 1], ja = J ? J[s] : 1, jb = J ? J[s + 1] : 1;
+      if (xa > xb){ [xa, xb] = [xb, xa]; [ya, yb] = [yb, ya]; [ja, jb] = [jb, ja]; }
+      for (let g = max(0, ceil(xa/GX)), g1 = min(NG - 1, floor(xb/GX)); g <= g1; g++){ const u = (g*GX - xa)/((xb - xa) || 1), y = ya + (yb - ya)*u;
+        if (mx ? y > out[g] : y < out[g]){ out[g] = y; if (oj) oj[g] = ja + (jb - ja)*u; } } } }
+  function calc(t){
+    const n = COMP.length; gv++; let nE = 0, nT = 0;
+    for (let i = 0; i < NR; i++){
+      const r = ROWS[i], z = r.z, sc = F/z;
+      for (let s = 0; s < r.n; s++){
+        const X = (-.08*IW + s*STEP - IW/2)/sc; let dX = 0, h = 0, J = 1;
+        for (let j = 0; j < n; j++){ const c = COMP[j], th = c.k*(X*c.dx + z*c.dz) - c.w*simT + c.ph, Q = S*c.p/(c.k*c.A), ct = cos(th);
+          dX -= Q*c.A*c.dx*sin(th); h += c.A*ct; J -= Q*c.k*c.A*c.dx*c.dx*ct; }
+        for (const o of ondes){ if (o.i !== i) continue; const age = max(0, t - o.t0)/1000*o.acc;
+          for (const sg of [-1, 1]){ const u = X - o.X - sg*o.cg*age; h += o.A*o.f*exp(-age/2.6 - (u*u)/(o.sig*o.sig))*cos(o.k*(X - o.X - sg*o.cp*age)); } }
+        r.xs[s] = IW/2 + (X + dX)*sc; r.ys[s] = yh + (HC - h)*sc; r.J[s] = J;
+      }
+      reech(r.xs, r.ys, r.J, r.n, Y[i], JG[i]);
+    }
+    calcBig(); reech(BIG.xs, BIG.ys, null, BIG.n, YB, null, 1);
+    for (let g = 0; g < NG; g++){ let e = YB[g] < -1e8 ? IH + 4 : min(YB[g], IH + 4);
+      for (let i = NR - 1; i >= 0; i--){ E[i][g] = e; if (Y[i][g] < e - .3 && i){ nT++; if (JG[i][g] < JC) nE++; } e = min(e, Y[i][g]); } EA[g] = e; }
+    ecume = nT ? nE/nT : 0;
+  }
+  /* la grande vague : une houle longue (le dos) + une onde raide (la crête), cisaillées vers l'avant */
+  function calcBig(){
+    const b = BIG, yB = IH*.99, ac = IW*AC, A = bigA, k1 = TAU/(IW*3.4), k2 = TAU/(IW*2.6), s2 = .3 + .15*rise, sig = IW*.5;
+    let im = 0;
+    for (let s = 0; s < b.n; s++){
+      const a = -.2*IW + s*2, t1 = k1*(a - ac), t2 = k2*(a - ac) + .05*sin(simT*.6), e2 = exp(-(((a - ac)/sig)**2)), hu = A*(.68*cos(t1) + .32*e2*cos(t2));
+      b.xs[s] = a - .25/k1*sin(t1) - s2/k2*e2*sin(t2) - leanW*pow(max(0, hu/A), 1.5); b.ys[s] = yB - hu; b.hu[s] = hu; if (b.ys[s] < b.ys[im]) im = s;
+    }
+    for (let s = 0; s < b.n; s++){ const p = max(0, s - 1), q = min(b.n - 1, s + 1), tx = b.xs[q] - b.xs[p], ty = b.ys[q] - b.ys[p], l = hypot(tx, ty) || 1;
+      for (let f = 0; f < 4; f++){ const d = FB[f]*IH*(.45 + .3*rise)*clamp(b.hu[s]/(A*.2)); b.fx[f][s] = b.xs[s] - ty/l*d*.25; b.fy[f][s] = b.ys[s] + d; } }
+    for (let s = 0; s < b.n; s++){ const p = max(0, s - 1), q = min(b.n - 1, s + 1); b.J[s] = (b.xs[q] - b.xs[p])/((q - p)*2); }
+    b.im = im;
+    // la lèvre : la face avant continue de monter, passe par-dessus et retombe en s'enroulant vers l'avant
+    const R = IW*.2*max(.02, lcp), Phi = PI*(.3 + .95*lcp), Cx = b.xs[im] - R, Cy = b.ys[im], NL = 40;
+    const lip = { ox: [], oy: [], ix: [], iy: [], phi: [], R };
+    for (let q = 0; q <= NL; q++){ const u = q/NL, ph = Phi*u, r = R*(1 - .32*ph/PI), th = R*.5*(1 - .62*u), cs = cos(ph), sn = sin(ph);
+      lip.ox.push(Cx + r*cs); lip.oy.push(Cy - r*sn); lip.ix.push(Cx + (r - th)*cs); lip.iy.push(Cy - (r - th)*sn + th*2.2*pow(1 - u, 3)); lip.phi.push(ph); }
+    b.lip = lip;
+    // les griffes : des mains d'écume au bord qui retombe, trois doigts gras qui se recourbent vers l'avant
+    b.griffes = [];
+    for (let g = 0; g < 8; g++){ const G = GR[g], q = round((.6 + .4*g/7)*NL), ph = lip.phi[q], nx = cos(ph), ny = -sin(ph), tx = -sin(ph), ty = -cos(ph);
+      const len = R*(.14 + .34*griffes)*(.75 + .5*G[0]), w0 = R*(.16 + .16*griffes)*(.8 + .4*G[1]);
+      for (const [rot, fl] of [[-.6, .6], [0, 1], [.6, .66]]){ if (fl < 1 && griffes < .05) continue; const cr = cos(rot + (G[2] - .5)*.3), sr = sin(rot + (G[2] - .5)*.3);
+        const ax = nx*cr - ny*sr, ay = nx*sr + ny*cr, X = [], Yy = [], l = len*fl;
+        for (let u = 0; u <= 8; u++){ const v = u/8, hk = v*v*1.5; X.push(lip.ox[q] + l*(ax*v*.9 + tx*hk)); Yy.push(lip.oy[q] + l*(ay*v*.9 + ty*hk)); }
+        b.griffes.push({ X, Y: Yy, w0: w0*(fl < 1 ? .7 : 1) }); } }
+  }
+  function barque(b){
+    const r = ROWS[b.i], sc = F/r.z, X = IW*b.u, g = clamp(round(X/GX), 2, NG - 3), y = Y[b.i][g];
+    const ang = clamp(atan2(Y[b.i][g + 2] - Y[b.i][g - 2], 4*GX), -.4, .4), Lp = b.L*sc; return { x: X, y: y + Lp*.024, ang, Lp, hp: Lp*.12 };
+  }
+  function coque(c, B){ const ca = cos(B.ang), sa = sin(B.ang), Lh = B.Lp/2, h = B.hp;
+    [[-Lh, -h*.2], [Lh*.55, -h*.35], [Lh*1.05, -h*1.05], [Lh*.82, h*.1], [Lh*.2, h*.6], [-Lh*.6, h*.5], [-Lh*.98, h*.05]]
+      .forEach((p, k) => { const x = B.x + p[0]*ca - p[1]*sa, y = B.y + p[0]*sa + p[1]*ca; k ? c.lineTo(x, y) : c.moveTo(x, y); }); c.closePath(); }
+  function rameurs(c, B){ const ca = cos(B.ang), sa = sin(B.ang), h = B.hp, P = (u, v) => [B.x + u*ca - v*sa, B.y + u*sa + v*ca];
+    for (let k = 0; k < 7; k++){ const u = -B.Lp*.36 + k*B.Lp*.1, sw = sin(simT*2 + k*.3)*h*.25, a = P(u, -h*.3), bb = P(u - h*.3 + sw, -h*1.4), hd = P(u - h*.36 + sw, -h*1.75);
+      c.moveTo(a[0] - h*.14, a[1]); c.lineTo(bb[0] - h*.14, bb[1]); c.lineTo(bb[0] + h*.14, bb[1]); c.lineTo(a[0] + h*.14, a[1]); c.closePath();
+      c.moveTo(hd[0] + h*.26, hd[1]); c.arc(hd[0], hd[1], h*.26, 0, TAU); } }
+
+  /* — formes fixes : montagne, nuages, soleil — */
+  function mont(){ if (MTc) return MTc; const xp = IW*MT.xp, Hm = min(IH*.19, IW*.3), X = [], Yy = [], SN = [];
+    for (let x = xp - IW*MT.hl; x <= xp + IW*MT.hr; x += 2.5){ const dd = (x - xp)/(IW*(x < xp ? MT.hl : MT.hr)), f = min(MT.cr, pow(1 - abs(dd), 1.45))/MT.cr;
+      X.push(x); Yy.push(yh - Hm*f + Hm*.03*(nb(x*.09 + MT.ph) - .5)*(f > .05 ? 1 : 0)); SN.push(yh - Hm*(.6 + .1*sin(x*.23 + MT.ph) + .08*nb(x*.05 + 30))); }
+    return (MTc = { X, Y: Yy, SN, xp, Hm }); }
+  function montPath(c, m){ c.moveTo(m.X[0], yh + 3); for (let k = 0; k < m.X.length; k++) c.lineTo(m.X[k], m.Y[k]); c.lineTo(m.X[m.X.length - 1], yh + 3); c.closePath(); }
+  const neigePath = (c, m) => entre(c, m.X, m.Y, m.X, m.Y.map((y, k) => max(y, m.SN[k])), m.X.length);
+  function nuagePath(c, nu){ const x0 = IW*nu.u0, x1 = min(IW*nu.u1, nu.haut ? CART.x0 - 8 : IW), yc = nu.haut ? yh - IH*nu.v : yh - mont().Hm*nu.v, th = IH*.026;
+    c.moveTo(x0 + th/2, yc + th/2);
+    for (let x = x0 + th/2; x <= x1 - th/2; x += 3) c.lineTo(x, yc + th/2 + sin(x*.05 + nu.ph)*th*.12);
+    c.arc(x1 - th/2, yc, th/2, PI/2, -PI/2, true);
+    for (let x = x1 - th/2; x >= x0 + th/2; x -= 3) c.lineTo(x, yc - th/2 - abs(sin(x*.07 + nu.ph))*th*.55);
+    c.arc(x0 + th/2, yc, th/2, -PI/2, PI/2, true); c.closePath(); }
+
+  /* — outils de planche — */
+  function ruban(c, X, Yy, a, b, wf){ if (b - a < 1) return; const Lx = [], Ly = [], Rx = [], Ry = [];
+    for (let s = a; s <= b; s++){ const p = max(a, s - 1), q = min(b, s + 1); let tx = X[q] - X[p], ty = Yy[q] - Yy[p]; const l = hypot(tx, ty) || 1, w = wf(s, (s - a)/(b - a))*.5;
+      tx /= l; ty /= l; Lx.push(X[s] - ty*w); Ly.push(Yy[s] + tx*w); Rx.push(X[s] + ty*w); Ry.push(Yy[s] - tx*w); }
+    c.moveTo(Lx[0], Ly[0]); for (let k = 1; k < Lx.length; k++) c.lineTo(Lx[k], Ly[k]); for (let k = Rx.length - 1; k >= 0; k--) c.lineTo(Rx[k], Ry[k]); c.closePath(); }
+  let XG = null;
+  // les plages où une condition tient sur la grille ; f(a, b) pour chacune
+  function plages(cond, f){ let a = -1; for (let g = 0; g <= NG; g++){ const on = g < NG && cond(g); if (on && a < 0) a = g; if (!on && a >= 0){ if (g - 1 > a) f(a, g - 1); a = -1; } } }
+  // la bande visible d'une rangée : de sa courbe + d1 à min(courbe + d2, enveloppe des rangées proches)
+  function bande(c, i, d1, d2){ const yi = Y[i], e = E[i];
+    plages(g => yi[g] + d1 < e[g] - .3, (a, b) => { c.moveTo(a*GX, yi[a] + d1); for (let g = a + 1; g <= b; g++) c.lineTo(g*GX, yi[g] + d1);
+      for (let g = b; g >= a; g--) c.lineTo(g*GX, min(e[g], yi[g] + d2)); c.closePath(); }); }
+  const sousEnv = (c, e) => { c.moveTo(0, -PAD); c.lineTo(IW, -PAD); for (let g = NG - 1; g >= 0; g--) c.lineTo(min(IW, g*GX), e[g]); c.closePath(); };
+  const sous = (c, X, Yy, n) => { c.moveTo(X[0], IH + 4); for (let s = 0; s < n; s++) c.lineTo(X[s], Yy[s]); c.lineTo(X[n - 1], IH + 4); c.closePath(); };
+  const lipPath = c => { const l = BIG.lip; entre(c, l.ox, l.oy, l.ix, l.iy, l.ox.length); };
+  const op = (c, m) => c.globalCompositeOperation = m;
+  const rempli = (c, f, a = 1) => { c.globalAlpha = a; c.beginPath(); f(); c.fill(); c.globalAlpha = 1; };
+  const efface = (c, f) => { op(c, "destination-out"); c.beginPath(); f(); c.fill(); op(c, "source-over"); };
+  const effaceVague = c => { efface(c, () => sous(c, BIG.xs, BIG.ys, BIG.n)); efface(c, () => lipPath(c)); };
+  const decoupe = (c, f) => { c.save(); c.beginPath(); f(); c.clip(); };
+  const moyY = i => yh + HC*F/ROWS[i].z, ampY = i => COMP.reduce((a, c) => a + c.A, 0)*F/ROWS[i].z, proche = i => clamp(1 - log(ROWS[i].z/ZN)/log(700/ZN));
+  function debut(k){ const c = L[k].c; c.setTransform(1, 0, 0, 1, 0, 0); op(c, "source-over"); c.globalAlpha = 1;
+    c.clearRect(0, 0, L[k].cv.width, L[k].cv.height); const ls = L[k].ls; c.setTransform(ls, 0, 0, ls, PAD*ls, PAD*ls); c.fillStyle = c.strokeStyle = "#000"; c.lineJoin = c.lineCap = "round";
+    decoupe(c, () => c.rect(0, 0, IW, IH)); return c; }
+  function fin(k){ const c = L[k].c; op(c, "source-in"); c.fillStyle = motif(k); c.fillRect(-PAD, -PAD, IW + 2*PAD, IH + 2*PAD); op(c, "source-over"); L[k].gv = gv; }
+  // où frotte le baren de chaque planche
+  const REG = j => { const hm = yh - mont().Hm - 4; return [[IW, yh - IH*.06, IH], [IW, 0, yh + IH*.12], [IW*.66, hm, IH*.78], [IW, hm, IH], [IW, 0, IH*.27]][j]; };
+  function barenAt([x1, y0, y1], q){ const nr = max(1, round((y1 - y0)/(RB*1.45))), u = clamp(q)*nr, row = min(nr - 1, floor(u)), f = u - row;
+    const x = (row % 2 ? 1 - f : f)*x1, y = y0 + (row + .5)*(y1 - y0)/nr;
+    return [x + RB*.2*cos(u*24), y + RB*.2*sin(u*24), nr]; }
+  const colX = j => CART.x1 - CART.pc - CART.colW*(j + .5);
+  // un texte en colonne, à la japonaise
+  function colonne(c, txt, x, y){ c.font = `600 ${CART.fs}px ${SERIF}`; c.textAlign = "center";
+    for (const ch of txt){ if (ch === " "){ y += CART.lh*.55; continue; } if (ch > "~") c.font = `700 ${CART.fs*1.1}px ${CJK}`; c.fillText(ch, x, y); y += CART.lh; } c.textAlign = "left"; return y; }
+  const lettres = (c, j, d = 0) => colonne(c, PR[j].nom.toUpperCase(), colX(j) + d, CART.y0 + CART.pc + CART.lh*.9 + d);
+  const marque = (c, j) => c.fillRect(IW*.765 + j*9, IH + 10, 7, 3);
+  const cartRect = (c, m = 0) => c.rect(CART.x0 - m, CART.y0 - m, CART.x1 - CART.x0 + 2*m, CART.y1 - CART.y0 + 2*m);
+  const signRect = () => [IW*.07 - CART.colW*.65, CART.y0, CART.colW*1.3, (D.artiste.length + 1)*CART.lh + CART.colW*1.15 + CART.pc];
+  const entre = (c, X0, Y0, X1, Y1, n) => { c.moveTo(X0[0], Y0[0]); for (let s = 1; s < n; s++) c.lineTo(X0[s], Y0[s]); for (let s = n - 1; s >= 0; s--) c.lineTo(X1[s], Y1[s]); c.closePath(); };
+  const trous = (c, i) => pourBarques(i, B => efface(c, () => coque(c, B)));
+  const pourBarques = (i, f) => { for (const b of BAR) if (b.i === i) f(barque(b)); };
+
+  /* — les planches — */
+  function planK(){ const c = debut("K"), m = mont(), b = BIG, l = b.lip;
+    c.lineWidth = .9; for (const nu of NUA) if (nu.haut){ c.beginPath(); nuagePath(c, nu); c.stroke(); }
+    decoupe(c, () => sousEnv(c, EA));
+    c.beginPath(); ruban(c, m.X, m.Y, 0, m.X.length - 1, s => 1.1 + .9*nb(s*.3 + 7)); c.fill();
+    const sy = m.X.map((x, k) => max(m.Y[k], m.SN[k])); c.beginPath(); let a = -1;
+    for (let k = 0; k <= m.X.length; k++){ const on = k < m.X.length && m.SN[k] > m.Y[k] + .5; if (on && a < 0) a = k; if (!on && a >= 0){ ruban(c, m.X, sy, a, k - 1, () => .7); a = -1; } } c.fill();
+    c.lineWidth = .6; c.beginPath();
+    for (let k = -3; k <= 3; k++){ const x0 = m.xp + k*IW*.016, y0 = yh - m.Hm*.82, x1 = m.xp + k*IW*.08 + nb(k + 9)*6, y1 = yh - m.Hm*(.12 + .1*nb(k*3)); c.moveTo(x0, y0); c.quadraticCurveTo((x0 + x1)/2 + k*3, (y0 + y1)/2, x1, y1); }
+    for (let k = 0; k < 34; k++){ const x = m.X[0] + (m.X[m.X.length - 1] - m.X[0])*(k + .5)/34; c.moveTo(x, yh - .5); c.lineTo(x + .5, yh - 2.5 - 2*hs(5, k)); } c.stroke();
+    for (const nu of NUA) if (!nu.haut){ efface(c, () => nuagePath(c, nu)); c.lineWidth = .9; c.beginPath(); nuagePath(c, nu); c.stroke(); }
+    c.restore();
+    for (let i = 0; i < NR; i++){ const yi = Y[i], e = E[i], pr = proche(i), w0 = .45 + 1.9*pr, ji = JG[i];
+      c.beginPath(); plages(g => yi[g] < e[g] - .3, (a, b2) => ruban(c, XG, yi, a, b2, s => w0*(.5 + .9*nb(i*7.3 + s*.11))*(ji[s] < JC ? 1.5 : 1)));
+      if (i >= 5) for (const [d, wk] of i >= 7 ? [[.3, .45], [.62, .35]] : [[.3, .45]]){ const dd = F/ROWS[i].z*d, Yd = yi.map(y => y + dd);
+        plages(g => Yd[g] < e[g] - .3, (a, b2) => ruban(c, XG, Yd, a, b2, s => w0*wk*(.4 + nb(i*3.1 + d*9 + s*.2)))); }
+      c.fill();
+      pourBarques(i, B => { decoupe(c, () => sousEnv(c, e)); efface(c, () => coque(c, B)); c.lineWidth = .9 + .4*pr; c.beginPath(); coque(c, B); c.stroke(); c.beginPath(); rameurs(c, B); c.fill(); c.restore(); });
+    }
+    effaceVague(c);
+    c.beginPath(); ruban(c, b.xs, b.ys, 0, b.n - 1, s => (1.5 + 1.5*nb(s*.08 + 40))*(b.J[s] < JC ? 1.4 : 1));
+    for (let f = 0; f < 4; f++) ruban(c, b.fx[f], b.fy[f], 0, b.n - 1, s => clamp(b.hu[s]/(bigA*.25))*(.5 + 1.1*nb(f*13 + s*.09)) + .05);
+    ruban(c, l.ox, l.oy, 0, l.ox.length - 1, (s, u) => 1.8*(1 - u*.5)); ruban(c, l.ix, l.iy, 0, l.ix.length - 1, (s, u) => 1.2*(1 - u*.6)); c.fill();
+    c.lineWidth = .8; c.beginPath(); for (const g of b.griffes) ruban(c, g.X, g.Y, 0, 8, (s, u) => g.w0*(1 - u*.9)); c.stroke();
+    c.restore();
+    c.lineWidth = 1.3; c.strokeRect(-.6, -.6, IW + 1.2, IH + 1.2);
+    efface(c, () => cartRect(c)); c.lineWidth = 1; c.beginPath(); cartRect(c); c.stroke(); c.lineWidth = .45; c.beginPath();
+    for (let j = 1; j < 4; j++){ const x = CART.x1 - CART.pc - CART.colW*j; c.moveTo(x, CART.y0 + CART.pc*.6); c.lineTo(x, CART.y1 - CART.pc*.6); } c.stroke();
+    const sg = signRect(); efface(c, () => c.rect(...sg)); c.lineWidth = .8; c.strokeRect(...sg);
+    c.lineWidth = 1.6; c.beginPath(); c.moveTo(IW + 7, IH - 9); c.lineTo(IW + 7, IH + 7); c.lineTo(IW - 9, IH + 7); c.moveTo(IW*.56, IH + 7); c.lineTo(IW*.72, IH + 7); c.stroke();
+    c.fillRect(IW*.765 - 11, IH + 10, 7, 3); fin("K"); }
+  function planB(){ const c = debut("B"), b = BIG;
+    for (let i = 0; i < NR; i++){ const y0 = moyY(i) - ampY(i)*.9, y1 = moyY(i) + ampY(i)*.5 + (i < NR - 1 ? moyY(i + 1) - moyY(i) : 30), g = c.createLinearGradient(0, y0, 0, y1);
+      g.addColorStop(0, `rgba(0,0,0,${i ? .22 : .4})`); g.addColorStop(1, `rgba(0,0,0,${i ? 1 : .4})`); c.fillStyle = g; c.beginPath(); bande(c, i, 0, 1e4); c.fill();
+      trous(c, i); }
+    effaceVague(c); const g = c.createLinearGradient(0, b.ys[b.im], 0, IH); g.addColorStop(0, "rgba(0,0,0,.62)"); g.addColorStop(.5, "#000");
+    c.fillStyle = g; c.beginPath(); sous(c, b.xs, b.ys, b.n); c.fill(); c.fillStyle = "#000"; rempli(c, () => lipPath(c));
+    c.restore(); lettres(c, 0); marque(c, 0); fin("B"); }
+  function planR(){ const c = debut("R"), m = mont(), sx = IW*SOL.u, sy = yh - m.Hm*SOL.v, sr = IW*.068;
+    decoupe(c, () => sousEnv(c, EA));
+    const g = c.createLinearGradient(0, yh - IH*.36, 0, yh); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(.55, "rgba(0,0,0,.5)"); g.addColorStop(1, "rgba(0,0,0,.95)");
+    c.fillStyle = g; c.fillRect(0, yh - IH*.36, IW, IH*.36 + 2); c.fillStyle = "#000"; rempli(c, () => { c.moveTo(sx + sr, sy); c.arc(sx, sy, sr, 0, TAU); });
+    c.restore(); decoupe(c, () => sousEnv(c, E[3]));
+    rempli(c, () => c.rect(0, yh, IW, moyY(5) - yh), .36);
+    for (let k = 0; k < 9; k++) rempli(c, () => c.rect(sx - sr*(.9 - k*.07) + hs(k, 2)*6, yh + 2 + k*(moyY(4) - yh)/9, sr*2*(.9 - k*.07), 1.6), .9);
+    c.restore(); for (const nu of NUA) efface(c, () => nuagePath(c, nu));
+    efface(c, () => montPath(c, m)); effaceVague(c); c.restore(); efface(c, () => cartRect(c));
+    lettres(c, 1); marque(c, 1); fin("R"); }
+  function planO(){ const c = debut("O"), m = mont();
+    decoupe(c, () => sousEnv(c, EA));
+    const g = c.createLinearGradient(0, yh - m.Hm, 0, yh); g.addColorStop(0, "#000"); g.addColorStop(1, "rgba(0,0,0,.45)");
+    c.fillStyle = g; c.beginPath(); montPath(c, m); c.fill(); c.fillStyle = "#000"; efface(c, () => neigePath(c, m));
+    for (const nu of NUA) if (!nu.haut) efface(c, () => nuagePath(c, nu)); c.restore();
+    for (let i = 0; i < NR; i++) pourBarques(i, B => { decoupe(c, () => sousEnv(c, E[i])); rempli(c, () => coque(c, B)); c.restore(); });
+    effaceVague(c); c.restore(); lettres(c, 2); marque(c, 2); fin("O"); }
+  function planG(){ const c = debut("G"), b = BIG, l = b.lip, n = l.ox.length;
+    for (let i = 0; i < NR; i++){ const sc = F/ROWS[i].z;
+      if (i <= 4) rempli(c, () => bande(c, i, 0, 1e4), .5); else rempli(c, () => bande(c, i, sc*.3, sc*(i >= 7 ? .62 : .9)), .85);
+      trous(c, i); }
+    effaceVague(c);
+    for (const f of [0, 2]) rempli(c, () => entre(c, b.fx[f], b.fy[f], b.fx[f + 1], b.fy[f + 1], b.n), .9);
+    rempli(c, () => entre(c, l.ox.map((x, k) => (x + 2*l.ix[k])/3), l.oy.map((y, k) => (y + 2*l.iy[k])/3), l.ix, l.iy, n), .8);
+    c.restore(); lettres(c, 3); marque(c, 3); fin("G"); }
+  function planW(st){ const c = debut("W"), m = mont(), b = BIG, l = b.lip;
+    rempli(c, () => neigePath(c, m), .95); for (const nu of NUA) rempli(c, () => nuagePath(c, nu), .5);
+    for (let i = 1; i < NR; i++){ const yi = Y[i], ji = JG[i], e = E[i], pr = proche(i), sc = F/ROWS[i].z, Yf = yi.map(y => y - .5);
+      c.beginPath(); plages(g => ji[g] < JC && yi[g] < e[g] - .3, (a, b2) => ruban(c, XG, Yf, a, b2, (s, u) => (1.5 + 8*pr)*clamp((JC - ji[s])/JC*3)*sin(PI*(u*.9 + .05)) + .6));
+      const Yb = yi.map(y => y + 1.4 + 2.2*pr); plages(g => Yb[g] < e[g] - .3, (a, b2) => ruban(c, XG, Yb, a, b2, s => (.5 + 1.6*pr)*(.4 + nb(i*9.1 + s*.13))));
+      if (i >= 4) for (let g = 0; g < NG; g++) if (ji[g] < JC + .14 && hs(i, g) < .4){ const y = yi[g] + hs(g, i)*sc*.5, r = .4 + 1.3*pr*hs(i + 1, g); if (y < e[g]){ c.moveTo(g*GX + r, y); c.arc(g*GX, y, r, 0, TAU); } }
+      c.fill(); trous(c, i); }
+    effaceVague(c); c.beginPath(); let a = -1;
+    for (let s = 0; s <= b.n; s++){ const on = s < b.n && b.J[s] < JC && b.ys[s] < IH; if (on && a < 0) a = s; if (!on && a >= 0){ if (s - 1 > a) ruban(c, b.xs, b.ys, a, s - 1, (q, u) => 1 + 8*sin(PI*u)*clamp((JC - b.J[q])/JC*2)); a = -1; } }
+    const Yc = Array.from(b.ys, (y, q) => y + 3 + b.hu[q]/bigA*4); for (let f = 0; f < 4; f += 2) ruban(c, b.fx[f], Array.from(b.fy[f], y => y + 2.5), 0, b.n - 1, q => clamp(b.hu[q]/(bigA*.3))*1.6);
+    ruban(c, b.xs, Yc, 0, b.n - 1, q => clamp(b.hu[q]/(bigA*.25))*(1.5 + 2*nb(q*.05)));
+    ruban(c, l.ox, l.oy, 0, l.ox.length - 1, (s, u) => l.R*.2*(1 - u*.6)); c.fill();
+    c.beginPath(); for (const g of b.griffes) ruban(c, g.X, g.Y, 0, 8, (s, u) => g.w0*(1 - u*.9)); c.fill();
+    if (embruns){ const G = IH*1.1, tt0 = st - 2.2; c.beginPath();
+      for (const e of embruns){ const tt = clamp(tt0, 0, e.tm), x = e.x + e.vx*tt, y = e.y + e.vy*tt + .5*G*tt*tt; c.moveTo(x + e.r, y); c.arc(x, y, e.r, 0, TAU); } c.fill(); }
+    c.restore(); fin("W"); }
+  function planBK(){ const c = debut("BK");
+    decoupe(c, () => sousEnv(c, EA)); const g = c.createLinearGradient(0, 0, 0, IH*.27); g.addColorStop(0, "rgba(0,0,0,.97)"); g.addColorStop(.35, "rgba(0,0,0,.62)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    c.fillStyle = g; c.fillRect(0, 0, IW, IH*.27); c.fillStyle = "#000"; c.restore();
+    efface(c, () => cartRect(c, 3)); efface(c, () => c.rect(...signRect()));
+    effaceVague(c); c.restore(); fin("BK"); }
+  const PLANS = { K: planK, B: planB, R: planR, O: planO, G: planG, W: planW, BK: planBK };
+
+  /* — l'image — */
+  const pj = (j, t) => PLA[j].fait ? clamp((t - PLA[j].t0 - AV)/(j === 4 ? TPB : TP)) : -1;
+  const LJ = { B: 0, R: 1, O: 2, G: 3, W: 3, BK: 4, K: 5 };
+  function poser(c, k, mode, a = 1){ const q = PLA[LJ[k]]; op(c, mode); c.globalAlpha = a;
+    c.drawImage(L[k].cv, IX - PAD + q.ox + q.bx, IY - PAD + q.oy + q.by, IW + 2*PAD, IH + 2*PAD); c.globalAlpha = 1; op(c, "source-over"); }
+  const MODES = [["B", "multiply"], ["R", "multiply"], ["O", "multiply"], ["G", "multiply"], ["BK", "multiply"], ["W", "source-over", .93], ["K", "multiply"]];
+  const ETAPES = { c1: [], c2: ["B", "R"], c3: ["O", "G"], c4: ["BK", "W"], c5: ["K"] };
+  function composer(e, t){ const c = CPb.getContext("2d");
+    if (e === "c1"){ c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, CPb.width, CPb.height); c.setTransform(DPR, 0, 0, DPR, -(SX - 14)*DPR, -(SY - 14)*DPR);
+      if (papier) c.drawImage(papier.cv, SX - 14, SY - 14, SW + 28, SH + 28); else { c.fillStyle = rgb(D.papier); c.fillRect(SX, SY, SW, SH); } }
+    for (const [k, mode, a] of MODES) if (ETAPES[e].includes(k) && (k === "K" || pj(LJ[k], t) >= 1)) poser(c, k, mode, a); }
+  /* une image = une file de pas : la loi, chaque planche, cinq passes de composition */
+  function pasJob(st, t){ const p = job.pas[job.k++];
+    if (p === "calc"){ calc(t); geoOk = true; if (st >= 2.2 && !embruns) embruns = naitreEmbruns(); return true; }
+    if (p === "swap"){ [CP, CPb] = [CPb, CP]; job = null; return false; }
+    if (ETAPES[p]){ composer(p, t); return true; }
+    if ((p !== "K" && !PLA[LJ[p]].fait) || L[p].gv === gv) return false; if (!TEX[p]){ job.k--; return null; } PLANS[p](st); return true; }
+  function frame(ctx, t){
+    const dt = dernier ? min(.05, (t - dernier)/1000) : 1/60; dernier = t;
+    if (genA){ const h0 = performance.now(); while (performance.now() - h0 < 6){ if (genA.next().done){ genA = null; break; } } }
+    const st = tSeuil > -1e8 ? (t - tSeuil)/1000 : -1;
+    ondes = ondes.filter(o => t - o.t0 < 7000);
+    const anime = (st >= 0 && st < 3.7) || ondes.length > 0;
+    rise = st >= 0 ? lisse(st/2.6) : 0; S = .9 + .35*rise; if (st >= 0 && st < 3.7) simT += dt*(.25 + .35*rise);
+    bigA = (IH*.99 - IH*.64) + (IH*.64 - max(IH*.3, CART.y1 + IH*.05))*rise; leanW = IW*(.03 + .19*rise);
+    lcp = st >= 0 ? lisse((st - 1.1)/1.5) : 0; griffes = st >= 0 ? lisse((st - 1.8)/1.1) : 0;
+    if (!XG || XG.length !== NG) XG = Array.from({ length: NG }, (_, g) => g*GX);
+    let sale = cpSale || !geoOk || anime || (papier && !papier.vu);
+    for (const k in L) if ((k === "K" || PLA[LJ[k]].fait) && L[k].gv !== gv) sale = true;
+    for (const q of PLA){ const mv = abs(q.ox) + abs(q.oy) + abs(q.vx) + abs(q.vy); if (mv < .02){ q.ox = q.oy = q.vx = q.vy = 0; continue; }
+      q.vx += (-60*q.ox - 13*q.vx)*dt; q.vy += (-60*q.oy - 13*q.vy)*dt; q.ox += q.vx*dt; q.oy += q.vy*dt; sale = true; }
+    const p = [0, 1, 2, 3, 4].map(j => pj(j, t));
+    for (let j = 0; j < 5; j++){ const f = p[j] >= 1; if (f !== PLA[j].fini){ PLA[j].fini = f; sale = true; } }
+    if (!job && sale){ job = { pas: [...(anime || !geoOk ? ["calc"] : []), "K", "B", "R", "O", "G", "W", "BK", "c1", "c2", "c3", "c4", "c5", "swap"], k: 0 }; cpSale = false; if (papier) papier.vu = true; }
+    if (job){ const h0 = performance.now(); let n = 0; while (job && (n === 0 || performance.now() - h0 < 2.5)){ const r = pasJob(st, t); if (r === null) break; if (r) n++; } }
+    ctx.fillStyle = rgb(D.table); ctx.fillRect(0, 0, W, H);
+    ctx.drawImage(CP, SX - 14, SY - 14, SW + 28, SH + 28);
+    // les planches en cours : la couleur n'existe que là où le baren est passé
+    for (let j = 0; j < 5; j++){ if (!(p[j] > 0 && p[j] < 1)) continue; const reg = REG(j), nr = barenAt(reg, 0)[2], tot = nr*reg[0], r = RB*1.25, q = PLA[j];
+      ctx.save(); ctx.beginPath(); for (let d = 0; d <= p[j]*tot; d += RB*.45){ const pt = barenAt(reg, d/tot), x = IX + q.ox + q.bx + pt[0], y = IY + q.oy + q.by + pt[1]; ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU); }
+      ctx.clip(); if (j === 3){ poser(ctx, "G", "multiply"); poser(ctx, "W", "source-over", .93); } else poser(ctx, NOMS[j], "multiply"); ctx.restore(); }
+    // le cartouche : noms gaufrés à blanc puis sceaux ; signature au seuil
+    ctx.save(); ctx.translate(IX, IY);
+    for (let j = 0; j < 4; j++){ if (p[j] >= 1) continue; ctx.fillStyle = "rgba(255,255,250,.55)"; lettres(ctx, j, -.6); ctx.fillStyle = "rgba(40,38,34,.2)"; lettres(ctx, j, .55); }
+    const tampon = (cv, x, y, s, k) => { if (k <= 0 || !cv) return; const e = 1 + .35*(1 - doux(k)); op(ctx, "multiply"); ctx.globalAlpha = doux(k);
+      ctx.drawImage(cv, x + s/2 - s*e/2, y + s/2 - s*e/2, s*e, s*e); ctx.globalAlpha = 1; op(ctx, "source-over"); };
+    for (let j = 0; j < 4; j++) if (PLA[j].fait) tampon(SCEAUX[j], colX(j) - CART.sealS/2, CART.y1 - CART.pc - CART.sealS, CART.sealS, (t - PLA[j].t0 - AV - TP - 120)/380);
+    const ks = clamp((st - 6.25)/.6);
+    const y0 = CART.y0 + CART.lh*.9;
+    if (ks < 1) for (const [col, d] of [["rgba(255,255,250,.5)", -.6], ["rgba(40,38,34,.18)", .55]]){ ctx.fillStyle = col; colonne(ctx, D.artiste, IW*.07 + d, y0 + d); }
+    if (ks > 0){ op(ctx, "multiply"); ctx.fillStyle = rgb(D.keyban, doux(ks)); const y = colonne(ctx, D.artiste + "画", IW*.07, y0);
+      op(ctx, "source-over"); tampon(SCEAUX[4], IW*.07 - CART.colW*.575, y - CART.lh*.3, CART.colW*1.15, (st - 6.75)/.4); }
+    ctx.restore(); ctx.textAlign = "left";
+    // la marge : notes de l'imprimeur, et la loi lue en direct
+    ctx.fillStyle = "rgba(58,56,54,.78)"; ctx.font = `${clamp(IW*.024, 7.5, 9.5)}px ${MONO}`;
+    ctx.fillText(ligneEtat(), IX, IY + IH + 15);
+    ctx.fillText("Gerstner 1802 · ΣQkA " + S.toFixed(2) + " · écume " + round(ecume*100) + " %", IX, IY + IH + 26);
+    for (let j = 0; j < 5; j++){ if (!PLA[j].fait) continue; const e = t - PLA[j].t0, tot = j === 4 ? TPB : TP; if (e < 0 || e > AV + tot + 500) continue;
+      const pt = barenAt(REG(j), clamp((e - AV)/tot)); let x = pt[0], y = pt[1], lev = 0;
+      if (e < AV){ lev = 1 - e/AV; x -= lev*RB*3; y -= lev*RB*1.5; } else if (e > AV + tot){ lev = (e - AV - tot)/500; x += lev*RB*4; y += lev*RB*1.2; }
+      baren(ctx, IX + x + PLA[j].ox, IY + y + PLA[j].oy, lev, e); }
+    passeGrain(ctx, W, H, t, .028);
+    M.ligne = temp.fin > t ? temp.txt : ligneEtat();
+  }
+  // le baren : gaine de bambou, corde torsadée, ombre
+  function baren(ctx, x, y, lev, e){ const r = RB*(1 + .08*lev), a = .5 + sin(e/500)*.05, ca = cos(a), sa = sin(a), P = (u, v) => [x + ca*u - sa*v, y + sa*u + ca*v];
+    const trait = (col, lw, f) => { ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.beginPath(); f(); ctx.stroke(); }, seg = (u0, v0, u1, v1) => { ctx.moveTo(...P(u0, v0)); ctx.lineTo(...P(u1, v1)); };
+    ctx.fillStyle = `rgba(0,0,0,${.32 - .15*lev})`; ctx.beginPath(); ctx.ellipse(x + 4 + lev*8, y + 6 + lev*10, r, r*.96, 0, 0, TAU); ctx.fill();
+    const g = ctx.createRadialGradient(x - r*.35, y - r*.4, r*.1, x, y, r); g.addColorStop(0, "#6b5640"); g.addColorStop(1, "#2a2119");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); ctx.save(); ctx.clip();
+    trait("rgba(220,190,140,.16)", .6, () => { for (let k = -12; k <= 12; k++) seg(-r, k*r/11, r, k*r/11); }); ctx.restore();
+    trait("#1c1611", r*.24, () => seg(-r*.9, 0, r*.9, 0));
+    trait("rgba(200,170,120,.35)", 1, () => { for (let k = -4; k <= 4; k++) seg(k*r*.2, -r*.11, k*r*.2 + r*.08, r*.11); });
+    trait("rgba(0,0,0,.5)", 1, () => ctx.arc(x, y, r, 0, TAU)); }
+  function naitreEmbruns(){ const R = graine(seed + 77), l = BIG.lip, out = [], u = IW/360;
+    for (let k = 0; k < 190; k++){ const q = min(l.ox.length - 1, floor((.35 + .65*R())*(l.ox.length - 1))), ph = l.phi[q], sp = (50 + 170*R())*u;
+      out.push({ x: l.ox[q], y: l.oy[q], vx: cos(ph)*sp - 60*R()*u, vy: -sin(ph)*sp - 80*R()*u, tm: .3 + 1.1*R(), r: .5 + 2*R()*R() }); }
+    return out; }
+  function ligneEtat(){ if (etape === 0) return "keyban · le trait seul · chaîne " + D.chaine + " j";
+    if (etape <= 4) return "planche " + etape + " · " + PR[etape - 1].nom + " · " + PC[etape - 1].couleur; return "bokashi · sceau 波 · " + (D.chaine + 1) + " jours"; }
+  function maj(){ M.bouton = libelleGeste(etape); M.ligne = ligneEtat(); }
+  function remise(){ etape = 0; tSeuil = -1e9; embruns = null; ondes = []; geoOk = false; simT = 0; cpSale = true;
+    PLA.forEach(q => { q.t0 = -1e9; q.fait = q.fini = false; q.ox = q.oy = q.vx = q.vy = 0; }); }
+
+  M.taille = (w, h, dpr) => { W = w; H = h; DPR = dpr || 1; layout(); };
+  M.frame = frame;
+  M.geste = () => { const t = maintenant();
+    if (etape >= 5){ seed = (seed*7 + 13) % 99991; construire(); remise(); maj(); return; }
+    if (etape > 0){ const q = PLA[etape - 1]; if (etape <= 4 && t - q.t0 < 900) return; if (etape <= 4 && t - q.t0 < AV + TP) q.t0 = t - AV - TP - 600; }
+    if (etape < 4){ PLA[etape].t0 = t; PLA[etape].fait = true; } else { tSeuil = t; PLA[4].t0 = t + 3550; PLA[4].fait = true; embruns = null; }
+    etape++; maj(); };
+  M.aller = n => { n = max(0, min(5, n | 0)); remise(); const t = maintenant();
+    for (let j = 0; j < min(n, 4); j++){ PLA[j].fait = true; PLA[j].t0 = t - 60000; }
+    if (n === 5){ tSeuil = t - 60000; PLA[4].fait = true; PLA[4].t0 = t - 60000; rise = lcp = griffes = 1; }
+    etape = n; maj(); };
+  M.tap = (x, y) => { const u = x - IX, v = y - IY; if (u < 0 || u > IW || v < yh || v > IH) return;
+    let best = 1, bd = 1e9; for (let i = 1; i < NR; i++){ const d = abs(moyY(i) - v); if (d < bd){ bd = d; best = i; } }
+    const t = maintenant();
+    for (const di of [-1, 0, 1]){ const i = best + di; if (i < 1 || i >= NR) continue; const sc = F/ROWS[i].z, lam = IW*.16/sc, k = TAU/lam, cp = sqrt(9.81/k);
+      ondes.push({ i, X: (u - IW/2)/sc, t0: t + abs(di)*140, A: 11/sc, f: di ? .55 : 1, k, cp, cg: cp/2, sig: lam*.9, acc: 6 }); }
+    const lam = IW*.16/(F/ROWS[best].z);
+    temp = { txt: "onde · λ " + lam.toFixed(1) + " m · c_g " + (sqrt(9.81*lam/TAU)/2).toFixed(1) + " m/s", fin: t + 2600 }; };
+  M.glisse = (dx, dy) => { const t = maintenant(); let j = 5; for (let k = 4; k >= 0; k--) if (PLA[k].fait && t > PLA[k].t0){ j = k; break; }
+    const q = PLA[j]; q.ox = clamp(q.ox + dx*.45, -16, 16); q.oy = clamp(q.oy + dy*.45, -16, 16); q.vx = q.vy = 0;
+    temp = { txt: "repérage · " + (j === 5 ? "keyban" : j === 4 ? "bokashi" : PR[j].nom) + " décalé de " + round(hypot(q.ox, q.oy)) + " px", fin: t + 1500 }; };
+  construire(); layout(); maj();
+  return M;
+}
+window.ETUDE = etude_estampe;
