@@ -1,5 +1,5 @@
 // LE POINTAGE — service worker : network-first, repli cache (100 % hors-ligne)
-const CACHE = "pointage-v58-monde-mandarin";
+const CACHE = "pointage-v59-frais";
 const ASSETS = ["./", "./index.html", "./coffre.html", "./lectures.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./mandarin/", "./atelier/bibliotheque/commun.js", "./atelier/bibliotheque/monter.js", "./atelier/pieces/t2-06-cretes-couleur.js"];
 
 self.addEventListener("install", e => {
@@ -13,7 +13,9 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET" || !e.request.url.startsWith(self.location.origin)) return;
   e.respondWith(
-    fetch(e.request).then(res => {
+    // « no-cache » : le navigateur redemande toujours au serveur si la page a changé (sinon il resservait
+    // une version vieille de 10 minutes après chaque mise en ligne). Hors-ligne, on retombe sur le cache.
+    fetch(e.request.url, { cache: "no-cache", credentials: "same-origin" }).then(res => {
       const copy = res.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy)).catch(() => {});
       return res;
