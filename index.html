@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#f5f4fb" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#07070e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0E0F14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pointage">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Le Pointage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
 <style>
   /* ---- Thème CLAIR par défaut : lumineux, coloré, vivant ---- */
   :root{
@@ -934,6 +935,137 @@
   .lr-plus{font-size:calc(var(--lfs) * .85);line-height:1.55;color:var(--muted);margin:0 0 20px}
   .lr-livre{text-align:center;padding-top:40px}
   .lr-clock{font-family:var(--mono);font-size:56px;font-weight:700;margin:26px 0 10px;font-variant-numeric:tabular-nums;color:var(--accent)}
+
+  /* ═══════════ LOOK « NUIT » (26/10) : nuit d'encre, un seul accent ambre, titres en sérif ═══════════
+     Le thème sombre est désormais celui par défaut ; le clair reste à un toucher (☀).
+     Une seule couleur dit « fait » : l'ambre. Les cours gardent un bleu-violet à part. */
+  :root,:root[data-theme="dark"]{
+    --bg:#0E0F14; --bg2:#12131A; --card:#181A22; --card2:#20222C; --line:#2A2C38; --line2:#363948;
+    --ink:#ECE8E1; --muted:#A6A3B2; --faint:#76737F;
+    --accent:#E9A24B; --accent2:#F3BD74; --accent-soft:rgba(233,162,75,.13);
+    --good:#E9A24B; --good-ink:#1A1206; --good-soft:rgba(233,162,75,.13); --bad:#F08A8F;
+    --gem:linear-gradient(135deg,#F0B262,#E39A3F); --gem-soft:linear-gradient(135deg,rgba(233,162,75,.15),rgba(233,162,75,.07));
+    --cours:#9A9AF5; --on-accent:#1A1206;
+    --shadow:none; --shadow-sm:none;
+    --disp:'Inter Tight',-apple-system,system-ui,sans-serif; --sans:'Inter Tight',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --serif:Newsreader,Georgia,'Iowan Old Style',serif;
+  }
+  :root[data-theme="light"]{
+    --bg:#F4F1EA; --bg2:#ECE8DF; --card:#FFFFFF; --card2:#F6F3EC; --line:#E4DED2; --line2:#D6CFC1;
+    --ink:#1C1B20; --muted:#5F5C68; --faint:#8E8A95;
+    --accent:#A8661A; --accent2:#C27E2C; --accent-soft:rgba(168,102,26,.10);
+    --good:#A8661A; --good-ink:#FFFFFF; --good-soft:rgba(168,102,26,.10); --bad:#C2414B;
+    --gem:linear-gradient(135deg,#B8741F,#A0601A); --gem-soft:linear-gradient(135deg,rgba(168,102,26,.12),rgba(168,102,26,.05));
+    --cours:#4B4BC4; --on-accent:#FFFFFF;
+  }
+  body{background:var(--bg);background-attachment:scroll}
+  .today{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--ink);font-family:var(--serif);font-weight:500;
+    font-size:32px;letter-spacing:-.01em;text-transform:none;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .eyebrow{color:var(--muted);text-transform:capitalize;letter-spacing:.06em;font-size:12px;font-weight:600}
+  .eyebrow::before{display:none}
+  .sosmini{font:600 13px var(--sans);color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent);border:1px solid color-mix(in srgb,var(--bad) 40%,transparent);
+    border-radius:999px;height:38px;padding:0 14px;cursor:pointer;white-space:nowrap;letter-spacing:0}
+  .btn,.btn:not(.ghost){background:var(--accent);color:var(--on-accent);box-shadow:none;font-weight:700}
+  .btn.danger{background:transparent;color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 45%,transparent)}
+  .btn:disabled{opacity:.4}
+  .kco{background:var(--card);border:1px solid var(--line2);box-shadow:none}
+  .kco-now{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+  .kech{background:var(--card);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);box-shadow:none}
+  .kprog i{background:var(--accent)}
+  .ksosbtn{display:none}
+  .kjp-r.cours{background:linear-gradient(90deg,color-mix(in srgb,var(--cours) 14%,transparent),transparent);border-left-color:var(--cours)}
+  .kjp-r.cours .kjp-n b,.kcalrow.dem i,.kcalrow.dem b{color:var(--cours)}
+  .kpts{background:var(--card)}
+  .kpts-n b{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--accent)}
+  .kpts-w i.ok,.kchain-d i.ok{background:var(--accent);border-color:transparent}
+  .kgem,.kgem.pts{background:var(--card);border:1px solid var(--line2);color:var(--ink)}
+  .ktabs i,.applist .row .start{color:var(--on-accent)}
+  .ktabs{background:color-mix(in srgb,var(--bg2) 90%,transparent);box-shadow:0 18px 50px -16px rgba(0,0,0,.6)}
+  .ktabs button.on{background:var(--accent-soft);color:var(--accent)}
+  .ktabs .ke{filter:none;opacity:1;width:22px;height:22px;display:block}
+  .ktabs .ke svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .ktabs .ke svg circle[r="1.3"]{fill:currentColor}
+  .klire-lec b,.lr-aeon b,.lr-art h1,.lr-livre h1,.lr-corps{font-family:var(--serif)}
+  .klire-lec{background:var(--card2);border:1px solid var(--line)}
+  @media (min-width:980px){ .ktabs .ke{width:18px;height:18px} .ktabs .ke svg{width:18px;height:18px} }
+
+  /* la barre de la journée */
+  .dbar{margin:14px 0 0;padding:14px 16px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .dbar-h{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .dbar-h a{text-transform:none;letter-spacing:0;color:var(--faint);text-decoration:none;font-weight:600}
+  .dbar.tout .dbar-h span{color:var(--accent)}
+  .dbar-m{display:grid;gap:6px;margin-top:10px}
+  .dbar-m button{border:none;background:none;padding:0;cursor:pointer;text-align:left;color:var(--muted);font:600 12px var(--sans);min-height:44px;display:flex;flex-direction:column;gap:7px}
+  .dbar-m i{display:block;height:6px;border-radius:3px;background:var(--card2);border:1px solid var(--line)}
+  .dbar-m button.on{color:var(--accent)} .dbar-m button.on i{background:var(--accent);border-color:transparent}
+  .dbar-m span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* les domaines */
+  .dom{margin:14px 0 0;padding:6px 16px 8px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .dom-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0 4px}
+  .dom-n{border:none;background:none;padding:6px 0;color:var(--ink);font:700 16px var(--sans);cursor:pointer;text-align:left}
+  .dcpt{font-size:12px;font-weight:600;color:var(--accent)} .dhors{font-size:12px;font-weight:600;color:var(--faint)}
+  .drow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line)}
+  .dchk{width:26px;height:26px;flex:none;border-radius:8px;border:1.5px solid var(--line2);background:transparent;cursor:pointer;position:relative}
+  .dchk.on{background:var(--accent);border-color:var(--accent)}
+  .dchk.on::after{content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;border:solid var(--on-accent);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  .dchk.live{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .dnom{flex:1;min-width:0;border:none;background:none;padding:8px 0;text-align:left;cursor:pointer;color:var(--ink);font-family:var(--sans)}
+  .dnom b{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dnom em{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);border-radius:5px;padding:1px 5px}
+  .dnom small{display:block;font-size:12px;color:var(--muted);margin-top:2px;min-height:15px}
+  .drow.done .dnom b{color:var(--muted)}
+  .dact{width:40px;height:40px;flex:none;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--ink);cursor:pointer;font-size:13px}
+  .dadd{display:block;width:100%;border:none;border-top:1px solid var(--line);background:none;color:var(--faint);font:600 13px var(--sans);text-align:left;padding:12px 0 6px;cursor:pointer;min-height:44px}
+  .dadd:hover{color:var(--accent)}
+  .dpied{display:flex;gap:8px;margin:14px 0 0}
+  .dpied button{flex:1;height:46px;border-radius:14px;border:1px solid var(--line2);background:transparent;color:var(--ink);font:600 14px var(--sans);cursor:pointer}
+  .dtog{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line);margin:4px 0 12px;cursor:pointer}
+  .dtog input{width:20px;height:20px;margin-top:2px;accent-color:var(--accent);flex:none}
+  .dtog b{display:block;font-size:14px} .dtog small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+  details.ktips summary{cursor:pointer;list-style:none} details.ktips summary::-webkit-details-marker{display:none}
+  details.ktips summary b::after{content:" ›";color:var(--faint)} details.ktips[open] summary b::after{content:" ⌄"}
+
+  /* progrès */
+  .dmin{margin:14px 0 0;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .dmin-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .dmin-h b{font-size:15px} .dmin-h span{font-size:12px;color:var(--muted)}
+  .dmin-r{display:grid;grid-template-columns:132px minmax(0,1fr) 54px;align-items:center;gap:10px;padding:6px 0;font-size:13px}
+  .dmin-r span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dmin-r div{height:8px;border-radius:4px;background:var(--card2)} .dmin-r i{display:block;height:8px;border-radius:4px;background:var(--accent)}
+  .dmin-r b{text-align:right;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+  .dliens{margin:14px 0 0;border-radius:20px;background:var(--card);border:1px solid var(--line);padding:4px 16px}
+  .dliens button{display:flex;align-items:center;gap:12px;width:100%;height:52px;border:none;border-top:1px solid var(--line);background:none;color:var(--ink);font:500 15px var(--sans);cursor:pointer;text-align:left}
+  .dliens button:first-child{border-top:none} .dliens i{margin-left:auto;font-style:normal;color:var(--faint)}
+
+  /* le cahier */
+  .cahier{max-width:640px}
+  .cahseg{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin:8px 0 4px}
+  .cahseg button{flex:1;height:38px;border:none;border-radius:10px;background:none;color:var(--muted);font:600 13.5px var(--sans);cursor:pointer}
+  .cahseg button.on{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
+  .cahecrire{margin:14px 0 0;padding:16px 18px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .cahecrire label{display:block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.4}
+  .cahecrire textarea{display:block;width:100%;min-height:130px;margin-top:10px;border:none;background:transparent;resize:vertical;color:var(--ink);
+    font:400 17px/1.6 var(--serif);outline:none;padding:0}
+  .cahecrire-f{display:flex;justify-content:space-between;font-size:12px;color:var(--faint);margin-top:6px}
+  .cahecrire-f a{color:var(--accent);text-decoration:none;font-weight:600}
+  .cahbloc{margin:14px 0 0;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .cahbloc-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+  .cahbloc-h b{font-size:15px} .cahbloc-h span,.cahbloc-h a{font-size:12px;color:var(--muted);text-decoration:none;font-weight:600}
+  .cahbloc p{font-size:13px;color:var(--muted);line-height:1.5;margin:4px 0 10px}
+  .txliste{margin-top:6px}
+  .txrow{display:block;width:100%;text-align:left;border:none;border-top:1px solid var(--line);background:none;padding:12px 0;cursor:pointer;color:var(--ink);font-family:var(--sans)}
+  .txliste .txrow:first-child,.cahbloc .krows .txrow:first-child{border-top:none}
+  .txrow span{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--faint)}
+  .txrow em{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:5px;padding:1px 6px}
+  .txrow b{display:block;font:500 17px/1.3 var(--serif);margin-top:5px}
+  .txrow small{display:block;font-size:13px;color:var(--muted);line-height:1.45;margin-top:3px}
+  .txzone{display:block;width:100%;min-height:42vh;border:1px solid var(--line);border-radius:14px;background:var(--card2);color:var(--ink);
+    font:400 17px/1.65 var(--serif);padding:14px;resize:vertical;box-sizing:border-box}
+  .txzone:focus{outline:none;border-color:var(--accent)}
+  .col-r>:first-child{margin-top:14px}
+  .cahier .jcard,.cahier .klire{margin-top:14px}
+  @media (min-width:980px){ .col-r>:first-child{margin-top:12px} }
 </style>
 </head>
 <body>
@@ -984,11 +1116,14 @@ const CATALOGUE=[
 /* ─── LES DOSSIERS ───
    Cap sur le stage de janvier : trois priorités, chacune tous les jours.
    Tout le reste vit dans « Le reste » : visible, cochable, mais hors compte. */
-const CATS=[
+const CATS0=[
   {id:"anglais",  nom:"Anglais",   e:"🇬🇧", rot:0},
   {id:"espagnol", nom:"Espagnol",  e:"🇪🇸", rot:0},
   {id:"closing",  nom:"Closing",   e:"💼", rot:0}
 ];
+/* Depuis les domaines (26/10), CATS n'est plus écrit en dur : chaque app qui
+   « compte » est une priorité. rebuildCats() le recalcule. */
+let CATS=CATS0;
 const CAT_DEFAUT={
   anglais:["990"],
   espagnol:["CUMBRE"],
@@ -1077,11 +1212,92 @@ function stOf(id){ if(!S.st[id]) S.st[id]={days:[],min:{}}; return S.st[id]; }
    geste à part — c'est ce qui permet à la fusion de trancher sans rien perdre. */
 function setCheck(id,d,v){ if(!S.chk) S.chk={}; S.chk[id+"|"+d]={t:Date.now(),v:v?1:0}; }
 
-/* ─── les dossiers ─── */
+/* ═══════════════════════════════════════════════════════════════════
+   LES DOMAINES (26/10)
+   Un domaine range des apps : Langues, Lecture et pensée, Carrière…
+   Ce qui compte dans la journée, c'est chaque app marquée « compte »
+   (a.prio) : elle devient une priorité. Les anciens dossiers (a.cat) ne
+   sont plus lus, mais on ne les efface pas : une vieille version de l'app
+   ouverte ailleurs continue de les comprendre.
+   Une app archivée (a.arch) garde tout son historique ; elle sort de la vue.
+   L'histoire est figée au passage : chaque jour d'avant garde le verdict
+   qu'il avait (S.okAvant). Changer de règle ne casse jamais la chaîne.
+   ═══════════════════════════════════════════════════════════════════ */
+const DOMS0=[
+  {id:"langues",  nom:"Langues",           e:"🗣️"},
+  {id:"lecture",  nom:"Lecture et pensée", e:"📖"},
+  {id:"carriere", nom:"Carrière",          e:"💼"},
+  {id:"corps",    nom:"Corps",             e:"🥊"},
+  {id:"creation", nom:"Création",          e:"🎸"},
+  {id:"autres",   nom:"Autres",            e:"📦"}
+];
+const DOM_PAR_NOM={"990":"langues",cumbre:"langues",miftah:"langues",sputnik:"langues",lisek:"langues",
+  leclosing:"carriere",loffensive:"carriere",leface:"carriere",lefaceaface:"carriere",
+  forge:"corps",topspin:"corps",shred:"creation",pianodojo:"creation",lacle:"creation",sideman:"creation",
+  cortex:"lecture",larene:"lecture"};
+const ARCHIVE_PAR_NOM={miftah:1,bestiaire:1};
+function doms(){ if(!Array.isArray(S.doms)||!S.doms.length) S.doms=DOMS0.map(x=>({...x}));
+  if(!S.doms.some(d=>d.id==="autres")) S.doms.push({...DOMS0[DOMS0.length-1]});   // le refuge de toute app sans domaine
+  return S.doms; }
+function domDef(id){ return doms().find(d=>d.id===id)||null; }
+function domOf(a){ return a&&a.dom&&domDef(a.dom)?a.dom:"autres"; }
+function vivante(a){ return !!a&&!a.arch; }
+function compte(a){ return vivante(a)&&!!a.prio; }
+/* l'ancien dossier d'une app, lu comme avant : sert à figer l'histoire */
+function dayOkV1(d){
+  const AC=CATS0.filter(c=>S.apps.some(a=>a.cat===c.id));
+  return AC.length>0&&AC.every(c=>S.apps.some(a=>a.cat===c.id&&stOf(a.id).days.includes(d)));
+}
+function lecDays(){ const L=lir(), s=new Set(); Object.values(L.lus||{}).forEach(d=>d&&s.add(d)); (L.ses||[]).forEach(x=>x&&x.d&&s.add(x.d)); return s; }
+function domMigrate(){
+  if(S.mig2==="doms1") return;
+  const t=today();
+  /* 1. figer l'histoire, jour par jour */
+  const ok={}, vus=new Set();
+  S.apps.forEach(a=>stOf(a.id).days.forEach(d=>{ if(d<t) vus.add(d); }));
+  vus.forEach(d=>{ if(dayOkV1(d)) ok[d]=1; });
+  S.okAvant=ok; S.domSince=t;
+  /* 2. les domaines par défaut */
+  doms();
+  /* 3. ranger chaque app ; une seule priorité par ancien dossier */
+  const pris={};
+  S.apps.forEach(a=>{
+    const k=normName(a.name);
+    if(a.dom===undefined) a.dom = a.cat==="anglais"||a.cat==="espagnol" ? "langues" : a.cat==="closing" ? "carriere" : (DOM_PAR_NOM[k]||"autres");
+    if(a.cat&&CATS0.some(c=>c.id===a.cat)&&!pris[a.cat]){ pris[a.cat]=1; a.prio=1; }
+    if(ARCHIVE_PAR_NOM[k]){ a.arch=1; a.prio=0; }
+  });
+  /* 4. la lecture du jour devient une priorité, avec son passé */
+  if(!S.apps.some(a=>a.id==="lecture")){
+    S.apps.push({id:"lecture",name:"Lecture du jour",emoji:"📖",url:"",cat:"",dom:"lecture",prio:1,spec:"lecture",since:Date.now()});
+    const st=stOf("lecture"); lecDays().forEach(d=>{ if(!st.days.includes(d)) st.days.push(d); }); st.days.sort();
+  }
+  S.tab="maintenant";
+  S.mig2="doms1"; S.appsMod=Date.now(); S.domsMod=Date.now();
+  save0();
+}
+/* Les priorités : une par app qui compte, dans l'ordre des domaines. */
+function rebuildCats(){
+  const ord={}; doms().forEach((d,i)=>ord[d.id]=i);
+  const L=S.apps.map((a,i)=>[a,i]).filter(([a])=>compte(a))
+    .sort((x,y)=>(ord[domOf(x[0])]-ord[domOf(y[0])])||(x[1]-y[1]));
+  CATS=L.map(([a])=>({id:a.id, nom:a.spec==="lecture"?"Lecture":a.name, e:a.emoji, rot:0, since:a.prioSince||""}));
+}
+function catOf(a){ return compte(a)?a.id:""; }
+/* les priorités qui valaient déjà ce jour-là */
+function unitsOn(d){ return catsActives().filter(c=>!c.since||c.since<=d); }
+/* la lecture du jour se coche toute seule : un texte fini, ou un livre lu */
+function lecMark(){
+  const a=S.apps.find(x=>x.id==="lecture"); if(!a) return;
+  const st=stOf("lecture"), t=today();
+  if(!st.days.includes(t)){ st.days.push(t); st.days.sort(); setCheck("lecture",t,1); }
+}
+
+/* ─── les dossiers (désormais : les priorités) ─── */
 function catDef(cid){ return CATS.filter(c=>c.id===cid)[0]||null; }
-function appsOfCat(cid){ return S.apps.filter(a=>a.cat===cid); }
+function appsOfCat(cid){ return S.apps.filter(a=>catOf(a)===cid); }
 function catsActives(){ return CATS.filter(c=>appsOfCat(c.id).length); }
-function catDoneDay(cid,d){ return S.apps.some(a=>a.cat===cid&&stOf(a.id).days.includes(d)); }
+function catDoneDay(cid,d){ return S.apps.some(a=>catOf(a)===cid&&stOf(a.id).days.includes(d)); }
 function catDone(cid){ return catDoneDay(cid,today()); }
 function catAppDone(cid){ return appsOfCat(cid).filter(a=>doneToday(a.id)); }
 function catDaysSet(cid){
@@ -1099,8 +1315,8 @@ function catStreak(cid){
    bloque se contourne ; une règle qui se voit se suit. */
 function atRest(id){
   const a=S.apps.filter(x=>x.id===id)[0];
-  if(!a||!a.cat) return false;
-  const c=catDef(a.cat);
+  if(!a||!catOf(a)) return false;
+  const c=catDef(catOf(a));
   if(!c||!c.rot) return false;
   const st=stOf(id), t=today();
   return st.days.includes(dayShift(t,-1))&&st.days.includes(dayShift(t,-2));
@@ -1126,8 +1342,9 @@ function neuve(a){ return !!(a&&a.since)&&(Date.now()-a.since)<7*864e5; }
 function aSortir(a){ return jamaisPointee(a.id)&&!neuve(a); }
 
 /* --- thème --- */
-function applyTheme(){ if(S.theme){ document.documentElement.dataset.theme=S.theme; } else { delete document.documentElement.dataset.theme; } }
-function currentDark(){ if(S.theme) return S.theme==="dark"; return matchMedia("(prefers-color-scheme: dark)").matches; }
+/* la nuit par défaut (26/10) ; le clair reste un choix */
+function applyTheme(){ document.documentElement.dataset.theme=S.theme||"dark"; }
+function currentDark(){ return (S.theme||"dark")==="dark"; }
 function toggleTheme(){ S.theme=currentDark()?"light":"dark"; save(); applyTheme(); render(); }
 
 /* --- calculs --- */
@@ -1166,25 +1383,22 @@ function stopTimer(silent){
 function onCheck(id){ if(S.run && S.run.id===id){ stopTimer(); } else { toggle(id); } }
 function openById(id){
   const a=S.apps.find(x=>x.id===id);
+  if(a&&a.spec==="lecture"){ const nx=lecNext(); nx?lireOpen(nx.id):lireSheet(); return; }
   if(a&&a.url){ window.open(a.url,"_blank","noopener"); }
   else if(a){ editApp(id); }
 }
 
 /* --- rendu --- */
 let tick=null;
+/* Les onglets (26/10) : Maintenant · Domaines · Cahier · Progrès.
+   Les anciens noms restent compris : un appareil resté sur « travail »
+   ou « stage » arrive dans Domaines. */
+const TABS=[["maintenant","Maintenant"],["domaines","Domaines"],["cahier","Cahier"],["progres","Progrès"]];
+function curTab(){ const T=S.tab; if(T==="jour"||!T) return "maintenant"; if(T==="travail"||T==="stage") return "domaines"; return TABS.some(x=>x[0]===T)?T:"maintenant"; }
 function render(){
-  const t=today();
-  /* La journée ne se compte plus en apps cochées mais en dossiers servis :
-     une app de chaque, c'est ça la journée pleine. */
-  const AC=catsActives();
-  const manque=AC.filter(c=>!catDone(c.id));
-  const cOk=cToday()>=C_OBJ;
-  const total=AC.length+1, done=total-manque.length-(cOk?0:1);
-  const totMin=S.apps.reduce((s,a)=>s+todayMin(a.id),0);
-  const totChecks=S.apps.reduce((s,a)=>s+checks(a.id),0);
+  rebuildCats();
+  const T=curTab();
   const dateStr=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
-  const allDone=total&&done===total;
-  const nomsManque=manque.map(c=>c.nom).concat(cOk?[]:["candidatures ("+cToday()+"/"+C_OBJ+")"]).join(", ");
 
   let runHtml="";
   if(S.run){
@@ -1195,82 +1409,121 @@ function render(){
       <button onclick="stopTimer()">✓ Terminer</button></div>`;
   }
 
-  /* on ne casse pas une saisie en cours : l'agenda s'écrit dans un champ qui vit
-     dans le HTML qu'on remplace, et une synchro peut déclencher un rendu. */
+  /* on ne casse pas une saisie en cours : l'agenda et le cahier s'écrivent dans
+     des champs qui vivent dans le HTML qu'on remplace, et une synchro peut
+     déclencher un rendu. */
   const ae=document.activeElement;
-  const keep = ae && ae.id==="agIn" ? {v:ae.value, s:ae.selectionStart} : null;
-  cfApply(); const ch=chaine();
+  const keep = ae && (ae.id==="agIn"||ae.id==="cahIn") ? {id:ae.id, v:ae.value, s:ae.selectionStart} : null;
+  cfApply();
+
+  const titre=(TABS.find(x=>x[0]===T)||TABS[0])[1];
+  let corps="";
+  if(T==="maintenant") corps=`<div class="cols"><div class="col-l">
+        ${modeHtml()}
+        ${echHtml()}
+        ${banHtml()}
+        ${coachHtml()}
+        ${dayBarHtml()}
+        ${ritHtml()}
+        ${choseHtml()}
+        ${dockHtml()}
+      </div><div class="col-r">
+        ${jpHtml()}
+        ${agCardHtml()}
+        ${calHtml()}
+      </div></div>`;
+  else if(T==="domaines") corps=`<div class="cols"><div class="col-l">
+        ${domainesHtml()}
+      </div><div class="col-r">
+        ${candCardHtml()}
+        ${workCardHtml()}
+        <details class="ktips"><summary><b>💼 La méthode des 5 candidatures par jour</b></summary>${stageTipsBody()}</details>
+      </div></div>`;
+  else if(T==="cahier") corps=cahierHtml();
+  else corps=`<div class="cols"><div class="col-l">
+        ${ptsHtml()}
+        ${chainHtml()}
+        ${domMinHtml()}
+      </div><div class="col-r">
+        ${pCardHtml()}
+        <div class="dliens">${[["📆","Bilan de la semaine","openBilan()"],["⏱","Historique du travail","openWorkLog()"],["📊","Statistiques","openStats()"],["📓","Journal : tous les jours","openJournalHistory()"]]
+          .map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}<i>›</i></button>`).join("")}</div>
+        ${bkNudgeHtml()}
+      </div></div>`;
 
   document.getElementById("app").innerHTML=`
     <header>
+      <div class="eyebrow">${dateStr}</div>
       <div class="brand">
         ${(()=>{ try{ const E=ech(); if(!E) return ""; const j=coJ(); return `<span class="kgem" onclick="echGo('today')">${E.e} J-${j}</span>`; }catch(e){ return ""; } })()}
         <span class="kgem pts" onclick="openPts()">⚡ ${ptsDay(today()).tot}</span>
-        <span class="mk">Le Pointage</span>
         ${syncDotHtml()}
         <button class="tgl" onclick="toggleTheme()" aria-label="Changer de thème">${currentDark()?"☀":"☾"}</button>
       </div>
-      <div class="eyebrow">Registre du jour</div>
-      <div class="today">${dateStr}</div>
+      <div class="today">${titre}${T==="maintenant"?`<button class="sosmini" onclick="openSos()" aria-label="SOS, envie de scroller">SOS 10 min</button>`:""}</div>
     </header>
-    <div class="rule"></div>
     ${runHtml}
-    ${(()=>{ const T=S.tab||"jour";
-      if(T==="jour") return `<div class="cols"><div class="col-l">
-        ${modeHtml()}
-        ${coachHtml()}
-        <button class="ksosbtn" onclick="openSos()">🆘 Envie de scroller ? <span>SOS 10 min</span></button>
-        ${ritHtml()}
-        ${banHtml()}
-        ${choseHtml()}
-        ${lireHtml()}
-        ${calHtml()}
-      </div><div class="col-r">
-        ${jpHtml()}
-      </div></div>`;
-      if(T==="travail") return `<div class="cols"><div class="col-l">
-        ${echHtml()}
-        <div class="summary" style="margin-top:14px">
-          <div class="sumhead">
-            <div class="frac">${done}<small>/${total}</small></div>
-            <div class="sumline">${allDone?"Journée bouclée ! 🎉":done?"Reste "+esc(nomsManque)+".":"990, CUMBRE, LE CLOSING + 5 candidatures ✨"}</div>
-          </div>
-          <div class="segbar">${AC.map(c=>`<i class="${catDone(c.id)?"on":""}"></i>`).join("")}<i class="${cOk?"on":""}"></i></div>
-          <div class="sumfoot"><span>⏱ <b>${fmtMin(totMin)}</b> aujourd'hui</span><span class="dot"></span><span>✓ <b>${totChecks}</b> coches en tout</span></div>
-          ${briefHeadHtml()}
-        </div>
-        ${workCardHtml()}
-        ${dockHtml()}
-      </div><div class="col-r">
-        <div class="applist">${appListHtml("prio")}</div>
-        ${agCardHtml()}
-        <div class="applist">${appListHtml("reste")}</div>
-        <div class="fabrow"><button onclick="editApp('')">＋ Ajouter une app</button><button onclick="openManage()">✎ Modifier</button></div>
-      </div></div>`;
-      if(T==="stage") return `<div class="cols"><div class="col-l">
-        ${candCardHtml()}
-        <div class="ktabnote">Après l'IELTS, cet onglet accueillera aussi tes entraînements aux entretiens.</div>
-      </div><div class="col-r">
-        ${stageTipsHtml()}
-      </div></div>`;
-      return `<div class="cols"><div class="col-l">
-        ${ptsHtml()}
-        ${chainHtml()}
-        ${pCardHtml()}
-      </div><div class="col-r">
-        <div class="kgrid kprog-grid">${[["📆","Bilan de la semaine","openBilan()"],["⏱","Historique du travail","openWorkLog()"],["📓","Journal","openJournal()"],["📊","Statistiques","openStats()"],["✳️","Envoyer à Claude","openClaude()"],["🛡️","Mon cadre","openCadre()"],["🚪","La porte d'Instagram","openPorte()"],["💾","Sauvegarder","bkSheet()"]].map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
-        ${bkNudgeHtml()}
-      </div></div>`; })()}
+    ${corps}
     ${tabbarHtml()}
   `;
-  agBind();
+  agBind(); cahBind();
   if(keep){
-    const el=document.getElementById("agIn");
-    if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} agPreview(); }
+    const el=document.getElementById(keep.id);
+    if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} if(keep.id==="agIn") agPreview(); }
   }
   clearInterval(tick);
   if(S.run){ tick=setInterval(updClock,1000); updClock(); }
 }
+
+/* ─── la barre de la journée : une marche par priorité ─── */
+function dayBarHtml(){
+  const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
+  const fait=AC.filter(c=>catDone(c.id)).length, tout=fait===AC.length;
+  return `<div class="dbar ${tout?"tout":""}">
+    <div class="dbar-h"><span>${tout?"Journée bouclée":"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
+    <div class="dbar-m" style="grid-template-columns:repeat(${AC.length},minmax(0,1fr))">${AC.map(c=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id);
+      return `<button class="${ok?"on":""}" onclick="openById('${a?a.id:""}')"><i></i><span>${esc(c.nom)}</span></button>`; }).join("")}</div>
+  </div>`;
+}
+
+/* ─── l'onglet Domaines ─── */
+function domRowHtml(a){
+  const on=doneToday(a.id), running=S.run&&S.run.id===a.id, str=streak(a.id), tm=todayMin(a.id);
+  const meta=[str>0?"série "+str+" j":"", tm?"+"+fmtMin(tm)+" aujourd'hui":"", !str&&!tm?checks(a.id)+" coche"+(checks(a.id)>1?"s":""):""].filter(Boolean).join(" · ");
+  return `<div class="drow ${on?"done":""}">
+    <button class="dchk ${on?"on":""} ${running?"live":""}" onclick="onCheck('${a.id}')" role="checkbox" aria-checked="${on}" aria-label="Fait aujourd'hui : ${esc(a.name)}"></button>
+    <button class="dnom" onclick="openById('${a.id}')"><b>${a.emoji} ${esc(a.name)}${a.prio?`<em>COMPTE</em>`:""}</b><small>${meta}</small></button>
+    <button class="dact" onclick="${running?"stopTimer()":`startTimer('${a.id}')`}" aria-label="${running?"Terminer":"Lancer le chrono"}">${running?"■":"▶"}</button>
+    <button class="dact" onclick="editApp('${a.id}')" aria-label="Modifier ${esc(a.name)}">⋯</button>
+  </div>`;
+}
+function domainesHtml(){
+  const out=doms().map(d=>{
+    const L=S.apps.filter(a=>vivante(a)&&domOf(a)===d.id);
+    if(!L.length&&d.id==="autres") return "";
+    const P=L.filter(a=>a.prio), pf=P.filter(a=>doneToday(a.id)).length;
+    const etat=P.length?`<span class="dcpt">${pf} sur ${P.length} aujourd'hui</span>`:`<span class="dhors">hors compte</span>`;
+    return `<section class="dom">
+      <div class="dom-h"><button class="dom-n" onclick="editDomaine('${d.id}')">${d.e} ${esc(d.nom)}</button>${etat}</div>
+      ${L.map(domRowHtml).join("")}
+      <button class="dadd" onclick="editApp('','${d.id}')">＋ ${d.id==="langues"?"Une nouvelle langue":"Ajouter une app"}</button>
+      ${d.id==="lecture"?`<button class="dadd" onclick="goTab('cahier')">Ouvrir le Cahier ›</button>`:""}
+    </section>`;
+  }).join("");
+  const na=S.apps.filter(a=>a.arch).length;
+  return out+`<div class="dpied"><button onclick="editDomaine('')">＋ Nouveau domaine</button><button onclick="openArchives()">Archives${na?" ("+na+")":""}</button></div>`;
+}
+/* les minutes de la semaine, par domaine (le chrono des apps + la lecture) */
+function domMinHtml(){
+  const t=today(), from=dayShift(t,-6), M={};
+  S.apps.forEach(a=>{ const m=stOf(a.id).min; let n=0; Object.keys(m).forEach(d=>{ if(d>=from&&d<=t) n+=m[d]; }); if(n) M[domOf(a)]=(M[domOf(a)]||0)+n; });
+  M.lecture=(M.lecture||0)+lireMinJours(7);
+  const L=doms().map(d=>[d,Math.round(M[d.id]||0)]).filter(x=>x[1]>0), mx=Math.max(1,...L.map(x=>x[1]));
+  return `<div class="dmin"><div class="dmin-h"><b>Cette semaine, par domaine</b><span>minutes</span></div>
+    ${L.length?L.map(([d,n])=>`<div class="dmin-r"><span>${d.e} ${esc(d.nom)}</span><div><i style="width:${Math.round(100*n/mx)}%"></i></div><b>${fmtMin(n)}</b></div>`).join("")
+      :`<div class="cvide">Lance le chrono d'une app, ou lis : tes minutes apparaîtront ici.</div>`}</div>`;
+}
+
 function catPicksSafe(cid){
   const p=catPicks(cid);
   if(p.length) return p;                 // si tout se repose, la règle cède : la journée passe avant
@@ -1330,7 +1583,7 @@ function appListHtml(part){
     out+=`<div class="appgrp">`+catHeadHtml(c)+liste.map(a=>appRowHtml(a,idx[a.id])).join("")+`</div>`;
   });
   if(part==="prio") return out;
-  const orphelines=S.apps.filter(a=>!a.cat||!catDef(a.cat));
+  const orphelines=S.apps.filter(a=>!catOf(a));
   const restantes=orphelines.filter(visibleNow);
   /* « Le reste » n'est plus plié : toutes les apps restent sous les yeux et
      cochables. Elles ne comptent toujours pas dans la journée — les trois
@@ -1366,29 +1619,31 @@ function escJs(x){ return esc(String(x==null?"":x).replace(/\\/g,"\\\\").replace
 /* --- reset quotidien --- */
 function rollDay(){ const t=today(); if(S.day!==t){ S.day=t; save(); } }
 
-/* --- édition d'une app --- */
-let editCat="";
-function editApp(id){
-  const a=id?S.apps.find(x=>x.id===id):{name:"",emoji:"⭐",url:"",cat:""};
-  editCat=a.cat||"";
+/* --- édition d'une app : son domaine, si elle compte, l'archive --- */
+let editDom="", editPrio=0;
+function editApp(id,dom){
+  const a=id?S.apps.find(x=>x.id===id):{name:"",emoji:"⭐",url:"",dom:dom||"autres",prio:0};
+  editDom=domOf(a); if(!id&&dom) editDom=dom; editPrio=a.prio?1:0;
+  const lec=a.spec==="lecture";
   sheet(`
-    <h3>${id?"Modifier l'app":"Ajouter une app"}</h3>
+    <h3>${id?"Modifier":"Ajouter une app"}</h3>
     <div class="fld"><label>Emoji</label><input id="fE" value="${esc(a.emoji)}" maxlength="4"></div>
-    <div class="fld"><label>Nom</label><input id="fN" value="${esc(a.name)}" placeholder="Ex : SHRED"></div>
-    <div class="fld"><label>Dossier</label>
+    <div class="fld"><label>Nom</label><input id="fN" value="${esc(a.name)}" placeholder="Ex : SPUTNIK"></div>
+    <div class="fld"><label>Domaine</label>
       <div class="agpills" id="fC" style="margin-top:0">
-        ${CATS.map(c=>`<span data-c="${c.id}" class="${editCat===c.id?"on":""}">${c.e} ${c.nom}</span>`).join("")}
-        <span data-c="" class="${editCat?"":"on"}">📦 le reste</span>
+        ${doms().map(d=>`<span data-c="${d.id}" class="${editDom===d.id?"on":""}">${d.e} ${esc(d.nom)}</span>`).join("")}
       </div></div>
-    <div class="fld"><label>Lien (facultatif)</label><input id="fU" value="${esc(a.url)}" placeholder="https://…" inputmode="url"></div>
-    <button class="btn" onclick="saveApp('${id}')">Enregistrer</button>
-    ${id?`<button class="btn danger" onclick="delApp('${id}')">Supprimer cette app</button>`:""}
-    <button class="btn ghost" onclick="closeOv()">Annuler</button>
+    <label class="dtog"><input type="checkbox" id="fP" ${editPrio?"checked":""}><span><b>Compte dans ma journée</b><small>Elle devient une priorité : la journée est bouclée quand toutes sont faites.</small></span></label>
+    ${lec?"":`<div class="fld"><label>Lien (facultatif)</label><input id="fU" value="${esc(a.url)}" placeholder="https://…" inputmode="url"></div>`}
+    <button class="btn" onclick="saveApp('${id||""}')">Enregistrer</button>
+    ${id&&!lec?`<button class="btn ghost" onclick="archApp('${id}')">${a.arch?"Ressortir des archives":"Archiver (l'historique est gardé)"}</button>
+      <button class="btn danger" onclick="delApp('${id}')">Supprimer définitivement</button>`:""}
+    <button class="btn ghost" onclick="closeOv();render()">Annuler</button>
   `);
   const pc=document.getElementById("fC");
   if(pc) pc.addEventListener("click",ev=>{
     const el=ev.target.closest("[data-c]"); if(!el) return;
-    editCat=el.dataset.c;
+    editDom=el.dataset.c;
     Array.prototype.forEach.call(ev.currentTarget.children,x=>x.classList.remove("on"));
     el.classList.add("on");
   });
@@ -1396,12 +1651,60 @@ function editApp(id){
 function saveApp(id){
   const name=document.getElementById("fN").value.trim();
   const emoji=document.getElementById("fE").value.trim()||"⭐";
-  const url=document.getElementById("fU").value.trim();
+  const fu=document.getElementById("fU"), url=fu?fu.value.trim():"";
+  const prio=document.getElementById("fP").checked?1:0;
   if(!name) return toast("Donne-lui un nom.");
-  if(id){ const a=S.apps.find(x=>x.id===id); a.name=name; a.emoji=emoji; a.url=url; a.cat=editCat; }
-  else{ const nid="x"+Date.now().toString(36); S.apps.push({id:nid,name,emoji,url,cat:editCat,since:Date.now()}); S.st[nid]={days:[],min:{}}; }
+  let a;
+  if(id){ a=S.apps.find(x=>x.id===id); a.name=name; a.emoji=emoji; if(fu) a.url=url; }
+  else{ const nid="x"+Date.now().toString(36); a={id:nid,name,emoji,url,cat:"",since:Date.now()}; S.apps.push(a); S.st[nid]={days:[],min:{}}; }
+  a.dom=editDom||"autres";
+  if(prio&&!a.prio) a.prioSince=today();     // une nouvelle priorité ne compte qu'à partir d'aujourd'hui
+  a.prio=prio;
   S.appsMod=Date.now();
-  save(); closeOv(); render();
+  save(); closeOv(); rebuildCats(); render();
+}
+function archApp(id){
+  const a=S.apps.find(x=>x.id===id); if(!a) return;
+  a.arch=a.arch?0:1; if(a.arch) a.prio=0;
+  S.appsMod=Date.now(); save(); closeOv(); rebuildCats(); render();
+  toast(a.arch?a.name+" archivée":a.name+" ressortie");
+}
+function openArchives(){
+  const L=S.apps.filter(a=>a.arch);
+  sheet(`<h3>Archives</h3>
+    <p class="syline">Rangées de côté : leur historique est intact, elles ne prennent plus de place.</p>
+    <div class="krows">${L.length?L.map(a=>`<div class="krow"><span class="ke">${a.emoji}</span><div class="kn">${esc(a.name)}<small style="display:block;color:var(--muted);font-weight:500">${checks(a.id)} coche${checks(a.id)>1?"s":""} · ${fmtMin(totalMin(a.id))}</small></div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:8px 12px" onclick="archApp('${a.id}')">Ressortir</button></div>`).join(""):`<div class="cvide">Rien aux archives.</div>`}</div>
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
+}
+/* --- un domaine : nom, emoji, place, suppression --- */
+function editDomaine(id){
+  const d=id?domDef(id):{nom:"",e:"✳️"}; if(!d) return;
+  const n=S.apps.filter(a=>vivante(a)&&domOf(a)===id).length, i=doms().indexOf(d);
+  sheet(`<h3>${id?"Modifier le domaine":"Nouveau domaine"}</h3>
+    <div class="fld"><label>Emoji</label><input id="dE" value="${esc(d.e)}" maxlength="4"></div>
+    <div class="fld"><label>Nom</label><input id="dN" value="${esc(d.nom)}" placeholder="Ex : Musique"></div>
+    ${id?`<div style="display:flex;gap:8px"><button class="btn ghost" ${i<=0?"disabled":""} onclick="domMove('${id}',-1)">↑ Monter</button><button class="btn ghost" ${i>=doms().length-1?"disabled":""} onclick="domMove('${id}',1)">↓ Descendre</button></div>`:""}
+    <button class="btn" onclick="domSave('${id||""}')">Enregistrer</button>
+    ${id&&id!=="autres"?`<button class="btn danger" onclick="domDel('${id}')">Supprimer${n?" (ses "+n+" app"+(n>1?"s":"")+" vont dans Autres)":""}</button>`:""}
+    <button class="btn ghost" onclick="closeOv();render()">Annuler</button>`);
+}
+function domTouch(){ S.domsMod=Date.now(); save(); rebuildCats(); }
+function domSave(id){
+  const nom=document.getElementById("dN").value.trim(), e=document.getElementById("dE").value.trim()||"✳️";
+  if(!nom) return toast("Donne-lui un nom.");
+  if(id){ const d=domDef(id); d.nom=nom; d.e=e; }
+  else doms().splice(Math.max(0,doms().length-1),0,{id:"d"+Date.now().toString(36),nom,e});
+  domTouch(); closeOv(); render();
+}
+function domMove(id,k){
+  const D=doms(), i=D.findIndex(d=>d.id===id), j=i+k; if(i<0||j<0||j>=D.length) return;
+  [D[i],D[j]]=[D[j],D[i]]; domTouch(); editDomaine(id);
+}
+function domDel(id){
+  if(!confirm("Supprimer ce domaine ? Ses apps ne sont pas supprimées.")) return;
+  S.apps.forEach(a=>{ if(a.dom===id) a.dom="autres"; }); S.appsMod=Date.now();
+  S.doms=doms().filter(d=>d.id!==id); domTouch(); closeOv(); render();
 }
 
 /* ---- le ménage : ce qui n'a jamais servi ---- */
@@ -1416,7 +1719,7 @@ function openCleanup(){
   const ligne=a=>`<div class="editrow">
     <div class="e">${a.emoji}</div>
     <div class="en">${esc(a.name)}<div style="color:var(--muted);font-size:12px;font-weight:600;margin-top:2px">
-      ${jamaisPointee(a.id)?"jamais cochée":"rien depuis "+gapDays(a.id)+" jours"}${a.cat&&catDef(a.cat)?" · "+catDef(a.cat).nom:""}</div></div>
+      ${jamaisPointee(a.id)?"jamais cochée":"rien depuis "+gapDays(a.id)+" jours"}${" · "+(domDef(domOf(a))||{nom:""}).nom}</div></div>
     <button onclick="sortirApp('${a.id}')">Sortir</button></div>`;
   sheet(`<h3>🧹 Faire le ménage</h3>
     <p class="syline">Une case qu'on ne coche jamais finit par vider la fraction de son sens.
@@ -1462,7 +1765,7 @@ function openManage(){
     ${S.apps.map((a,i)=>`<div class="editrow">
       <div class="e">${a.emoji}</div>
       <div class="en">${esc(a.name)}<div style="color:var(--faint);font-size:11.5px;font-weight:650;margin-top:2px">
-        ${a.cat&&catDef(a.cat)?catDef(a.cat).e+" "+catDef(a.cat).nom:"📦 le reste"}</div></div>
+        ${(domDef(domOf(a))||{e:"📦"}).e+" "+(domDef(domOf(a))||{nom:"Autres"}).nom}</div></div>
       <button onclick="move('${a.id}',-1)" ${i===0?"disabled style=opacity:.3":""}>↑</button>
       <button onclick="move('${a.id}',1)" ${i===S.apps.length-1?"disabled style=opacity:.3":""}>↓</button>
       <button onclick="closeOv();editApp('${a.id}')">✎</button>
@@ -1659,7 +1962,7 @@ function briefAll(){
   }
 
   /* Une seule app endormie à la fois : la plus ancienne. */
-  const endormies=S.apps.filter(a=>a.cat&&catDef(a.cat)&&!pris[a.id]&&gapDays(a.id)>=12&&gapDays(a.id)<9000)
+  const endormies=S.apps.filter(a=>catOf(a)&&!pris[a.id]&&gapDays(a.id)>=12&&gapDays(a.id)<9000)
     .sort((a,b)=>gapDays(b.id)-gapDays(a.id));
   if(endormies.length){
     const a=endormies[0], g=gapDays(a.id);
@@ -1698,7 +2001,7 @@ function briefAll(){
          {l:"Toutes mes apps", c:"", f:"closeOv();openLauncher()"}]});
   });
 
-  const jamais=S.apps.filter(a=>a.cat&&catDef(a.cat)&&aSortir(a));
+  const jamais=S.apps.filter(a=>catOf(a)&&a.spec!=="lecture"&&aSortir(a));
   if(jamais.length>=2){
     add({k:"menage", score:26, e:"🧹", t:jamais.length+" apps n'ont jamais été cochées",
       w:jamais.slice(0,3).map(a=>a.name).join(", ")+(jamais.length>3?"…":"")+
@@ -2140,7 +2443,7 @@ function calData(ym){
   const map={}, get=d=>(map[d]=map[d]||{cats:{},min:0,ag:0,j:0});
   S.apps.forEach(a=>{
     const st=stOf(a.id);
-    st.days.forEach(d=>{ if(d.slice(0,7)===ym&&a.cat) get(d).cats[a.cat]=1; });
+    st.days.forEach(d=>{ if(d.slice(0,7)===ym&&catOf(a)) get(d).cats[catOf(a)]=1; });
     Object.keys(st.min||{}).forEach(d=>{ if(d.slice(0,7)===ym) get(d).min+=Math.round(st.min[d]||0); });
   });
   agAll().forEach(it=>{ if(it.d&&it.d.slice(0,7)===ym) get(it.d).ag++; });
@@ -2847,7 +3150,8 @@ function syncErr(e){
    le chrono en cours, le thème, le lien lui-même. */
 function syncPayload(){
   return {v:1, ts:Date.now(), dev:syncDevice(), apps:S.apps, appsMod:S.appsMod||0, st:S.st,
-          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs(), cands:cAll(), cadre:cad()};
+          chk:S.chk||{}, journal:S.journal||{}, agenda:agAll(), tomb:agTombs(), cands:cAll(), cadre:cad(),
+          doms:doms(), domsMod:S.domsMod||0};
 }
 /* Deux appareils arrivent au même contenu mais pas au même ordre de clés ni de
    tâches. Sans mise à plat, chacun croirait l'autre différent et republierait
@@ -2880,6 +3184,8 @@ function syncMerge(R){
     (R.apps||[]).forEach(a=>{ if(!has[a.id]&&vivant(a)){ S.apps.push(a); ch=true; } });
   }
   S.apps.forEach(a=>{ if(!S.st[a.id]) S.st[a.id]={days:[],min:{}}; });
+  /* les domaines : un tout, comme la liste des apps ; le plus récent l'emporte */
+  if(Array.isArray(R.doms)&&R.doms.length&&(R.domsMod||0)>(S.domsMod||0)){ S.doms=R.doms; S.domsMod=R.domsMod; ch=true; }
 
   Object.keys(R.st||{}).forEach(id=>{
     if(T0["app:"+id]) return;                        // app supprimée ici : on ne rapatrie pas son historique
@@ -3360,7 +3666,9 @@ function pPasseGo(){ const r=(document.getElementById("pRaison").value||"").trim
    Un raté isolé est couvert par un joker (2 par mois). Deux ratés de suite
    cassent la chaîne : c'est la règle « jamais deux fois ». On ne compte qu'à
    partir du jour où le cadre est arrivé, pour ne punir aucun passé. */
-function dayOk(d){ const AC=catsActives(); return AC.length>0&&AC.every(c=>catDoneDay(c.id,d)); }
+function dayOk(d){
+  if(S.domSince&&d<S.domSince) return !!(S.okAvant||{})[d];   // le passé garde son verdict
+  const AC=unitsOn(d); return AC.length>0&&AC.every(c=>catDoneDay(c.id,d)); }
 function chaine(){
   const C=cad(), t=today(); let d=C.start, n=0, prevMiss=false; const used={};
   while(d<t){
@@ -4079,10 +4387,10 @@ function echMatinHtml(){ const E=ech(), P=echPlan(); if(!E||!P.length) return ""
 
 /* ---- ⋯ Plus : tout le secondaire, hors de l'accueil ---- */
 function openPlus(){
-  const B=[["✎","Modifier","openManage()"],["📊","Bilan","openStats()"],["🚀","Mes apps","openLauncher()"],["🔗","Appareils","syncOpen()"],
-    ["💾","Sauver","bkSheet()"],["🚪","Porte","openPorte()"],["🛡️","Mon cadre","openCadre()"],["📱","Téléphone","openTel()"],
-    ["📅","Agenda","openCal()"],["📓","Journal","openJournal()"],["✳️","Claude","openClaude()"],["📆","Bilan hebdo","openBilan()"],["⏱","Travail","openWorkLog()"],["📖","Lire","lireSheet()"]];
-  sheet(`<h3>⋯ Plus</h3><div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
+  const B=[["✎","Mes apps","openManage()"],["🚀","Catalogue","openLauncher()"],["🗂️","Archives","openArchives()"],["💡","Le brief","openBrief()"],
+    ["🔗","Appareils","syncOpen()"],["💾","Sauver","bkSheet()"],["🛡️","Mon cadre","openCadre()"],["🚪","Porte","openPorte()"],
+    ["📱","Téléphone","openTel()"],["📅","Agenda","openCal()"],["✳️","Claude","openClaude()"]];
+  sheet(`<h3>Réglages et outils</h3><div class="kgrid">${B.map(([e,l,f])=>`<button onclick="${f}"><span>${e}</span>${l}</button>`).join("")}</div>
     <button class="btn ghost" style="margin-top:18px" onclick="closeOv();render()">Fermer</button>`);
 }
 
@@ -4223,8 +4531,10 @@ function jpItems(ds){
   else out.push({id:"sport",e:"🥊",nom:"Boxe + étirements",sub:"FORGE · ou un footing de 30 min",dur:55,go:"forgeOpen()"});
   P.forEach((x,i)=>out.push({id:"ielts"+i,e:"🇬🇧",nom:"IELTS · "+x[1],sub:x[0]+" min",dur:x[0],go:x[2]?"echGo('"+x[2]+"')":"echGo('today')",work:"IELTS",chk:ds===today()?i:null}));
   out.push({id:"cands",e:"📨",nom:"5 candidatures",sub:"Une offre, une lettre adaptée, envoyée",dur:60,go:"cPlus()",work:"Candidatures"});
-  catsActives().forEach(c=>{ if(E&&c.id==="anglais") return; const a=appsOfCat(c.id)[0]; if(!a) return;
-    out.push({id:"prio-"+c.id,e:c.e,nom:a.name,sub:c.nom+" · version courte si la journée est chargée",dur:c.id==="closing"?30:20,go:"openById('"+a.id+"')",work:a.name}); });
+  catsActives().forEach(c=>{ const a=appsOfCat(c.id)[0]; if(!a) return; if(E&&normName(a.name)==="990") return;
+    const lec=a.spec==="lecture", dm=domDef(domOf(a));
+    out.push({id:"prio-"+c.id,e:c.e,nom:a.name,sub:lec?"Le texte du jour, puis une ligne au cahier":(dm?dm.nom:c.nom)+" · version courte si la journée est chargée",
+      dur:lec?12:normName(a.name)==="leclosing"?30:20,go:"openById('"+a.id+"')",work:a.name}); });
   const big=x=>x.id.startsWith("ielts")&&x.dur>=30, small=x=>x.id.startsWith("ielts")&&x.dur<30;
   const sp=out.find(x=>x.id==="sport"); out.splice(out.indexOf(sp)+1,0,{id:"ptidej",e:"🍳",nom:"Douche + petit-déjeuner",sub:"Protéines après le sport, pas d'écran à table",dur:25});
   return out.filter(x=>!x.id.startsWith("ielts")&&x.id!=="cands"&&!x.id.startsWith("prio-"))
@@ -4446,7 +4756,7 @@ function ptsDay(d){
       let n=PTS_ITEM[b.id]; if(n==null) n=b.id.startsWith("ielts")?Math.max(5,(b.f-b.s)/2):b.id==="cands"?0:b.id.startsWith("prio-")?0:10;
       add(b.e,b.nom,n); if(b.kept) add("⏰","À l'heure : "+b.nom,5); }); }catch(e){}
   // priorités du stage, candidatures
-  catsActives().forEach(c=>{ if(catDoneDay(c.id,d)) add(c.e,c.nom+" fait",15); });
+  unitsOn(d).forEach(c=>{ if(catDoneDay(c.id,d)) add(c.e,c.nom+" fait",15); });
   const nc=cOn(d); if(nc) add("📨",nc+" candidature"+(nc>1?"s":""),nc*10);
   if(nc>=5) add("🎯","Objectif 5 candidatures atteint",10);
   // rituels, focus, carnet de travail, SOS
@@ -4492,11 +4802,16 @@ function openPts(){
    📈 Progrès     : est-ce que j'avance ?                (points, chaîne, bilans, écran)
    ═══════════════════════════════════════════════════════════════════ */
 function goTab(t){ S.tab=t; save0(); render(); window.scrollTo({top:0}); }
+const TAB_IC={
+  maintenant:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>',
+  domaines:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
+  cahier:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 9h6M9 13h5"/></svg>',
+  progres:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 15l4-4 3 3 5-6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="18" cy="12" r="1.3"/></svg>'};
 function tabbarHtml(){
-  const T=S.tab||"jour", AC=catsActives(), left=AC.filter(c=>!catDone(c.id)).length, nc=cToday();
-  let next=""; try{ const P=jpBuild(today()).all.filter(b=>b.kind==="prop"); next=P.filter(b=>!b.done).length; }catch(e){}
-  const tabs=[["jour","☀️","Aujourd'hui",next?next:""],["travail","🎯","Travail",left?left:""],["stage","💼","Stage",nc<C_OBJ?nc+"/"+C_OBJ:"✓"],["progres","📈","Progrès",""]];
-  return `<nav class="ktabs">${tabs.map(([id,e,l,bd])=>`<button class="${T===id?"on":""}" onclick="goTab('${id}')"><span class="ke">${e}</span><span class="kl">${l}</span>${bd!==""?`<i>${bd}</i>`:""}</button>`).join("")}<button onclick="openPlus()"><span class="ke">⋯</span><span class="kl">Plus</span></button></nav>`;
+  const T=curTab(), AC=unitsOn(today()), left=AC.filter(c=>!catDone(c.id)).length;
+  const bd={maintenant:left?String(left):"", cahier:txDuJour()?"":"✎"};
+  return `<nav class="ktabs">${TABS.map(([id,l])=>`<button class="${T===id?"on":""}" onclick="goTab('${id}')"><span class="ke">${TAB_IC[id]}</span><span class="kl">${l}</span>${bd[id]?`<i>${bd[id]}</i>`:""}</button>`).join("")}<button onclick="openPlus()"><span class="ke">${TAB_IC.plus}</span><span class="kl">Plus</span></button></nav>`;
 }
 function chainHtml(){
   const ch=chaine(), t=today(), days=Array.from({length:14},(_,i)=>dayShift(t,-(13-i)));
@@ -4505,6 +4820,7 @@ function chainHtml(){
     <div class="kchain-d">${days.map(d=>`<i class="${dayOk(d)?"ok":""} ${d===t?"t":""}" title="${d}"></i>`).join("")}</div>
     <div class="kpts-f">14 derniers jours · un raté isolé est couvert par un joker, deux de suite cassent la chaîne</div></div>`;
 }
+function stageTipsBody(){ return stageTipsHtml().replace(/^<div class="ktips"><b>[^<]*<\/b>/,"").replace(/<\/div>\s*$/,""); }
 function stageTipsHtml(){
   return `<div class="ktips"><b>💼 La méthode des 5 par jour</b>
     <p>1. Une offre ciblée, pas dix envoyées au hasard.<br>2. Une phrase d'accroche qui cite l'entreprise et le poste.<br>3. Une preuve chiffrée de ce que tu sais faire.<br>4. Tu notes l'envoi ici, et une relance dans 7 jours.<br>5. Tu passes à la suivante sans attendre la réponse.</p></div>`;
@@ -4595,7 +4911,7 @@ function coachSendMissed(){
 const LIREPOS="pointage_lire_pos";
 function lir(){ const C=cad(); if(!C.lire) C.lire={}; const L=C.lire;
   if(!L.lus) L.lus={};
-  ["livres","ses","idees","liens","notes"].forEach(k=>{ if(!Array.isArray(L[k])) L[k]=[]; });
+  ["livres","ses","idees","liens","notes","textes"].forEach(k=>{ if(!Array.isArray(L[k])) L[k]=[]; });
   return L; }
 function lecs(){ return Array.isArray(window.LECTURES)?window.LECTURES:[]; }
 function lecMin(x){ const n=String(x.corps||"").replace(/<[^>]+>/g," ").split(/\s+/).filter(Boolean).length; return Math.max(2,Math.round(n/170)); }
@@ -4608,7 +4924,7 @@ function livreCourant(){ return livresVivants().filter(b=>!b.fini).sort((a,b)=>(
 function lireMinJours(n){ const t=today(), from=dayShift(t,-(n-1)); return lir().ses.filter(s=>s.d>=from&&s.d<=t).reduce((a,s)=>a+(s.min||0),0); }
 function lireId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function lireSes(kind,ref,min,extra){ if(min<1) return; const L=lir();
-  L.ses.push({id:lireId(), d:today(), kind, ref, min:Math.min(180,Math.round(min)), ...(extra||{})}); save(); }
+  L.ses.push({id:lireId(), d:today(), kind, ref, min:Math.min(180,Math.round(min)), ...(extra||{})}); if(min>=10) lecMark(); save(); }
 
 /* ---- la carte sur l'onglet Aujourd'hui ---- */
 function lireHtml(){
@@ -4619,7 +4935,7 @@ function lireHtml(){
     lec=`<button class="klire-lec" onclick="lireOpen('${nx.id}')"><i>${p>0.03?"Reprendre":"Lecture du jour"} · ${lecMin(nx)} min</i><b>${esc(nx.titre)}</b><small>${esc(nx.sous||"")}</small>${p>0.03?`<span class="klire-bar"><em style="width:${Math.round(p*100)}%"></em></span>`:""}</button>`; }
   else lec=`<button class="klire-lec" onclick="lireSheet()"><i>Tout est lu ✓</i><b>Note de nouvelles idées</b><small>Le carnet les enverra à Claude pour les prochains textes.</small></button>`;
   return `<div class="klire">
-    <div class="kpts-h"><b>📖 Lire</b><span class="kpts-g" onclick="lireSheet()">${w?fmtMin(w)+" sur 7 j":"hors points"} ›</span></div>
+    <div class="kpts-h"><b>📖 Lire</b><span class="kpts-g" onclick="lireSheet()">${w?fmtMin(w)+" sur 7 j":"compte dans ta journée"} ›</span></div>
     ${luAuj.length&&nx?`<div class="klire-ok">✓ Déjà lu aujourd'hui : ${esc(luAuj.map(a=>a.titre).join(", "))}</div>`:""}
     ${lec}
     <div class="klire-row">
@@ -4636,7 +4952,7 @@ function lireSheet(go){
   const L=lir(), A=lecs(), B=livresVivants(), I=L.idees.filter(x=>!x.del).sort((a,b)=>(b.mod||0)-(a.mod||0));
   const nonEnv=I.filter(x=>!x.env).length;
   sheet(`<h3>📖 Lire</h3>
-    <div class="ksub" style="text-align:left">${fmtMin(lireMinJours(7))} de lecture sur 7 jours · ${fmtMin(lireMinJours(30))} sur 30. Hors points, juste pour toi.</div>
+    <div class="ksub" style="text-align:left">${fmtMin(lireMinJours(7))} de lecture sur 7 jours · ${fmtMin(lireMinJours(30))} sur 30. La lecture du jour compte dans ta journée : un texte fini, ou 10 minutes de livre.</div>
     <div class="ksec"><h4>Mes lectures</h4><div class="krows">${A.map(a=>{ const lu=L.lus[a.id], p=lecPos(a.id);
       return `<div class="krow" onclick="lireOpen('${a.id}')" style="cursor:pointer"><span class="ke">${lu?"✓":p>0.03?"◐":"○"}</span><div class="kn">${esc(a.titre)}<small style="display:block;color:var(--muted);font-weight:500">${lecMin(a)} min${lu?" · lu le "+new Date(lu+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):p>0.03?" · "+Math.round(p*100)+" %":""}</small></div><b>›</b></div>`; }).join("")}</div></div>
     <div class="ksec"><h4>Mes livres</h4><div class="krows">${B.length?B.sort((a,b)=>(a.fini?1:0)-(b.fini?1:0)||(b.mod||0)-(a.mod||0)).map(b=>{ const m=L.ses.filter(s=>s.ref===b.id).reduce((x,s)=>x+s.min,0);
@@ -4731,7 +5047,7 @@ function lireClose(silent){
 }
 function lireFini(){
   const id=lireCur, L=lir(), deja=!!L.lus[id];
-  if(!deja){ L.lus[id]=today(); lecPos(id,1); }
+  if(!deja){ L.lus[id]=today(); lecPos(id,1); lecMark(); }
   lireClose(true); render(); save();
   if(!deja){ const nx=lecNext(); toast(nx?"✓ Lu. Le suivant : « "+nx.titre+" »":"✓ Tout est lu. Place au carnet d'idées !"); }
 }
@@ -4886,11 +5202,103 @@ function lecBilanProchain(){ const d=new Date(today()+"T12:00:00"), j=d.getDate(
   if(j<15) d.setDate(15); else { d.setMonth(d.getMonth()+1); d.setDate(1); }
   return d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}); }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   📓 LE CAHIER (26/10) — lire, puis écrire juste en dessous
+   Trois vues : Aujourd'hui (la lecture du jour, ce que tu en penses, ta
+   journée), Mes textes (tout ce que tu as écrit), À lire (lectures, livres,
+   essais). Les textes vivent dans lir().textes et se synchronisent comme
+   les idées : la version la plus récente l'emporte, rien ne se perd.
+   ═══════════════════════════════════════════════════════════════════ */
+const TX_TAGS=[["philo","Philo"],["lecture","Lecture"],["idee","Idée"],["libre","Libre"]];
+function textes(){ return lir().textes.filter(x=>!x.del).sort((a,b)=>(b.mod||0)-(a.mod||0)); }
+function txTitre(x){ return (x.titre||"").trim()||String(x.txt||"").trim().split("\n")[0].slice(0,80)||"Sans titre"; }
+function txTag(x){ const T=TX_TAGS.find(t=>t[0]===x.tag); return T?T[1]:"Libre"; }
+function txDate(x){ const d=x.d||today(); if(d===today()) return "aujourd'hui"; if(d===dayShift(today(),-1)) return "hier";
+  return new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"short"}); }
+function txDuJour(){ return lir().textes.find(x=>!x.del&&x.auto&&x.d===today())||null; }
+function lecDuJour(){ const L=lir(); if(L.jour&&L.jour.d===today()) return lecs().find(a=>a.id===L.jour.id)||null; return lecNext(); }
+function cahSeg(k){ S.cahSeg=k; save0(); render(); window.scrollTo({top:0}); }
+function txRow(x){ const ex=String(x.txt||"").replace(/\s+/g," ").trim();
+  return `<button class="txrow" onclick="texteEdit('${x.id}')"><span><em>${txTag(x)}</em>${txDate(x)}</span><b>${esc(txTitre(x))}</b>${ex&&ex!==txTitre(x)?`<small>${esc(ex.length>120?ex.slice(0,120)+"…":ex)}</small>`:""}</button>`; }
+function cahierHtml(){
+  const k=S.cahSeg||"auj", seg=(id,l)=>`<button class="${k===id?"on":""}" onclick="cahSeg('${id}')">${l}</button>`;
+  let h=`<div class="cahseg">${seg("auj","Aujourd'hui")}${seg("textes","Mes textes")}${seg("lire","À lire")}</div>`;
+  if(k==="textes"){
+    const T=textes(), I=lir().idees.filter(x=>!x.del);
+    h+=`<button class="btn" onclick="texteEdit('')">✎ Nouveau texte</button>
+      <div class="txliste">${T.length?T.map(txRow).join(""):`<div class="cvide">Rien d'écrit pour l'instant. Une question qui te résiste, une lecture qui t'a fait réagir : commence là.</div>`}</div>
+      <div class="cahbloc"><div class="cahbloc-h"><b>💭 Carnet d'idées</b><span>${I.length} idée${I.length>1?"s":""}</span></div>
+        <p>Les idées à creuser deviennent tes prochaines lectures : Claude les développe en textes.</p>
+        <div style="display:flex;gap:8px"><button class="btn ghost" style="margin:0" onclick="ideeAdd()">✎ Noter une idée</button><button class="btn ghost" style="margin:0" onclick="lireSheet()">Tout le carnet ›</button></div></div>`;
+  }else if(k==="lire"){
+    const L=lir(), A=lecs(), b=livreCourant();
+    h+=`<div class="cahbloc"><div class="cahbloc-h"><b>📖 Mes lectures</b><span>${A.filter(a=>L.lus[a.id]).length} sur ${A.length} lues</span></div>
+      <div class="krows">${A.map(a=>{ const lu=L.lus[a.id], p=lecPos(a.id);
+        return `<button class="txrow" onclick="lireOpen('${a.id}')"><span><em>${lu?"Lue":p>0.03?"Commencée":"À lire"}</em>${lecMin(a)} min</span><b>${esc(a.titre)}</b>${a.sous?`<small>${esc(a.sous)}</small>`:""}</button>`; }).join("")}</div></div>
+      <div class="cahbloc"><div class="cahbloc-h"><b>📕 Mon livre</b><span>${fmtMin(lireMinJours(7))} sur 7 j</span></div>
+        ${b?`<button class="btn" onclick="livreStart('${b.id}')">▶ ${esc(b.titre)}${b.pages?` · p. ${b.page||0}/${b.pages}`:""}</button>`:`<button class="btn ghost" onclick="livreEdit('')">＋ Mon livre en cours</button>`}
+        <button class="btn ghost" onclick="lireSheet()">Tous mes livres ›</button></div>
+      ${aeonSec()}`;
+  }else{
+    const lec=lecDuJour(), tj=txDuJour(), der=textes().filter(x=>x!==tj).slice(0,3);
+    h+=lireHtml()+`
+      <div class="cahecrire">
+        <label for="cahIn">${lec?"Ce que tu penses de « "+esc(lec.titre)+" »":"Ce que tu as en tête aujourd'hui"}</label>
+        <textarea id="cahIn" placeholder="Écris comme ça vient. Ça s'enregistre tout seul.">${esc(tj?tj.txt:"")}</textarea>
+        <div class="cahecrire-f"><span id="cahSv">${tj?"✓ enregistré":"s'enregistre tout seul"}</span>${tj?`<a href="#" onclick="event.preventDefault();texteEdit('${tj.id}')">titre, thème ›</a>`:""}</div>
+      </div>
+      ${jCardHtml()}
+      ${der.length?`<div class="cahbloc"><div class="cahbloc-h"><b>Tes derniers textes</b><a href="#" onclick="event.preventDefault();cahSeg('textes')">tous ›</a></div><div class="txliste">${der.map(txRow).join("")}</div></div>`:""}`;
+  }
+  return `<div class="cahier">${h}</div>`;
+}
+let cahT=null;
+function cahBind(){
+  const ta=document.getElementById("cahIn"); if(!ta) return;
+  const flush=()=>{ const v=ta.value, L=lir(); let x=txDuJour();
+    if(!x){ if(!v.trim()) return; const lec=lecDuJour();
+      x={id:lireId(), d:today(), auto:1, tag:lec?"lecture":"libre", lec:lec?lec.id:"", titre:lec?"Sur « "+lec.titre+" »":"", txt:""}; L.textes.push(x); }
+    x.txt=v; x.mod=Date.now(); save();
+    const sv=document.getElementById("cahSv"); if(sv) sv.textContent="✓ enregistré"; };
+  ta.addEventListener("input",()=>{ const sv=document.getElementById("cahSv"); if(sv) sv.textContent="…"; clearTimeout(cahT); cahT=setTimeout(flush,700); });
+  ta.addEventListener("blur",()=>{ clearTimeout(cahT); flush(); });
+}
+let txTagCur="libre";
+function texteEdit(id){
+  const x=id?lir().textes.find(t=>t.id===id):{titre:"",txt:"",tag:"philo"}; if(!x) return;
+  txTagCur=x.tag||"libre";
+  sheet(`<h3>${id?"Mon texte":"Nouveau texte"}</h3>
+    <div class="fld"><label>Titre</label><input id="txT" value="${esc(x.titre||"")}" placeholder="Une question, une thèse…"></div>
+    <div class="agpills" id="txG" style="margin:0 0 12px">${TX_TAGS.map(([k,l])=>`<span data-c="${k}" class="${txTagCur===k?"on":""}">${l}</span>`).join("")}</div>
+    <textarea id="txX" class="txzone" placeholder="Écris.">${esc(x.txt||"")}</textarea>
+    <button class="btn" onclick="texteSave('${id||""}')">Enregistrer</button>
+    ${id?`<button class="btn danger" onclick="texteDel('${id}')">Supprimer ce texte</button>`:""}
+    <button class="btn ghost" onclick="closeOv();render()">Fermer sans enregistrer</button>`);
+  document.getElementById("sheet").classList.add("wide");
+  document.getElementById("txG").addEventListener("click",ev=>{ const el=ev.target.closest("[data-c]"); if(!el) return; txTagCur=el.dataset.c;
+    Array.prototype.forEach.call(ev.currentTarget.children,c=>c.classList.remove("on")); el.classList.add("on"); });
+  if(!id) setTimeout(()=>{ const t=document.getElementById("txT"); if(t) t.focus(); },60);
+}
+function texteSave(id){
+  const titre=document.getElementById("txT").value.trim(), txt=document.getElementById("txX").value;
+  if(!titre&&!txt.trim()) return toast("Écris d'abord quelque chose.");
+  const L=lir(); let x=id?L.textes.find(t=>t.id===id):null;
+  if(!x){ x={id:lireId(), d:today()}; L.textes.push(x); }
+  x.titre=titre; x.txt=txt; x.tag=txTagCur; x.mod=Date.now();
+  save(); closeOv(); render(); toast("✓ Texte enregistré");
+}
+function texteDel(id){
+  if(!confirm("Supprimer ce texte ?")) return;
+  const x=lir().textes.find(t=>t.id===id); if(x){ x.del=1; x.mod=Date.now(); save(); }
+  closeOv(); render();
+}
+
 /* ---- synchro : on fusionne sans jamais perdre une séance ou une idée ---- */
 function lireMerge(R){
   if(!R) return false; const L=lir(); let ch=false;
   Object.keys(R.lus||{}).forEach(k=>{ if(!L.lus[k]||(R.lus[k]<L.lus[k])){ if(L.lus[k]!==R.lus[k]){ L.lus[k]=R.lus[k]; ch=true; } } });
-  ["livres","idees","liens","notes"].forEach(k=>{ const A=L[k], at={}; A.forEach((x,i)=>at[x.id]=i);
+  ["livres","idees","liens","notes","textes"].forEach(k=>{ const A=L[k], at={}; A.forEach((x,i)=>at[x.id]=i);
     (R[k]||[]).forEach(r=>{ if(!r||!r.id) return; const i=at[r.id];
       if(i==null){ A.push(r); ch=true; } else if((r.mod||0)>(A[i].mod||0)){ A[i]=r; ch=true; } }); });
   const ids=new Set(L.ses.map(s=>s.id)); (R.ses||[]).forEach(s=>{ if(s&&s.id&&!ids.has(s.id)){ L.ses.push(s); ch=true; } });
@@ -4909,6 +5317,7 @@ applyTheme();
 rollDay();
 chkPrune();
 cad(); acc(); cadPrune(); cfApply(); focusResume();
+domMigrate(); rebuildCats();
 render();
 syncSoon(900);
 /* lien direct : …/pointage/#candidatures ouvre le suivi */
