@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>/*__TITRE__*/</title>
+<style>
+/* Le cadre d'une pièce : la toile occupe tout ; le titre discret en haut ; un seul bouton en bas. */
+html, body { margin: 0; height: 100%; background: #0F1014; overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.titre { position: fixed; left: 16px; top: max(14px, env(safe-area-inset-top)); font: 500 12px/1.3 Georgia, "Times New Roman", serif;
+  letter-spacing: .22em; color: rgba(242,240,234,.8); pointer-events: none; text-shadow: 0 0 8px #000; }
+.ligne { display: block; margin-top: 5px; font: 500 11px/1.3 ui-monospace, Consolas, monospace; letter-spacing: .12em; color: rgba(242,240,234,.55); }
+.retour { position: fixed; right: 14px; top: max(10px, env(safe-area-inset-top)); font: 500 12px Georgia, serif; color: rgba(242,240,234,.6);
+  text-decoration: none; padding: 6px 8px; letter-spacing: .1em; }
+.bas { position: fixed; left: 0; right: 0; bottom: max(18px, env(safe-area-inset-bottom)); display: flex; justify-content: center; pointer-events: none; }
+button { pointer-events: auto; font: 500 14px Georgia, "Times New Roman", serif; letter-spacing: .16em; color: #F2F0EA; background: rgba(15,16,20,.6);
+  border: 1px solid rgba(242,240,234,.55); padding: 12px 24px; border-radius: 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); min-width: 140px; }
+button:active { background: rgba(242,240,234,.18); }
+button[hidden] { display: none; }
+.erreur { position: fixed; left: 12px; right: 12px; top: 60px; color: #F2B8B0; font: 13px ui-monospace, monospace; white-space: pre-wrap; }
+</style></head>
+<body>
+<canvas id="cv"></canvas>
+<div class="titre"><span id="titre"></span><span class="ligne" id="ligne"></span></div>
+<a class="retour" href="index.html">← ATELIER</a>
+<div class="bas"><button id="geste" type="button"></button></div>
+<script>
+/*__COMMUN__*/
+</script>
+<script>
+/*__ETUDE__*/
+</script>
+<script>
+/* Le moteur : une image par rafraîchissement, le doigt, le bouton. */
+(function(){
+  const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), bouton = document.getElementById("geste");
+  const montrerErreur = e => { const p = document.createElement("div"); p.className = "erreur"; p.textContent = "Erreur : " + (e && e.message || e); document.body.appendChild(p); };
+  let m; try { m = window.ETUDE(); } catch (e) { montrerErreur(e); return; }
+  document.getElementById("titre").textContent = m.titre || "";
+  let W = 0, H = 0, D = 1;
+  function dimension(){ D = Math.min(window.devicePixelRatio || 1, m.dprMax || 2); W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W*D); cv.height = Math.round(H*D); ctx.setTransform(D, 0, 0, D, 0, 0); m.taille(W, H, D); }
+  dimension(); addEventListener("resize", dimension);
+  let libelle = null, ligne = null, pire = 0, n = 0;
+  function boucle(){
+    const t0 = performance.now();
+    try { ctx.setTransform(D, 0, 0, D, 0, 0); m.frame(ctx, maintenant()); } catch (e) { montrerErreur(e); return; }
+    const dt = performance.now() - t0; if (++n > 30) pire = Math.max(pire, dt); window.__PIRE = pire;
+    if (m.bouton !== libelle) { libelle = m.bouton; bouton.textContent = libelle || ""; bouton.hidden = !libelle; }
+    if ((m.ligne || "") !== ligne) { ligne = m.ligne || ""; document.getElementById("ligne").textContent = ligne; }
+    requestAnimationFrame(boucle);
+  }
+  bouton.onclick = () => { try { m.geste?.(); } catch (e) { montrerErreur(e); } };
+  let p0 = null, dernier = null;
+  cv.addEventListener("pointerdown", e => { p0 = dernier = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!p0) return; const dx = e.clientX - dernier[0], dy = e.clientY - dernier[1]; dernier = [e.clientX, e.clientY];
+    if (Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) > 8) m.glisse?.(dx, dy); });
+  cv.addEventListener("pointerup", e => { if (p0 && Math.hypot(e.clientX - p0[0], e.clientY - p0[1]) <= 8) m.tap?.(e.clientX, e.clientY); p0 = null; });
+  window.__ETUDE = m;
+  requestAnimationFrame(boucle);
+})();
+</script>
+</body></html>
