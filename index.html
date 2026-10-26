@@ -1179,6 +1179,7 @@ const CATALOGUE=[
     {n:"CUMBRE",       e:"🇪🇸", u:"cumbre/",    d:"espagnol · DELE"},
     {n:"MIFTAH",       e:"🇲🇦", u:"miftah/",    d:"darija & fuṣḥā"},
     {n:"SPUTNIK",      e:"🇷🇺", u:"sputnik/",   d:"russe"},
+    {n:"MANDARIN",     e:"🇨🇳", u:"pointage/mandarin/", d:"chinois · A1 → B1"},
     {n:"L'ARÈNE",      e:"⚔️", u:"arene/",     d:"débat"},
     {n:"LE FACE-À-FACE",e:"🎭", u:"faceaface/", d:"conversations difficiles"},
     {n:"CORTEX",       e:"🧠", u:"cortex/",    d:"pensée & décision"},
@@ -1315,7 +1316,7 @@ const DOMS0=[
   {id:"creation", nom:"Création",          e:"🎸"},
   {id:"autres",   nom:"Autres",            e:"📦"}
 ];
-const DOM_PAR_NOM={"990":"langues",cumbre:"langues",miftah:"langues",sputnik:"langues",lisek:"langues",
+const DOM_PAR_NOM={"990":"langues",cumbre:"langues",mandarin:"langues",miftah:"langues",sputnik:"langues",lisek:"langues",
   leclosing:"carriere",loffensive:"carriere",leface:"carriere",lefaceaface:"carriere",
   forge:"corps",topspin:"corps",shred:"creation",pianodojo:"creation",lacle:"creation",sideman:"creation",
   cortex:"lecture",larene:"lecture"};
@@ -1359,6 +1360,18 @@ function domMigrate(){
   S.tab="maintenant";
   S.mig2="doms1"; S.appsMod=Date.now(); S.domsMod=Date.now();
   save0();
+}
+/* MANDARIN (26/10) : rangé dans Langues, sans compter comme priorité.
+   Une seule fois par appareil ; jamais remis si on l'a supprimé ailleurs. */
+function mandarinMigrate(){
+  if(S.migMandarin) return;
+  const url=BASE+"pointage/mandarin/";
+  const supprime=S.tomb&&S.tomb["app:mandarin"];
+  if(!supprime&&!S.apps.some(a=>a.id==="mandarin"||normName(a.name)==="mandarin"||a.url===url)){
+    S.apps.push({id:"mandarin",name:"MANDARIN",emoji:"🇨🇳",url,cat:"",dom:"langues",since:Date.now()});
+    stOf("mandarin"); S.appsMod=Date.now();
+  }
+  S.migMandarin=1; save0();
 }
 /* Les priorités : une par app qui compte, dans l'ordre des domaines. */
 function rebuildCats(){
@@ -5454,7 +5467,7 @@ applyTheme();
 rollDay();
 chkPrune();
 cad(); acc(); cadPrune(); cfApply(); focusResume();
-domMigrate(); rebuildCats();
+domMigrate(); mandarinMigrate(); rebuildCats();
 render();
 syncSoon(900);
 /* lien direct : …/pointage/#candidatures ouvre le suivi */
