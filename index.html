@@ -1185,6 +1185,13 @@
   .cahecrire-f{color:#5C4E3C} .cahecrire-f a{color:#A8321E}
   .txzone{background:#D9D2C2;color:#14110F;border-color:#B9AF9A;font:italic 17px/27px Georgia,serif;
     background-image:repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.25) 26px 27px);background-attachment:local}
+
+  /* le menu-rouleau */
+  .menu-rouleau{position:relative;margin:10px -12px 0;overflow:hidden}
+  .menu-aide{font:10.5px var(--mono);letter-spacing:.06em;color:var(--faint);text-align:center;margin-top:6px}
+  .dom-rouleau{margin:6px 0 0;padding:12px 12px 10px;border-radius:6px;background:var(--card);border:1px solid var(--line)}
+  .dom-ranger{margin-top:14px} .dom-ranger>summary{cursor:pointer;list-style:none;padding:14px 4px;font:500 12px Georgia,serif;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .dom-ranger>summary::-webkit-details-marker{display:none} .dom-ranger>summary::after{content:" ›"} .dom-ranger[open]>summary::after{content:" ⌄"}
 </style>
 </head>
 <body>
@@ -1197,6 +1204,7 @@
 <script src="atelier/pieces/t2-06-cretes-couleur.js"></script>
 <script src="atelier/pieces/t2-08-enluminure.js"></script>
 <script src="atelier/bibliotheque/monter.js"></script>
+<script src="atelier/bibliotheque/emaki.js"></script>
 <script>
 const KEY="pointage_v1";
 const DEFAULT_APPS=[
@@ -1568,7 +1576,9 @@ function render(){
         ${calGet().at?calHtml():""}
       </div></div>`;
   else if(T==="domaines") corps=`<div class="cols"><div class="col-l">
-        ${domainesHtml()}
+        ${typeof emakiMonter==="function"?`<div class="dom-rouleau"><div class="dbar-h"><span>Le rouleau des apps</span></div><div id="menuDSlot"></div>
+          <div class="menu-aide">glisse · touche une scène pour ouvrir l'app · touche le sceau pour cocher</div></div>
+          <details class="dom-ranger" ${S.domOuvert?"open":""} ontoggle="S.domOuvert=this.open;save0()"><summary>Ranger mes domaines et mes apps</summary>${domainesHtml()}</details>`:domainesHtml()}
       </div><div class="col-r">
         ${candCardHtml()}
         ${workCardHtml()}
@@ -1602,7 +1612,7 @@ function render(){
     ${corps}
     ${tabbarHtml()}
   `;
-  agBind(); cahBind(); mondePoser(); livrePoser();
+  agBind(); cahBind(); mondePoser(); livrePoser(); menusPoser();
   if(keep){
     const el=document.getElementById(keep.id);
     if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} if(keep.id==="agIn") agPreview(); }
@@ -1764,6 +1774,33 @@ function livrePoser(){
     slot.replaceWith(LIVRE_BLOC);
   }catch(e){ console.error(e); slot.remove(); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE MENU-ROULEAU (27/10) — atelier/bibliotheque/emaki.js
+   « J ADORE LES DIFFÉRENTES PARTIES […] menu défilant de droite à gauche avec le doigt et une option de cliquer dessus »
+   Chaque app est une scène d'un rouleau peint : toucher la scène ouvre l'app, toucher le sceau la coche.
+   Une app pas encore faite reste au trait ; cochée, son sceau frappe et la scène se peint.
+   Le rouleau est gardé d'un rendu à l'autre (l'app redessine ses onglets) : on le range, on le remet, on lui donne l'état.
+   ═══════════════════════════════════════════════════════════════════ */
+const MENUS={};
+const SCENE_PAR_NOM={"990":"anglais",cumbre:"cime",mandarin:"chine",lecturedujour:"lecture",leclosing:"sceau",loffensive:"sceau",
+  forge:"dojo",topspin:"dojo",shred:"musique",pianodojo:"musique",lacle:"musique",sideman:"musique",cortex:"tour",larene:"tour"};
+const SCENE_PAR_DOM={langues:"anglais",lecture:"lecture",carriere:"sceau",corps:"dojo",creation:"musique",autres:"jardin"};
+function sceneDe(a){ return SCENE_PAR_NOM[normName(a.name)]||SCENE_PAR_DOM[domOf(a)]||"jardin"; }
+function menuEl(a,nom){ return {id:a.id, nom:nom||a.name, scene:sceneDe(a), fait:doneToday(a.id), serie:streak(a.id), minutes:todayMin(a.id)}; }
+function menuJour(){ return unitsOn(today()).map(c=>{ const a=appsOfCat(c.id)[0]; return a?menuEl(a,a.spec==="lecture"?"Lecture du jour":a.name):null; }).filter(Boolean); }
+function menuTout(){ const ord={}; doms().forEach((d,i)=>ord[d.id]=i);
+  return S.apps.map((a,i)=>[a,i]).filter(([a])=>vivante(a)).sort((x,y)=>(ord[domOf(x[0])]-ord[domOf(y[0])])||(x[1]-y[1])).map(([a])=>menuEl(a,a.spec==="lecture"?"Lecture du jour":a.name)); }
+function menuPoser(cle, slotId, els){
+  const slot=document.getElementById(slotId); if(!slot) return;
+  try{
+    let m=MENUS[cle];
+    if(!m){ const bloc=document.createElement("div"); bloc.className="menu-rouleau"; slot.replaceWith(bloc);
+      MENUS[cle]={bloc, menu:emakiMonter(bloc, els, { onOuvrir:el=>openById(el.id), onCocher:el=>onCheck(el.id) })}; return; }
+    slot.replaceWith(m.bloc); m.menu.maj(els);
+  }catch(e){ console.error(e); slot.remove(); }
+}
+function menusPoser(){ if(typeof emakiMonter!=="function") return; menuPoser("J","menuJSlot",menuJour()); menuPoser("D","menuDSlot",menuTout()); }
 /* sous la pièce : tes priorités, à cocher pour de vrai (le geste qui fait avancer le monde) */
 function dayBarHtml(){
   const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
@@ -1775,10 +1812,11 @@ function dayBarHtml(){
     :(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
   return `<div class="dbar ${tout?"tout":""}">
     <div class="dbar-h"><span>${tout?"Journée bouclée":"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
-    <div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
+    ${typeof emakiMonter==="function"?`<div id="menuJSlot"></div><div class="menu-aide">glisse le rouleau · touche une scène pour l'ouvrir · touche le sceau pour cocher</div>`
+    :`<div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
       return `<div class="dcoche ${ok?"on":""}" style="--c:${col}">
         <button class="dcoche-b" onclick="onCheck('${a?a.id:""}')" role="checkbox" aria-checked="${ok}" aria-label="${esc(c.nom)} : fait aujourd'hui"><i></i></button>
-        <button class="dcoche-n" onclick="openById('${a?a.id:""}')">${esc(c.nom)}</button></div>`; }).join("")}</div>
+        <button class="dcoche-n" onclick="openById('${a?a.id:""}')">${esc(c.nom)}</button></div>`; }).join("")}</div>`}
     ${note}
   </div>`;
 }
