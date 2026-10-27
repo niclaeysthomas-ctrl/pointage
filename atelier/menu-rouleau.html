@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Le Menu-Rouleau</title>
+<style>
+  /* La page de démonstration du menu-rouleau : le fond d'encre du Pointage, la typographie de La Voûte (P4). */
+  html, body {
+    margin: 0;
+    background: #0F1014;
+    color: #F2F0EA;
+  }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    min-height: 100vh;
+  }
+  header {
+    padding: max(22px, env(safe-area-inset-top)) 16px 14px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  h1 {
+    margin: 0;
+    font-weight: 500;
+    font-size: 15px;
+    letter-spacing: .26em;
+  }
+  .sous {
+    margin-top: 6px;
+    font: 500 11px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: .1em;
+    color: rgba(242, 240, 234, .55);
+  }
+  #menu {
+    width: 100%;
+    margin: 6px 0 0;
+  }
+  .etat {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 14px 16px 0;
+    min-height: 40px;
+  }
+  .etat .titre {
+    font-size: 12px;
+    letter-spacing: .22em;
+    color: rgba(242, 240, 234, .8);
+  }
+  #ligne {
+    margin-top: 6px;
+    font: 500 11px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: .12em;
+    color: rgba(242, 240, 234, .6);
+  }
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 26px 16px 80px;
+  }
+  main h2 {
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: .24em;
+    color: rgba(242, 240, 234, .75);
+    margin: 30px 0 10px;
+  }
+  main p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(242, 240, 234, .72);
+    margin: 0 0 12px;
+  }
+  .note {
+    font: 500 11px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    letter-spacing: .06em;
+    color: rgba(242, 240, 234, .45);
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>LE POINTAGE</h1>
+  <div class="sous">mardi 27 octobre · le rouleau des apps</div>
+</header>
+
+<div id="menu"></div>
+
+<div class="etat">
+  <div class="titre" id="compte">TA JOURNÉE</div>
+  <div id="ligne" role="status" aria-live="polite">glisser le rouleau · toucher une scène pour l'ouvrir · toucher le sceau pour cocher</div>
+</div>
+
+<main>
+  <h2>LECTURE DU JOUR</h2>
+  <p>Le rouleau se lit de droite à gauche : on le tire du doigt, il garde son élan, puis une scène se cale au centre.
+     Une app pas encore faite est un dessin au trait ; touchée au sceau, elle se peint.</p>
+  <p>Ce texte est là pour vérifier que le défilement vertical de la page reste libre quand le doigt passe sur le rouleau.</p>
+  <h2>LE CARNET</h2>
+  <p>Au clavier : Tab pour entrer dans le rouleau, les flèches pour passer d'une scène à l'autre, Entrée pour ouvrir,
+     Espace pour cocher.</p>
+  <p class="note">bibliotheque/emaki.js · emakiMonter(conteneur, elements, { onOuvrir, onCocher })</p>
+  <p style="height: 600px"></p>
+</main>
+
+<script src="bibliotheque/commun.js"></script>
+<script src="bibliotheque/emaki.js"></script>
+<script>
+  /* neuf apps fictives, à la forme des vraies */
+  let apps = [
+    { id: "990",      nom: "990",             fait: true,  serie: 12, minutes: 20 },
+    { id: "cumbre",   nom: "CUMBRE",          fait: true,  serie: 11, minutes: 20 },
+    { id: "mandarin", nom: "MANDARIN",        fait: false, serie: 4,  minutes: 0 },
+    { id: "lecture",  nom: "Lecture du jour", fait: false, serie: 9,  minutes: 0 },
+    { id: "closing",  nom: "LE CLOSING",      fait: true,  serie: 3,  minutes: 30 },
+    { id: "forge",    nom: "FORGE",           fait: false, serie: 6,  minutes: 0 },
+    { id: "shred",    nom: "SHRED",           fait: false, serie: 2,  minutes: 0 },
+    { id: "piano",    nom: "Piano Dojo",      fait: true,  serie: 5,  minutes: 15 },
+    { id: "cortex",   nom: "CORTEX",          fait: false, serie: 1,  minutes: 0, scene: "tour", sceau: "智" }
+  ];
+  const MINUTES = { "990": 20, cumbre: 20, mandarin: 15, lecture: 12, closing: 30, forge: 25, shred: 20, piano: 15, cortex: 10 };
+  const ligne = document.getElementById("ligne"), compte = document.getElementById("compte");
+
+  function majCompte(){
+    const n = apps.filter(a => a.fait).length;
+    compte.textContent = `TA JOURNÉE · ${n} SUR ${apps.length}`;
+  }
+
+  const menu = emakiMonter(document.getElementById("menu"), apps, {
+    onOuvrir(el){
+      ligne.textContent = "ouvrir " + el.nom;
+    },
+    onCocher(el){
+      apps = apps.map(a => a.id !== el.id ? a : {
+        ...a,
+        fait: !a.fait,
+        serie: a.fait ? a.serie - 1 : a.serie + 1,
+        minutes: a.fait ? 0 : MINUTES[a.id]
+      });
+      menu.maj(apps);
+      const a = apps.find(q => q.id === el.id);
+      ligne.textContent = a.fait ? `${a.nom} · fait · série ${a.serie} j` : `${a.nom} · décoché`;
+      majCompte();
+    }
+  });
+  majCompte();
+  window.MENU = menu;
+</script>
+</body>
+</html>
