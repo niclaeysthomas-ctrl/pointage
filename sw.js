@@ -1,5 +1,5 @@
 // LE POINTAGE — service worker : network-first, repli cache (100 % hors-ligne)
-const CACHE = "pointage-v60-enluminure";
+const CACHE = "pointage-v61-mandarin-caracteres";
 const ASSETS = ["./", "./index.html", "./coffre.html", "./lectures.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./mandarin/", "./atelier/bibliotheque/commun.js", "./atelier/bibliotheque/monter.js", "./atelier/pieces/t2-06-cretes-couleur.js", "./atelier/pieces/t2-08-enluminure.js"];
 
 self.addEventListener("install", e => {
