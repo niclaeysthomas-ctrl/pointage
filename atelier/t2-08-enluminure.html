@@ -145,7 +145,7 @@ function etude_enluminure(donnees){   // donnees : propres à cette page (l'app 
     const ext = H > 560, top = ext ? max(58, H * .075) : H * .055 + 8, bot = H - (ext ? max(78, H * .105) : H * .05 + 8);
     const e = max(7, min(W, H) * .03), mL = max(W * .22, 64), xR = W - max(W * .07, 22), avail = bot - top;
     let L = null;
-    for (let fs = min(15, W / 25); fs >= 6; fs -= .25){
+    for (let fs = max(6, min(15, W / 25)); fs >= 6; fs -= .25){   // au moins un essai, même dans un bloc très étroit (sinon L restait vide)
       const lh = fs * 1.45, s = lh * 3 - fs * .3, bx = mL - s * .22, ind = bx + s + fs * .6;
       const paras = D.textes.map(tx => couper(tx.slice(1), j => j < 4 ? xR - ind : xR - mL, fs));
       const headH = lh * 2.3, gapMin = lh * 1.05;
