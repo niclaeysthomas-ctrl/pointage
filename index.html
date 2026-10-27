@@ -1166,6 +1166,25 @@
   .livre-frise button.or{border-color:#C9A44A}
   .livre-frise button.or i{background:linear-gradient(180deg,#F0D78A,#B8862E);opacity:1}
   .livre-frise button.sel{outline:2px solid var(--ink);outline-offset:1px}
+
+  /* le scriptorium : vélin, réglure, encre noire, rubrique rouge, lettrine d'or */
+  .txrow.velin{background:#D9D2C2;border:1px solid #B9AF9A;border-radius:3px;margin:10px 0 0;padding:14px 16px 12px;color:#14110F;
+    background-image:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.55),transparent 60%),radial-gradient(60% 50% at 85% 90%,rgba(120,95,60,.18),transparent 70%),
+      repeating-linear-gradient(180deg,transparent 0 23px,rgba(150,120,90,.18) 23px 24px);box-shadow:inset 0 0 22px rgba(90,70,40,.22)}
+  .txrow.velin span{color:#5C4E3C} .txrow.velin em{color:#A8321E;border-color:rgba(168,50,30,.45)}
+  .txrow.velin b{color:#A8321E;font:500 13px Georgia,serif;letter-spacing:.16em;text-transform:uppercase;margin-top:6px}
+  .txrow.velin p{margin:8px 0 0;font:italic 15.5px/24px Georgia,serif;color:#14110F;overflow:hidden}
+  .lettrine{float:left;font:700 34px/1 Georgia,serif;font-style:normal;color:var(--pig);width:44px;height:44px;margin:3px 10px 0 0;display:grid;place-items:center;
+    background:linear-gradient(135deg,#F6E3A0 0%,#C9973A 38%,#F3D98A 55%,#9C6B22 100%);border:1.5px solid #2A1E12;
+    box-shadow:inset 0 0 0 2px rgba(255,240,200,.5),inset 0 0 8px rgba(80,50,10,.5);text-shadow:0 1px 0 rgba(255,245,220,.6)}
+  .cahecrire{background:#D9D2C2;border-color:#B9AF9A;color:#14110F;
+    background-image:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.5),transparent 60%),repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.22) 26px 27px)}
+  .cahecrire label{color:#A8321E;font-family:Georgia,serif;letter-spacing:.16em}
+  .cahecrire textarea{color:#14110F;font:italic 17px/27px Georgia,serif}
+  .cahecrire textarea::placeholder{color:#7A6C58}
+  .cahecrire-f{color:#5C4E3C} .cahecrire-f a{color:#A8321E}
+  .txzone{background:#D9D2C2;color:#14110F;border-color:#B9AF9A;font:italic 17px/27px Georgia,serif;
+    background-image:repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.25) 26px 27px);background-attachment:local}
 </style>
 </head>
 <body>
@@ -5498,8 +5517,14 @@ function txDate(x){ const d=x.d||today(); if(d===today()) return "aujourd'hui"; 
 function txDuJour(){ return lir().textes.find(x=>!x.del&&x.auto&&x.d===today())||null; }
 function lecDuJour(){ const L=lir(); if(L.jour&&L.jour.d===today()) return lecs().find(a=>a.id===L.jour.id)||null; return lecNext(); }
 function cahSeg(k){ S.cahSeg=k; save0(); render(); window.scrollTo({top:0}); }
-function txRow(x){ const ex=String(x.txt||"").replace(/\s+/g," ").trim();
-  return `<button class="txrow" onclick="texteEdit('${x.id}')"><span><em>${txTag(x)}</em>${txDate(x)}</span><b>${esc(txTitre(x))}</b>${ex&&ex!==txTitre(x)?`<small>${esc(ex.length>120?ex.slice(0,120)+"…":ex)}</small>`:""}</button>`; }
+/* LE SCRIPTORIUM (27/10) : chaque texte est une page de vélin, son titre en rubrique rouge, son début
+   ouvert par une lettrine d'or ; la couleur de la lettrine suit le thème (philo lapis, lecture vermillon, idée vert-de-gris). */
+const TX_PIG={philo:"#22408F", lecture:"#B8321E", idee:"#22785F", libre:"#4A3A6B"};
+function txRow(x){ const ex=String(x.txt||"").replace(/\s+/g," ").trim(), corps=ex&&ex!==txTitre(x)?ex:"", l=(corps||txTitre(x)).charAt(0)||"·";
+  const reste=(corps||"").slice(1);
+  return `<button class="txrow velin" style="--pig:${TX_PIG[x.tag]||TX_PIG.libre}" onclick="texteEdit('${x.id}')">
+    <span><em>${txTag(x)}</em>${txDate(x)}</span><b>${esc(txTitre(x))}</b>
+    ${corps?`<p><i class="lettrine">${esc(l)}</i>${esc(reste.length>180?reste.slice(0,180)+"…":reste)}</p>`:""}</button>`; }
 function cahierHtml(){
   const k=S.cahSeg||"auj", seg=(id,l)=>`<button class="${k===id?"on":""}" onclick="cahSeg('${id}')">${l}</button>`;
   let h=`<div class="cahseg">${seg("auj","Aujourd'hui")}${seg("textes","Mes textes")}${seg("lire","À lire")}</div>`;
