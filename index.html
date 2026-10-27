@@ -1149,6 +1149,23 @@
   .ktabs .kl{font-family:Georgia,serif;text-transform:uppercase;letter-spacing:.12em;font-size:9.5px;font-weight:500}
   .dom,.dbar,.kco,.dmin,.dliens,.cahbloc,.cahecrire,.kjp,.agcard,.kcal,.ccard,.kwork,.ktips,.kpts,.kchain{border-radius:6px}
   .dnom b,.kco-now b,.txrow b{font-family:Georgia,serif;letter-spacing:.02em}
+
+  /* le Livre des jours */
+  .livre{margin:14px 0 0;padding:12px 12px 10px;border-radius:6px;background:var(--card);border:1px solid var(--line)}
+  .livre-h{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px 10px}
+  .livre-h b{font:500 13px Georgia,serif;letter-spacing:.16em;text-transform:uppercase}
+  .livre-h span{font:11px var(--mono);letter-spacing:.06em;color:var(--muted)}
+  .livre-page{position:relative;height:520px;border-radius:3px;overflow:hidden;background:#cfc8b8}
+  .livre-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+  .livre-nav span{font:500 12px Georgia,serif;letter-spacing:.14em;text-transform:uppercase;text-align:center;flex:1}
+  .livre-nav button{width:44px;height:44px;border:1px solid var(--line2);border-radius:3px;background:none;color:var(--ink);font:20px Georgia,serif;cursor:pointer}
+  .livre-nav button:disabled{opacity:.3;cursor:default}
+  .livre-frise{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px;margin-top:10px}
+  .livre-frise button{height:26px;border:1px solid var(--line2);border-radius:2px;background:none;padding:0;cursor:pointer;position:relative;overflow:hidden}
+  .livre-frise i{position:absolute;left:0;right:0;bottom:0;height:calc(var(--p)*100%);background:var(--muted);opacity:.5}
+  .livre-frise button.or{border-color:#C9A44A}
+  .livre-frise button.or i{background:linear-gradient(180deg,#F0D78A,#B8862E);opacity:1}
+  .livre-frise button.sel{outline:2px solid var(--ink);outline-offset:1px}
 </style>
 </head>
 <body>
@@ -1540,6 +1557,7 @@ function render(){
       </div></div>`;
   else if(T==="cahier") corps=cahierHtml();
   else corps=`<div class="cols"><div class="col-l">
+        ${livreHtml()}
         ${ptsHtml()}
         ${chainHtml()}
         ${domMinHtml()}
@@ -1565,7 +1583,7 @@ function render(){
     ${corps}
     ${tabbarHtml()}
   `;
-  agBind(); cahBind(); mondePoser();
+  agBind(); cahBind(); mondePoser(); livrePoser();
   if(keep){
     const el=document.getElementById(keep.id);
     if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} if(keep.id==="agIn") agPreview(); }
@@ -1584,7 +1602,9 @@ function render(){
    la dernière déclenche le seuil. Le bloc est gardé d'un rendu à l'autre
    (l'app redessine ses onglets en entier) : on le range, puis on le remet.
    ═══════════════════════════════════════════════════════════════════ */
-let MONDE=null, MONDE_BLOC=null, MONDE_CLE="", MONDE_SEUIL=null;
+let MONDE=null, MONDE_BLOC=null, MONDE_CLE="", MONDE_SEUIL=null, MONDE_RECIT="";
+document.addEventListener("visibilitychange",()=>{ if(document.hidden||!MONDE) return;
+  try{ if(JSON.stringify(mondeRecit(today()).textes)!==MONDE_RECIT){ MONDE_CLE="#"; render(); } }catch(e){} });
 /* La pièce : L'Enluminure (5/5 au tour 2) quand il y a quatre priorités — elle a quatre lettrines ;
    sinon Les Crêtes en couleur (4/5), qui s'adaptent à n'importe quel nombre. */
 function mondePiece(n){
@@ -1592,12 +1612,58 @@ function mondePiece(n){
   return {id:"cretes", fab:etude_cretesc, donnees:etude_cretesc_DONNEES};
 }
 function mondeSlotHtml(){ return typeof monterPiece==="function"&&typeof etude_cretesc==="function"?`<div id="mondeSlot"></div>`:""; }
+/* ─── LE RÉCIT DU JOUR (27/10) : les paragraphes de la page racontent ta vraie journée ───
+   Chaque paragraphe commence par la lettre de sa lettrine (la pièce la retire du texte et l'enlumine).
+   Le texte est celui du jour d (aujourd'hui, ou un jour passé pour le Livre des jours) : minutes réelles,
+   série réelle, lecture lue ce jour-là, candidatures envoyées. Fait ou pas fait : le ton change. */
+const RANG=["","première","deuxième","troisième","quatrième","cinquième","sixième","septième","huitième","neuvième","dixième","onzième","douzième","treizième","quatorzième","quinzième","seizième","dix-septième","dix-huitième","dix-neuvième","vingtième"];
+function rangFr(n){ return RANG[n]||(n+"e"); }
+function serieAu(cid,d){ let n=0, x=d; while(catDoneDay(cid,x)){ n++; x=dayShift(x,-1); } return n; }
+function minDu(cid,d){ return Math.round(appsOfCat(cid).reduce((a,x)=>a+(stOf(x.id).min[d]||0),0)); }
+function lectureDu(d){ try{ const L=lir(), id=Object.keys(L.lus||{}).find(k=>L.lus[k]===d); const a=id?lecs().find(x=>x.id===id):null;
+  if(a) return {titre:a.titre, lue:true}; if(d===today()){ const n=lecDuJour(); return n?{titre:n.titre, lue:false}:null; } }catch(e){} return null; }
+/* aujourd'hui : un texte qui ne change pas quand on coche (la page n'est pas refaite à chaque coche) :
+   le but du jour et la série jusqu'à hier. Les jours passés racontent ce qui a été fait. */
+function recitAuj(c){
+  const d=today(), k=normName(c.nom), sr=serieAu(c.id,dayShift(d,-1)), s=sr?` ; ${sr} jour${sr>1?"s":""} de suite jusqu'à hier`:"";
+  if(k==="990") return `Neuf cent nonante points, c'est la mesure de l'épreuve des Anglois. Vingt minutes d'oreille tendue ce jour, et les mots manqués notés en marge${s}.`;
+  if(k==="cumbre") return `Cumbre veut dire la cime, en la langue d'Espagne. Une marche à gravir ce jour : lire à voix haute, conjuguer, retenir trois mots${sr?` ; ${sr} marche${sr>1?"s":""} déjà sous les pieds`:""}.`;
+  if(k==="lecture"){ const l=lectureDu(d); return `Lecture d'un seul texte des philosophes${l?` : « ${l.titre} »`:""}, lu deux fois, la seconde plume en main, et la phrase qui demeure copiée au cahier${s}.`; }
+  if(k==="leclosing") return `Fusions et acquisitions sont le métier du Closing : peser une maison de commerce, lire ses comptes, mener la négociation jusqu'au sceau${s}.`;
+  const nom=c.nom.charAt(0).toUpperCase()+c.nom.slice(1);
+  return `${nom} : l'ouvrage du jour, fait avec soin, noté le soir${s}.`;
+}
+function recitDu(c,d){
+  if(d===today()) return recitAuj(c);
+  const k=normName(c.nom), fait=catDoneDay(c.id,d), m=minDu(c.id,d), sr=fait?serieAu(c.id,d):serieAu(c.id,dayShift(d,-1)), passe=d<today();
+  const duree=m?(m+" minutes"):"une séance";
+  if(k==="990") return fait
+    ? `Neuf cent nonante points, c'est la mesure de l'épreuve des Anglois. Ce jour, ${duree} d'anglais, la ${rangFr(sr)} journée de suite : l'escholier a tendu l'oreille et répondu au maître sans hâte.`
+    : `Neuf cent nonante points, c'est la mesure de l'épreuve des Anglois. ${passe?"Ce jour-là, l'anglais est resté muet":"L'anglais attend encore son heure"}${sr?` ; la série de ${sr} jour${sr>1?"s":""} ${passe?"s'est arrêtée là":"tient à ce fil"}`:""}.`;
+  if(k==="cumbre") return fait
+    ? `Cumbre veut dire la cime, en la langue d'Espagne. Ce jour, ${duree} d'espagnol : la marche ${sr>1?"n° "+sr:"première"} est gravie, et l'épreuve du DELE est plus proche d'autant.`
+    : `Cumbre veut dire la cime, en la langue d'Espagne. ${passe?"Ce jour-là, nulle marche ne fut gravie":"La marche du jour n'est pas encore gravie"}${sr?` ; ${sr} marche${sr>1?"s":""} déjà sous les pieds`:""}.`;
+  if(k==="lecture"){ const l=lectureDu(d);
+    return fait
+      ? `Lecture du jour${l?` : « ${l.titre} »`:""}, lue deux fois, la seconde plume en main${sr>1?`, ${sr} jours que le lecteur ne manque pas sa page`:""}. La phrase qui demeure est copiée au cahier.`
+      : `Lecture d'un seul texte des philosophes${l?` : « ${l.titre} »`:""}, ${passe?"resté fermé ce jour-là":"qui attend son lecteur"}. Deux lectures, la seconde plume en main, et une ligne au cahier.`; }
+  if(k==="leclosing"){ const n=cOn(d);
+    return fait
+      ? `Fusions et acquisitions sont le métier du Closing. Ce jour, ${duree} à peser maisons et dettes${n?`, et ${n} lettre${n>1?"s":""} de candidature parti${n>1?"es":"e"} au courrier`:""} : rien laissé au hasard.`
+      : `Fusions et acquisitions sont le métier du Closing : peser une maison de commerce, lire ses comptes, mener la négociation jusqu'au sceau. ${passe?"Ce jour-là, le comptoir resta clos":"Le comptoir attend"}${n?`, mais ${n} candidature${n>1?"s":""} partie${n>1?"s":""}`:""}.`; }
+  const nom=c.nom.charAt(0).toUpperCase()+c.nom.slice(1);
+  return fait ? `${nom} : ${duree} ce jour, la ${rangFr(sr)} journée de suite. L'ouvrage avance d'un pas, et le pas est noté.`
+    : `${nom} : ${passe?"rien ce jour-là":"l'ouvrage du jour attend encore"}${sr?` ; ${sr} jour${sr>1?"s":""} de suite ${passe?"avant":"jusqu'ici"}`:""}.`;
+}
+function mondeRecit(d){ const AC=unitsOn(d); const textes=AC.map(c=>recitDu(c,d)); return {textes, lettres:textes.map(x=>x.charAt(0).toUpperCase())}; }
 function mondeDonnees(){
   const t=today(), AC=unitsOn(t), ch=chaine();
   const jours=[]; for(let k=28;k>=1;k--){ const d=dayShift(t,-k); jours.push(AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0)); }
   /* une page neuve chaque jour : la graine vient de la date ; la date et le folio (le jour de l'année) sont les vrais */
   const dt=new Date(t+"T12:00:00"), jan=new Date(dt.getFullYear(),0,1), quant=Math.floor((dt-jan)/864e5)+1;
-  return { priorites:AC.map(c=>({nom:c.nom, min:20, serie:catStreak(c.id)})), jours,
+  const RC=mondeRecit(t);
+  return { priorites:AC.map(c=>({nom:c.nom, min:minDu(c.id,t)||20, serie:catStreak(c.id), domaine:((domDef(domOf(appsOfCat(c.id)[0]))||{}).nom)||""})), jours,
+    textes:RC.textes, lettres:RC.lettres,
     graine:Number(t.replace(/-/g,""))%100003, jour:dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}), folio:"f. "+quant+" r°",
     chaine:Math.max(0,ch.n-(ch.todayOk?1:0)), aujourdhui:AC.map((c,i)=>catDone(c.id)?i:-1).filter(i=>i>=0) };
 }
@@ -1610,8 +1676,8 @@ function mondePoser(){
       if(MONDE) MONDE.arreter();
       MONDE_BLOC=document.createElement("div"); MONDE_BLOC.className="monde monde-"+PC.id; MONDE_CLE=cle;
       slot.replaceWith(MONDE_BLOC);
-      const D=mondeDonnees();
-      MONDE=monterPiece(MONDE_BLOC, PC.fab, {donnees:PC.donnees, avec:D});
+      const D=mondeDonnees(); MONDE_RECIT=JSON.stringify(D.textes);
+      MONDE=PC.id==="enluminure"?monterPiece(MONDE_BLOC, ()=>etude_enluminure(D)):monterPiece(MONDE_BLOC, PC.fab, {donnees:PC.donnees, avec:D});
       if(PC.id==="enluminure") MONDE.piece.etat(D.aujourdhui,false);
       if(D.aujourdhui.length===AC.length) MONDE.piece.etat(D.aujourdhui,true);   // déjà bouclée en ouvrant : l'état final, sans rejouer
       return;
@@ -1629,6 +1695,55 @@ function mondeSync(){
   ont.filter(i=>!faits.includes(i)).forEach(i=>P.retirer(i));
   clearTimeout(MONDE_SEUIL);
   if(faits.length===AC.length&&!P.boucle()) MONDE_SEUIL=setTimeout(()=>{ if(MONDE&&!MONDE.piece.boucle()) MONDE.piece.boucler(); },2600);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LE LIVRE DES JOURS (27/10) — dans Progrès
+   Chaque jour passé a sa page enluminée : la même pièce que Maintenant,
+   rejouée avec les données de CE jour-là (sa graine, sa date, son folio,
+   ses priorités faites, son récit). Un jour plein est doré et sa miniature
+   peinte ; un jour manqué reste au crayon. On feuillette avec ‹ ›, ou on
+   touche un jour dans la frise des 28 derniers jours.
+   ═══════════════════════════════════════════════════════════════════ */
+let LIVRE=null, LIVRE_BLOC=null, LIVRE_CLE="", LIVRE_J=null;
+function livreDispo(){ return typeof monterPiece==="function"&&typeof etude_enluminure==="function"&&unitsOn(today()).length===4; }
+function livreJour(){ if(!LIVRE_J) LIVRE_J=dayShift(today(),-1); return LIVRE_J; }
+function livreDonnees(d){
+  const AC=unitsOn(d), dt=new Date(d+"T12:00:00"), jan=new Date(dt.getFullYear(),0,1), quant=Math.floor((dt-jan)/864e5)+1, RC=mondeRecit(d);
+  let n=0, x=dayShift(d,-1); while(dayOk(x)&&n<400){ n++; x=dayShift(x,-1); }
+  return { priorites:AC.map(c=>({nom:c.nom, min:minDu(c.id,d)||20, serie:serieAu(c.id,d), domaine:((domDef(domOf(appsOfCat(c.id)[0]))||{}).nom)||""})),
+    graine:Number(d.replace(/-/g,""))%100003, jour:dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}), folio:"f. "+quant+" r°",
+    chaine:n, textes:RC.textes, lettres:RC.lettres, faits:AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0) };
+}
+function livreHtml(){
+  if(!livreDispo()) return "";
+  const d=livreJour(), t=today(), AC=unitsOn(d), f=AC.filter(c=>catDoneDay(c.id,d)).length;
+  const lbl=new Date(d+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  const frise=Array.from({length:28},(_,k)=>dayShift(t,-(28-k))).map(x=>{ const n=unitsOn(x).filter(c=>catDoneDay(c.id,x)).length, N=unitsOn(x).length||4;
+    return `<button class="${dayOk(x)?"or":n?"part":""} ${x===d?"sel":""}" onclick="livreAller('${x}')" aria-label="${x} : ${n} sur ${N}"><i style="--p:${n/N}"></i></button>`; }).join("");
+  return `<section class="livre">
+    <div class="livre-h"><b>Le Livre des jours</b><span>${f} sur ${AC.length}${dayOk(d)?" · page dorée":""}</span></div>
+    <div id="livreSlot"></div>
+    <div class="livre-nav"><button onclick="livreAller(dayShift(livreJour(),-1))" aria-label="Jour précédent">‹</button><span>${esc(lbl)}</span>
+      <button onclick="livreAller(dayShift(livreJour(),1))" ${dayShift(d,1)>=t?"disabled":""} aria-label="Jour suivant">›</button></div>
+    <div class="livre-frise">${frise}</div>
+  </section>`;
+}
+function livreAller(d){ if(d>=today()) return; LIVRE_J=d; render(); }
+function livrePoser(){
+  const slot=document.getElementById("livreSlot"); if(!slot) return;
+  try{
+    const d=livreJour(), cle=d+"|"+unitsOn(d).map(c=>c.id).join(",");
+    if(!LIVRE||cle!==LIVRE_CLE){
+      if(LIVRE) LIVRE.arreter();
+      LIVRE_BLOC=document.createElement("div"); LIVRE_BLOC.className="livre-page"; LIVRE_CLE=cle; slot.replaceWith(LIVRE_BLOC);
+      const D=livreDonnees(d);
+      LIVRE=monterPiece(LIVRE_BLOC, ()=>etude_enluminure(D));
+      LIVRE.piece.etat(D.faits, D.faits.length===4);
+      return;
+    }
+    slot.replaceWith(LIVRE_BLOC);
+  }catch(e){ console.error(e); slot.remove(); }
 }
 /* sous la pièce : tes priorités, à cocher pour de vrai (le geste qui fait avancer le monde) */
 function dayBarHtml(){

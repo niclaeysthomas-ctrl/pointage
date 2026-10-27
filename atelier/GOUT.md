@@ -91,3 +91,32 @@ Ce qu'il a vu ailleurs et aimé : la pièce d'Eliodor « Le Sutra d'or » (carac
 | B6 | La lumière colorée projetée au sol | La Rosace | « j'adore l'ombre » |
 | B7 | Le style japonais (cartouches, sceaux, composition) | L'Estampe | « j'adore le style japonais » |
 | B8 | Une couleur par priorité, dans le relevé du mois | Les Crêtes en couleur | « C'est mieux ! super » |
+
+## Strate du tour 3 · 26-27/10 · quatre pièces ; L'Enluminure posée dans Maintenant
+
+| Pièce | Note | Ses mots, tels quels |
+|---|---|---|
+| La Pierre des langues (explosion) | 3/5 | « Mieux avec l'explosion mais change les messages après explosion par exemple "Merci !" Ou un truc dans le style et enlève les lignes bizarres au centre » |
+| La Rosace (sans mur) | 4/5 | « Super ! Mais on peut faire mieux sur l'animation à "boucler" à la toute fin, je crois, sois ambitieux » |
+| L'Estampe (nette) | 2/5 | « Je n'aime pas les formes, l'animation n'est pas assez ambitieuse, limite quelque chose qui passe de dessins comme tu essaies de faire à quelque chose de réaliste et d'impressionnant à la fin, la vague sort du tableau » |
+| Le Rouleau (neuve) | 4/5 | « J ADORE LES DIFFÉRENTES PARTIES tu pourrais limite dans le menu principal de l'app à la place d'avoir cumbre / … ça et closing mettre ça comme menu défilant de droite à gauche avec le droit et une option de cliquer dessus ? Sinon, j'aime beaucoup le déroulé vraiment et je pense en revanche que tu peux vraiment faire bien mieux pour la conclusion » |
+
+Le lendemain matin (27/10, 08:48), sur l'app en ligne : « j'aime beaucoup le fait d'avoir des animations et ça casse le côté terne alors prend en compte mes idées plus haut sur le menu déroulant type japonaise pour remplacer Cumbre 990 truc chinois et tout.. »
+(« truc chinois » = l'app MANDARIN, rangée dans Langues.) Et la veille, sur les six idées proposées : « Toutes tes idées me plaisent ! Commence par la première et enchaîne sur les autres ».
+
+## Les lois, après le tour 3
+
+- **P18. Les scènes du rouleau deviennent l'interface.** « J ADORE LES DIFFÉRENTES PARTIES » ; les mettre « dans le menu principal […] comme menu défilant de droite à gauche », qu'on fait glisser au doigt et sur lesquelles on clique : chaque app (990, CUMBRE, MANDARIN, LE CLOSING…) devient une scène peinte d'un rouleau horizontal.
+- **P19. Le seuil doit être ambitieux.** Trois fois : « sois ambitieux » (Rosace), « pas assez ambitieuse » (Estampe), « tu peux vraiment faire bien mieux pour la conclusion » (Rouleau). Le seuil est le moment le plus travaillé de la pièce, pas une couche de plus.
+- **P20. Le seuil peut changer de nature.** « passe de dessins […] à quelque chose de réaliste et d'impressionnant à la fin, la vague sort du tableau » : la pièce peut commencer en dessin et finir en réalité ; l'image peut sortir de son cadre.
+- **P21. Ce qui reste à la fin parle à Thomas.** « change les messages après explosion par exemple "Merci !" » : le texte final est un mot humain, pas la maxime technique.
+- **P22. Rien de mystérieux au centre.** « enlève les lignes bizarres au centre » (les fils de traduction de la Pierre) : un trait dont on ne comprend pas le rôle gêne.
+- **P23. L'animation casse le terne.** « j'aime beaucoup le fait d'avoir des animations et ça casse le côté terne » : l'app doit bouger, partout où c'est possible.
+
+## Briques (ajouts du tour 3)
+
+| # | Brique | Source | Ses mots |
+|---|---|---|---|
+| B9 | Les scènes peintes d'un rouleau, une par activité | Le Rouleau | « J ADORE LES DIFFÉRENTES PARTIES » |
+| B10 | Le déroulé (le rouleau qui se déroule) | Le Rouleau | « j'aime beaucoup le déroulé vraiment » |
+| B11 | L'explosion de la matière | La Pierre | « Mieux avec l'explosion » |

@@ -31,9 +31,9 @@ const etude_enluminure_DONNEES = Object.assign({
   miniature: { titre: "La tour des jours", note: "ici la tour des jours" }
 }, JOURNEE);
 
-function etude_enluminure(){
+function etude_enluminure(donnees){   // donnees : propres à cette page (l'app en ouvre deux : aujourd'hui, et un jour du Livre)
   const { PI, abs, atan2, ceil, cos, exp, floor, hypot, log, max, min, pow, round, sin, sqrt } = Math;
-  const D = etude_enluminure_DONNEES, P = D.priorites;
+  const D = donnees ? Object.assign({}, etude_enluminure_DONNEES, donnees) : etude_enluminure_DONNEES, P = D.priorites;
   const LAPIS = [30,58,148], VERMIL = [204,56,30], VERDET = [36,132,108], ENCRE = [22,18,16], INK = [14,12,11],   // encre noire franche (tour 2 : « écriture noire foncé »)
    
     OR_S = [112,80,28], OR_C = [255,238,180], OR_P = [208,162,60], PIERRE = [212,206,194], GRAPH = [66,66,72], BLANC_P = [255,250,236];
@@ -551,7 +551,9 @@ function etude_enluminure(){
   M.boucler = () => { if (tS === null && anim.every(a => a !== null)){ tS = maintenant(); etape = 5; textes(); } };
   M.faits = () => [0, 1, 2, 3].filter(i => anim[i] !== null);
   M.boucle = () => tS !== null;
-  M.taille = (w, h, dpr) => { W = w; H = h; DPR = dpr || 1; batir(true); aller(etape); };
+  // la taille change (ou se pose) : on refait la page en gardant les lettrines faites, quelles qu'elles soient
+  // (avant : aller(etape) rendait « les n premières », et l'app qui posait N et F se retrouvait avec N et C)
+  M.taille = (w, h, dpr) => { W = w; H = h; DPR = dpr || 1; const f = [0, 1, 2, 3].filter(i => anim[i] !== null), b = tS !== null; batir(true); etat(f, b); };
   M.frame = frame;
   M.geste = (i) => { if (i !== undefined) return M.faire(i); const t = maintenant(); if (t - dernierGeste < 900) return; dernierGeste = t;
     if (etape >= 5){ seed += 7; batir(false); aller(0); return; }
