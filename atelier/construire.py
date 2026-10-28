@@ -12,7 +12,7 @@ COMMUN = lire(os.path.join(ICI, "bibliotheque", "commun.js"))
 CADRE = lire(os.path.join(ICI, "cadre.html"))
 TOUR = "Tour 4 · 27 octobre"
 PREFIXE = "t4-"
-PRETES = {"t4-15-pierre", "t4-16-rosace"}   # les pièces vérifiées ; les autres du tour arrivent ensuite   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
+PRETES = {"t4-15-pierre", "t4-16-rosace", "t4-17-estampe", "t4-18-rouleau", "t4-20-mappemonde"}   # les pièces vérifiées ; les autres du tour arrivent ensuite   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
 
 fautes, liste = [], []
 for chemin in sorted(glob.glob(os.path.join(ICI, "pieces", "*.js"))):
@@ -72,7 +72,7 @@ textarea:focus{{outline:none;border-color:var(--encre)}}
 <div class="sur">L'atelier du Pointage · {TOUR}</div>
 <h1>Ta journée, tour 4</h1>
 <p class="intro">Tes mots du tour 3 ont décidé de celui-ci : « sois ambitieux » pour les seuils, « Merci ! » après l'explosion, plus de lignes bizarres au centre.
-Les premières pièces sont là ; l'Estampe, le Rouleau, le Codex et la Mappemonde arrivent sur cette même page. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
+Cinq pièces sont là, dont la Mappemonde, neuve ; le Codex arrive sur cette même page. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
 <p class="intro">Le menu-rouleau, lui, est déjà dans ton app : dans Maintenant et dans Domaines.</p>
 <p class="intro">Puis écris ce que tu ressens, avec tes mots, et donne une note. C'est toi qui juges : tes mots décident du tour suivant.</p>
 {cartes}

@@ -28,7 +28,7 @@ textarea:focus{outline:none;border-color:var(--encre)}
 <div class="sur">L'atelier du Pointage · Tour 4 · 27 octobre</div>
 <h1>Ta journée, tour 4</h1>
 <p class="intro">Tes mots du tour 3 ont décidé de celui-ci : « sois ambitieux » pour les seuils, « Merci ! » après l'explosion, plus de lignes bizarres au centre.
-Les premières pièces sont là ; l'Estampe, le Rouleau, le Codex et la Mappemonde arrivent sur cette même page. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
+Cinq pièces sont là, dont la Mappemonde, neuve ; le Codex arrive sur cette même page. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
 <p class="intro">Le menu-rouleau, lui, est déjà dans ton app : dans Maintenant et dans Domaines.</p>
 <p class="intro">Puis écris ce que tu ressens, avec tes mots, et donne une note. C'est toi qui juges : tes mots décident du tour suivant.</p>
 <article class="carte" data-id="t4-15-pierre">
@@ -47,10 +47,34 @@ Les premières pièces sont là ; l'Estampe, le Rouleau, le Codex et la Mappemon
   <textarea id="m-t4-16-rosace" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
   <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
 </article>
+<article class="carte" data-id="t4-17-estampe">
+  <div class="tete"><span class="num">03</span><h2>L&#x27;ESTAMPE</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : une estampe (Hiroshige, Hasui, Hokusai pour l&#x27;élan, sans copier) sur un washi gris : à gauche une grande vague dont la crête s&#x27;enroule vers la droite, des rangées de houle jusqu&#x27;à l&#x27;horizon, deux barques de rameurs, un volcan lointain au pied pris dans un kasumi, le soleil de l&#x27;aube derrière une bande de brume, un cartouche à cinq colonnes (les quatre priorités …</p>
+  <a class="ouvrir" href="t4-17-estampe.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t4-17-estampe">Tes mots</label>
+  <textarea id="m-t4-17-estampe" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
+<article class="carte" data-id="t4-18-rouleau">
+  <div class="tete"><span class="num">04</span><h2>LE ROULEAU</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : un emakimono (rouleau peint japonais) sur un washi gris, lu de droite à gauche ; chaque priorité faite en DÉROULE une feuille : sa scène en fukinuki yatai (990 le pavillon sur l&#x27;eau, CUMBRE la cime, Lecture le cabinet aux érables, LE CLOSING la salle du sceau), son texte en colonnes, son nom dans le cartouche, son sceau rouge. Les nuages d&#x27;or sont posés en petit…</p>
+  <a class="ouvrir" href="t4-18-rouleau.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t4-18-rouleau">Tes mots</label>
+  <textarea id="m-t4-18-rouleau" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
+<article class="carte" data-id="t4-20-mappemonde">
+  <div class="tete"><span class="num">05</span><h2>LA MAPPEMONDE</h2></div>
+  <p class="resume">Ce qu&#x27;on voit : une page de vélin ; en haut, une mappemonde enluminée en plate carrée, à la manière des portulans : côtes à l&#x27;encre noire et lignes d&#x27;eau, réseau de rhumbs (noir, vert, rouge) tiré de Paris, rose des vents d&#x27;or, monts, nefs et serpent de mer au trait. Dessous, quatre médaillons (un par priorité), esquissés au crayon au repos. La loi : (1) la loxodromie (route de…</p>
+  <a class="ouvrir" href="t4-20-mappemonde.html">Ouvrir la pièce</a>
+  <label class="lbl" for="m-t4-20-mappemonde">Tes mots</label>
+  <textarea id="m-t4-20-mappemonde" placeholder="Ce que tu ressens, ce qui marche, ce qui ne marche pas. Tes mots exacts."></textarea>
+  <div class="note" role="group" aria-label="Note de 1 à 5"><button type="button" data-n="1">1</button><button type="button" data-n="2">2</button><button type="button" data-n="3">3</button><button type="button" data-n="4">4</button><button type="button" data-n="5">5</button></div>
+</article>
 <div class="envoyer"><button type="button" id="copier">Copier mes verdicts</button><small>puis colle-les dans la conversation avec Claude</small></div>
 </main>
 <script>
-const PIECES = [{"id": "t4-15-pierre", "titre": "LA PIERRE DES LANGUES"}, {"id": "t4-16-rosace", "titre": "LA ROSACE"}];
+const PIECES = [{"id": "t4-15-pierre", "titre": "LA PIERRE DES LANGUES"}, {"id": "t4-16-rosace", "titre": "LA ROSACE"}, {"id": "t4-17-estampe", "titre": "L'ESTAMPE"}, {"id": "t4-18-rouleau", "titre": "LE ROULEAU"}, {"id": "t4-20-mappemonde", "titre": "LA MAPPEMONDE"}];
 const CLE = "atelier_tour4";
 let V = {}; try { V = JSON.parse(localStorage.getItem(CLE) || "{}") || {}; } catch (e) {}
 const garder = () => { try { localStorage.setItem(CLE, JSON.stringify(V)); } catch (e) {} };
