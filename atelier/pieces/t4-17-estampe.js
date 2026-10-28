@@ -1,0 +1,2173 @@
+/* ======================= Tour 4, pièce 17 : L'ESTAMPE (etude_estampe4) ======================= */
+/* Ce qu'on voit : une estampe (Hiroshige, Hasui, Hokusai pour l'élan, sans copier) sur un washi gris : à gauche une grande vague
+   dont la crête s'enroule vers la droite, des rangées de houle jusqu'à l'horizon, deux barques de rameurs, un volcan lointain
+   au pied pris dans un kasumi, le soleil de l'aube derrière une bande de brume, un cartouche à cinq colonnes (les quatre
+   priorités et la signature). Au repos, seul le keyban est imprimé : un trait calligraphique (pleins et déliés selon l'angle
+   de la plume, bouts effilés), net, noir sur le gris.
+   La loi : la houle trochoïdale de Gerstner (1802) : six ondes x = x₀ − Σ Q A sin θ, h = Σ A cos θ, θ = k·x₀ − ωt, ω² = gk ;
+   chaque rangée de l'estampe est la coupe de cette surface à sa distance, vue d'une falaise de 12 m ; le jacobien
+   J = 1 − Σ Q k A cos θ met l'écume là où il s'effondre. La grande vague : sa raideur H/L monte de 0,20 à 0,42 ; passé 1/7
+   (la limite de Stokes et Michell, 1893 : crête à 120°), la crête ne tient plus et la lèvre part en orbite (spirale
+   r = R₀ e^(−bφ)), d'autant plus loin que H/L dépasse 1/7. L'eau réelle est éclairée par Fresnel (approximation de Schlick,
+   F = F₀ + (1 − F₀)(1 − cos θ)⁵, F₀ = 0,02) : elle reflète l'aube aux angles rasants ; sa couleur suit Beer-Lambert,
+   e^(−épaisseur/τ) : turquoise et dorée là où la vague est mince devant le soleil, noire là où elle est épaisse.
+   La main : des aplats nets, superposés en multiplication sur le papier (la fibre se voit dans l'encre) ; le gofun en blanc.
+   L'usage : « Ta journée ». Chaque priorité imprime UNE planche : la feuille se soulève sur sa charnière, on voit dessous le
+   bois encré (en miroir), elle retombe avec la couleur ; le nom s'imprime en noir, son sceau tombe. 990 : le bleu de Prusse
+   (mer et vague). CUMBRE : le rose de l'aube, le soleil, son reflet. Lecture : l'ocre des brumes, du volcan, des barques.
+   LE CLOSING : l'indigo des fonds et le gofun de l'écume et de la neige.
+   Seuil (Boucler, 9 s) : l'estampe s'anime (la houle avance, la vague monte) ; puis le réel gagne depuis la crête : un front
+   d'écume court sur le papier, le trait du keyban se dissout en encre dans l'eau, derrière lui la mer est calculée pixel par
+   pixel (Gerstner, Fresnel, reflet du soleil), le ciel devient une aube ; la vague grossit, déferle et SORT du cadre : sa
+   lèvre passe au-dessus du bord du papier, les embruns traversent l'écran, des gouttes se posent sur la vitre, l'eau inonde
+   le bas de la feuille. La signature s'imprime, « merci ». L'état final reste et vit. Encore : une autre mer.
+   Toucher la mer : une onde circulaire (vitesse de groupe c/2). Glisser : la houle avance ou recule.
+   Le budget : le réel est calculé sur une grille de 3 px agrandie (deux tampons : la mer dans le cadre, la vague et l'eau sur
+   tout l'écran) ; l'estampe n'est retracée que si son état change ; papier, bois et sceaux préparés par tranches de 5 ms. */
+
+const etude_estampe4_DONNEES = Object.assign({
+  planches: [
+    { couleur: "bleu de Prusse", encre: [30, 72, 152], sceau: "英" },
+    { couleur: "rose de l'aube", encre: [228, 90, 106], sceau: "西" },
+    { couleur: "ocre jaune", encre: [222, 160, 58], sceau: "読" },
+    { couleur: "indigo et gofun", encre: [30, 36, 82], sceau: "金" }
+  ],
+  keyban: [22, 20, 24], gofun: [250, 249, 244], vermillon: [196, 36, 30],
+  papier: [212, 210, 204], table: [24, 25, 29], bois: [118, 92, 66],
+  artiste: "THOMAS", sceauArtiste: "波"
+}, JOURNEE);
+
+function etude_estampe4(){
+  const { sin, cos, min, max, PI, ceil, abs, floor, round, pow, sqrt, hypot, exp, atan2, atan } = Math;
+  const D = etude_estampe4_DONNEES, PR = D.priorites, PC = D.planches;
+  const SERIF = "Georgia, 'Times New Roman', serif";
+  const MONO = "ui-monospace, Menlo, Consolas, monospace";
+  const CJK = "'Noto Serif CJK JP','Hiragino Mincho ProN','Yu Mincho','Noto Serif CJK SC','Songti SC',serif";
+  const M = { titre: "L'ESTAMPE", dprMax: 1.5 };
+  const TAU = PI*2, GR = 9.81, HC = 12, Z_MIN = 22, Z_MAX = 640, NR = 13, NL = 64, NB = 90, NIB = -.9;
+  // la feuille (ms) : se lève, reste, retombe ; puis le sceau
+  const T_LEVE = 720, T_TIENT = 280, T_POSE = 1000, TP = T_LEVE + T_TIENT + T_POSE, T_SC = 450;
+  // le seuil (s)
+  const S_REEL0 = 1.5, S_REEL1 = 4.8, S_MONTE0 = 3, S_MONTE1 = 7.2, S_EMB = 4.2, S_CRUE0 = 5.4, S_CRUE1 = 8.6, S_SIGNE = 8.4;
+  // les lignes de courant de la vague, en épaisseurs de lèvre (les trois premières entrent dans la lèvre)
+  const DK = [.24, .5, .76, 1.18, 1.62, 2.12, 2.7];
+
+  let W = 390, H = 760, DPR = 1.5, seed = 1802, dernier = 0, dernierGeste = -1e9, nowMs = 0;
+  let SX = 0, SY = 0, SW = 1, SH = 1, IX = 0, IY = 0, IW = 1, IH = 1, KK = 1, Hy = 0, CXs = 0, FOC = 1;
+  let GX = 2, NG = 2, STEP = 3, CART = null, SUN = null, ATOT = 1;
+  let COMP = [], VP = null, MT = null, MTc = null, KAS = [], SOLP = null, BARQ = [], GOUT = [];
+  let rows = [], Yr = [], Jr = [], Er = [];
+  let VG = null, simT = 0, S = .82, gWave = 0;
+  const fait = [null, null, null, null];
+  let tS = null;
+  let CP = null, CPa = null, BLOC = null, papier = null, BOIS = null, SCEAUX = [], SPR = null, genA = null;
+  const PUITS = document.createElement("canvas").getContext("2d");
+  let jobP = null, CPn = null, signeCP = "", ondes = [], temp = { txt: "", fin: 0 }, blocDe = -1;
+  let NZ = null;
+  // le réel : deux tampons agrandis
+  let cs = 3, csB = 4, AW = 1, AH = 1, BW = 1, BH = 1, bufA = null, bufB = null, imA = null, imB = null;
+  let ENVB = null, PAR = 0, PLEIN = true, SKYC = null, SKOK = null, NFR = 0, TOPB = null, SLB = null, FACEX = null, FLY = null, MTOP = null, MSN = null;
+  let LR = null, LG = null, LB = null;
+  const CK = new Float32Array(8), CA = new Float32Array(8), CDX = new Float32Array(8), CDZ = new Float32Array(8),
+        CW = new Float32Array(8), CPH = new Float32Array(8), CQK = new Float32Array(8);
+  let CR = 0, CG = 0, CB = 0, BLC = new Float32Array(1);
+  const WJ = new Float32Array(8);
+  // particules : embruns, brumes, éclats devant l'écran, gouttes sur la vitre
+  const NP = 1500;
+  const PX = new Float32Array(NP), PY = new Float32Array(NP), PVX = new Float32Array(NP), PVY = new Float32Array(NP),
+        PAGE = new Float32Array(NP), PVIE = new Float32Array(NP), PT = new Float32Array(NP);
+  let pIdx = 0, brumes = [], eclats = [], gouttes = [], emisJusque = 0;
+
+  const __P = (k, t0) => { const P = window.__PROF = window.__PROF || {}, d = performance.now() - t0; P[k] = P[k] || [0, 0, 0]; P[k][0] += d; P[k][1]++; P[k][2] = Math.max(P[k][2], d); P[k][3] = +d.toFixed(1); };
+  /* ———————————————— petits outils ———————————————— */
+  const op = (c, m) => { c.globalCompositeOperation = m; };
+  const encre = (c, col, a = 1) => { c.fillStyle = rgb(col, a); };
+  const lerp = (a, b, u) => a + (b - a)*u;
+  const ss = (a, b, x) => { const u = clamp((x - a)/(b - a)); return u*u*(3 - 2*u); };
+  const hs = (i, s) => { const v = sin(i*127.1 + s*311.7 + seed*.618)*43758.5453; return v - floor(v); };
+
+  /* un bruit fractal tuilé 128 × 128 (quatre octaves), lu en bilinéaire : nuages, écume, front, filets */
+  function bruitTuile(sd){
+    const N = 128, out = new Float32Array(N*N), R = graine(sd);
+    let amp = 1, tot = 0;
+    for (const P of [8, 16, 32, 64]){
+      const v = Float32Array.from({ length: P*P }, R);
+      for (let y = 0; y < N; y++){
+        for (let x = 0; x < N; x++){
+          const fx = x*P/N, fy = y*P/N, i = floor(fx), j = floor(fy), u = fx - i, w = fy - j;
+          const su = u*u*(3 - 2*u), sw = w*w*(3 - 2*w), i1 = (i + 1) % P, j1 = (j + 1) % P;
+          const a = v[j*P + i], b = v[j*P + i1], c = v[j1*P + i], d = v[j1*P + i1];
+          out[y*N + x] += amp*(a + (b - a)*su + (c - a)*sw + (a - b - c + d)*su*sw);
+        }
+      }
+      tot += amp;
+      amp *= .55;
+    }
+    for (let k = 0; k < N*N; k++) out[k] /= tot;
+    return out;
+  }
+  function nz(x, y){
+    const i = floor(x), j = floor(y), u = x - i, w = y - j;
+    const i0 = i & 127, i1 = (i + 1) & 127, j0 = (j & 127) << 7, j1 = ((j + 1) & 127) << 7;
+    const a = NZ[j0 + i0], b = NZ[j0 + i1], c = NZ[j1 + i0], d = NZ[j1 + i1];
+    return a + (b - a)*u + (c - a)*w + (a - b - c + d)*u*w;
+  }
+
+  /* ———————————————— le papier, le bois, les sceaux, les sprites (préparés par tranches) ———————————————— */
+  function* preparer(){
+    if (!BOIS) yield* texBois();
+    if (!SCEAUX.length){
+      for (let j = 0; j < 5; j++){
+        SCEAUX.push(j < 4 ? sceau(PC[j].sceau, CART.sealS, 300 + j + seed) : sceau(D.sceauArtiste, CART.colW*1.05, 999 + seed));
+        yield;
+      }
+    }
+    if (!SPR){ sprites(); yield; }
+    if (!papier) yield* peindrePapier();
+  }
+  function* texBois(){
+    const T = 256, cv = document.createElement("canvas");
+    cv.width = cv.height = T;
+    const c = cv.getContext("2d"), im = c.createImageData(T, T), d = im.data, R = graine(81), P = D.bois;
+    for (let y = 0, i = 0; y < T; y++){
+      for (let x = 0; x < T; x++, i += 4){
+        const u = x/T, v = y/T;
+        const cerne = pow(.5 + .5*cos((v*9 + .8*nz(u*64, v*64) + .3*nz(u*256 + 9, v*32))*TAU), 8);
+        const f = .9 - .16*cerne + (nz(u*512, v*24) - .5)*.3 + (R() - .5)*.04;
+        d[i] = P[0]*f; d[i + 1] = P[1]*f; d[i + 2] = P[2]*f; d[i + 3] = 255;
+      }
+      if ((y & 31) === 31) yield;
+    }
+    c.putImageData(im, 0, 0);
+    BOIS = cv;
+  }
+  function sceau(car, taille, sd){
+    const s = ceil(taille*DPR), cv = document.createElement("canvas");
+    cv.width = cv.height = s;
+    const c = cv.getContext("2d"), R = graine(sd);
+    c.fillStyle = rgb(D.vermillon);
+    c.beginPath();
+    [[.04, .05], [.5, .03], [.96, .04], [.97, .5], [.96, .96], [.5, .97], [.04, .96], [.03, .5]].forEach((p, k) => {
+      const x = (p[0] + (R() - .5)*.02)*s, y = (p[1] + (R() - .5)*.02)*s;
+      if (k) c.lineTo(x, y); else c.moveTo(x, y);
+    });
+    c.fill();
+    op(c, "destination-out");
+    c.strokeStyle = c.fillStyle = "#000";
+    c.lineWidth = s*.05;
+    c.strokeRect(s*.12, s*.12, s*.76, s*.76);
+    c.font = `700 ${s*.6}px ${CJK}`;
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(car, s/2, s*.53);
+    for (let k = 0; k < 18; k++){
+      c.globalAlpha = .3 + .5*R();
+      c.beginPath();
+      c.arc(R()*s, R()*s, R()*s*.025 + .3, 0, TAU);
+      c.fill();
+    }
+    return cv;
+  }
+  // les sprites : une écume floue (éclats, brume) et une goutte posée sur la vitre
+  function sprites(){
+    const tache = document.createElement("canvas");
+    tache.width = tache.height = 96;
+    let c = tache.getContext("2d");
+    let g = c.createRadialGradient(48, 48, 0, 48, 48, 48);
+    g.addColorStop(0, "rgba(250,252,252,.95)");
+    g.addColorStop(.45, "rgba(240,246,248,.55)");
+    g.addColorStop(1, "rgba(230,240,244,0)");
+    c.fillStyle = g;
+    c.fillRect(0, 0, 96, 96);
+    const goutte = document.createElement("canvas");
+    goutte.width = goutte.height = 96;
+    c = goutte.getContext("2d");
+    // l'ombre de la goutte sur ce qu'il y a derrière
+    g = c.createRadialGradient(50, 53, 28, 50, 53, 44);
+    g.addColorStop(0, "rgba(0,10,20,.0)");
+    g.addColorStop(.7, "rgba(0,10,20,.22)");
+    g.addColorStop(1, "rgba(0,10,20,0)");
+    c.fillStyle = g;
+    c.fillRect(0, 0, 96, 96);
+    // le corps : une lentille claire, plus sombre au bord
+    g = c.createRadialGradient(46, 42, 4, 48, 48, 38);
+    g.addColorStop(0, "rgba(255,255,255,.10)");
+    g.addColorStop(.7, "rgba(210,232,240,.18)");
+    g.addColorStop(.92, "rgba(20,40,52,.42)");
+    g.addColorStop(1, "rgba(20,40,52,0)");
+    c.fillStyle = g;
+    c.beginPath();
+    c.arc(48, 48, 38, 0, TAU);
+    c.fill();
+    // la lumière réfractée, en bas ; le reflet, en haut à gauche
+    c.fillStyle = "rgba(255,248,236,.38)";
+    c.beginPath();
+    c.ellipse(50, 70, 20, 8, 0, 0, PI);
+    c.fill();
+    c.fillStyle = "rgba(255,255,255,.92)";
+    c.beginPath();
+    c.ellipse(36, 32, 7, 4.5, -.6, 0, TAU);
+    c.fill();
+    c.fillStyle = "rgba(255,255,255,.5)";
+    c.beginPath();
+    c.arc(58, 30, 2.4, 0, TAU);
+    c.fill();
+    SPR = { tache, goutte };
+  }
+  /* le washi : pâte grise, fine, bords frangés, fibres de kōzo */
+  function* peindrePapier(){
+    const m = 14, pw = CP.width, ph = CP.height, cv = document.createElement("canvas");
+    cv.width = pw;
+    cv.height = ph;
+    const c = cv.getContext("2d"), im = c.createImageData(pw, ph), d = im.data, R = graine(seed*3 + 1);
+    const n1 = bruit2(seed + 11), n2 = bruit2(seed + 12), n3 = bruit2(seed + 13), P = D.papier;
+    const x0 = m*DPR, y0 = m*DPR, x1 = (m + SW)*DPR, y1 = (m + SH)*DPR;
+    for (let y = 0; y < ph; y++){
+      for (let x = 0; x < pw; x++){
+        const de = min(x - x0, x1 - x, y - y0, y1 - y)/DPR;
+        if (de < -4) continue;
+        const X = x/DPR, Yp = y/DPR, bord = de + 3.2*(n3(X*.5, Yp*.5) - .5), a = clamp(bord/1.1);
+        if (a <= 0) continue;
+        const v = (n1(X/50, Yp/50) - .5)*7 + (n2(X/5, Yp/5) - .5)*4 + (R() - .5)*4 + (1 - clamp(bord/5))*5, i = (y*pw + x)*4;
+        d[i] = P[0] + v + 1;
+        d[i + 1] = P[1] + v;
+        d[i + 2] = P[2] + v - 2;
+        d[i + 3] = a*255;
+      }
+      if ((y & 15) === 15) yield;
+    }
+    c.putImageData(im, 0, 0);
+    yield;
+    const fin = document.createElement("canvas");
+    fin.width = pw;
+    fin.height = ph;
+    const f = fin.getContext("2d");
+    for (let k = 8; k >= 1; k--){
+      f.fillStyle = "rgba(0,0,0,.07)";
+      const e = k*1.3*DPR;
+      f.fillRect(x0 - e*.6, y0 - e*.3 + 4*DPR, x1 - x0 + e*1.2, y1 - y0 + e*.9);
+    }
+    f.drawImage(cv, 0, 0);
+    yield;
+    f.setTransform(DPR, 0, 0, DPR, m*DPR, m*DPR);
+    f.lineCap = "round";
+    const N = SW*SH/90;
+    for (const [col, al, lw, part] of [[255, .2, .4, .45], [255, .12, .8, .3], [120, .08, .45, .1]]){
+      f.beginPath();
+      f.strokeStyle = `rgba(${col},${col - 2},${col - 8},${al})`;
+      f.lineWidth = lw;
+      for (let k = 0; k < N*part; k++){
+        const x = R()*SW, y = R()*SH, l = 8 + 40*R()*R(), a = R()*6.3, cu = (R() - .5)*l*.5;
+        const ex = x + cos(a)*l, ey = y + sin(a)*l;
+        f.moveTo(x, y);
+        f.quadraticCurveTo((x + ex)/2 - sin(a)*cu, (y + ey)/2 + cos(a)*cu, ex, ey);
+      }
+      f.stroke();
+      yield;
+    }
+    papier = { cv: fin, m };
+  }
+
+  /* ———————————————— la composition (une graine = une mer) ———————————————— */
+  function construire(){
+    const R = graine(seed);
+    NZ = bruitTuile(seed + 5);
+    COMP = [[46, 1.5, .16, .3], [25, .82, -.38, .25], [14, .44, .52, .18], [7.8, .22, -.72, .12], [4.4, .11, .1, .07], [2.6, .055, .9, .04]]
+      .map(([lam, A, a, p]) => {
+        const k = TAU/lam, d = a + (R() - .5)*.3;
+        return { k, A: A*(.85 + .3*R()), dx: cos(d), dz: -sin(d), w: sqrt(GR*k), ph: R()*TAU, p };
+      });
+    ATOT = COMP.reduce((s, c) => s + c.A, 0);
+    VP = {
+      cu: .29 + .03*R(), cv: .25 + .03*R(), tu: .8 + .03*R(), tv: .6 + .015*R(),
+      cu1: .07 + .02*R(), cv1: -.06 - .02*R(), tu1: .99, tv1: .63, ph: R()*TAU
+    };
+    SOLP = { u: .5 + .05*R(), v: .072 };
+    MT = { u: .82 + .04*R(), hl: .15 + .02*R(), hr: .17 + .02*R(), h: .1 + .012*R(), ph: R()*9 };
+    KAS = [
+      { u0: .02, u1: .44 + .06*R(), v: .1 + .025*R(), e: .028, s0: .2, s1: .55 },
+      { u0: .36 + .06*R(), u1: 1.03, v: .418, e: .022, s0: .42, s1: .74 }
+    ];
+    BARQ = [{ u: .82 + .04*R(), Z: 38, L: 7, ph: R()*9 }, { u: .64 + .05*R(), Z: 120, L: 7, ph: R()*9 }];
+    GOUT = Array.from({ length: 30 }, () => [R(), R(), R(), R()]);
+    MTc = null;
+    papier = null;
+    SCEAUX = [];
+    signeCP = "";
+    if (CART) genA = preparer();
+  }
+
+  function layout(){
+    const mT = clamp(H*.075, 10, 64), mB = clamp(H*.105, 14, 92), dispo = H - mT - mB;
+    const sw = min(W - 24, dispo/1.36), sh = min(dispo, sw*1.72);
+    SW = sw;
+    SH = sh;
+    SX = (W - sw)/2;
+    SY = mT + (dispo - sh)/2;
+    const m = SW*.055;
+    IX = SX + m;
+    IY = SY + m;
+    IW = SW - 2*m;
+    IH = SH - m - (m + clamp(SW*.075, 20, 34));
+    KK = clamp(IW/330, .75, 1.6);
+    Hy = IY + IH*.46;
+    CXs = IX + IW/2;
+    FOC = Z_MIN*(IY + IH - Hy)/HC;
+    SUN = { x: IX + SOLP.u*IW, y: Hy - SOLP.v*IH, r: IW*.085 };
+    MTc = null;
+    // le cartouche : quatre colonnes et la signature, en haut à droite
+    const fs = clamp(IH*.0175, 7, 11), lh = fs*1.2, colW = fs*1.85, pc = fs*.65;
+    CART = { fs, lh, colW, pc, sealS: colW*.78, swt: colW*.36 };
+    CART.w = 5*colW + 2*pc + colW*.3;
+    CART.x1 = IX + IW*.965;
+    CART.x0 = CART.x1 - CART.w;
+    CART.y0 = IY + IW*.035;
+    CART.ny = CART.y0 + pc + CART.swt + fs*1.15;
+    CART.y1 = CART.ny + 9.6*lh + CART.sealS + pc*1.1;
+    CART.h = CART.y1 - CART.y0;
+    // les rangées de l'estampe
+    GX = 2;
+    STEP = 3;
+    NG = ceil(IW/GX) + 1;
+    rows = [];
+    Yr = [];
+    Jr = [];
+    Er = [];
+    for (let i = 0; i < NR; i++){
+      const n = ceil(IW*1.16/STEP) + 1;
+      rows.push({ z: Z_MAX*pow(Z_MIN/Z_MAX, i/(NR - 1)), n, xs: new Float32Array(n), ys: new Float32Array(n), J: new Float32Array(n) });
+      Yr.push(new Float32Array(NG));
+      Jr.push(new Float32Array(NG));
+      Er.push(new Float32Array(NG));
+    }
+    for (const B of BARQ) B.X = (IX + B.u*IW - CXs)*B.Z/FOC;
+    // les toiles de l'estampe : la feuille, l'état d'avant, le bois
+    for (const k of [0, 1, 2, 3]){
+      const cv = [CP, CPa, BLOC, CPn][k] || document.createElement("canvas");
+      cv.width = ceil((SW + 28)*DPR);
+      cv.height = ceil((SH + 28)*DPR);
+      if (k === 0) CP = cv; else if (k === 1) CPa = cv; else if (k === 2) BLOC = cv; else CPn = cv;
+    }
+    blocDe = -1;
+    // le réel : une grille de ~3 px
+    cs = max(2.6, sqrt(W*H/30000));
+    AW = ceil(IW/cs);
+    AH = ceil(IH/cs);
+    csB = cs*1.3;
+    BW = ceil(W/csB);
+    BH = ceil(H/csB);
+    bufA = bufA || document.createElement("canvas");
+    bufB = bufB || document.createElement("canvas");
+    bufA.width = AW;
+    bufA.height = AH;
+    bufB.width = BW;
+    bufB.height = BH;
+    imA = bufA.getContext("2d").createImageData(AW, AH);
+    imB = bufB.getContext("2d").createImageData(BW, BH);
+    PLEIN = true;
+    TOPB = new Float32Array(BW);
+    ENVB = new Float32Array(BW);
+    SLB = new Float32Array(BW);
+    FLY = new Float32Array(BW);
+    FACEX = new Float32Array(BH);
+    MTOP = new Float32Array(AW);
+    BLC = new Float32Array(AW);
+    SKYC = new Float32Array(AW*AH*3);
+    SKOK = new Uint8Array(AW*AH);
+    MSN = new Float32Array(AW);
+    lutCiel();
+    papier = null;
+    SCEAUX = [];
+    signeCP = "";
+    genA = preparer();
+    VG = null;
+  }
+
+  /* ———————————————— la loi : Gerstner ———————————————— */
+  const CH = { h: 0, dX: 0, dZ: 0, J: 1, hx: 0, hz: 0 };
+  function champ(X, Z){
+    let h = 0, dX = 0, dZ = 0, J = 1, hx = 0, hz = 0;
+    for (let j = 0; j < COMP.length; j++){
+      const c = COMP[j], th = c.k*(c.dx*X + c.dz*Z) - c.w*simT + c.ph, ct = cos(th), st = sin(th), Q = S*c.p/(c.k*c.A);
+      h += c.A*ct;
+      dX -= Q*c.A*c.dx*st;
+      dZ -= Q*c.A*c.dz*st;
+      J -= Q*c.k*c.A*c.dx*c.dx*ct;
+      hx -= c.A*c.k*c.dx*st;
+      hz -= c.A*c.k*c.dz*st;
+    }
+    // le doigt : une onde circulaire qui s'éloigne à la vitesse de groupe (la moitié de la vitesse de phase)
+    for (const o of ondes){
+      const age = max(0, nowMs - o.t0)/1000, rx = X - o.X, rz = Z - o.Z, r = sqrt(rx*rx + rz*rz) + 1e-3;
+      const cp = sqrt(GR/o.k), u = r - cp*.5*age*o.acc, env = o.A*exp(-u*u/(o.sig*o.sig) - age/3.5);
+      const ph = o.k*(r - cp*age*o.acc);
+      h += env*cos(ph);
+      hx -= env*o.k*sin(ph)*rx/r;
+      hz -= env*o.k*sin(ph)*rz/r;
+    }
+    CH.h = h; CH.dX = dX; CH.dZ = dZ; CH.J = J; CH.hx = hx; CH.hz = hz;
+  }
+  // une courbe échantillonnée, rééchantillonnée sur les colonnes de l'image (la plus haute l'emporte)
+  function reech(xs, ys, J, n, out, oj){
+    out.fill(1e9);
+    for (let s = 0; s < n - 1; s++){
+      let xa = xs[s] - IX, xb = xs[s + 1] - IX, ya = ys[s], yb = ys[s + 1], ja = J[s], jb = J[s + 1];
+      if (xa > xb){
+        let q = xa; xa = xb; xb = q;
+        q = ya; ya = yb; yb = q;
+        q = ja; ja = jb; jb = q;
+      }
+      for (let g = max(0, ceil(xa/GX)), g1 = min(NG - 1, floor(xb/GX)); g <= g1; g++){
+        const u = (g*GX - xa)/((xb - xa) || 1), y = ya + (yb - ya)*u;
+        if (y < out[g]){
+          out[g] = y;
+          oj[g] = ja + (jb - ja)*u;
+        }
+      }
+    }
+  }
+  function calcMer(){
+    for (let i = 0; i < NR; i++){
+      const r = rows[i], Z = r.z;
+      for (let s = 0; s < r.n; s++){
+        const xs = IX - .08*IW + s*STEP, X = (xs - CXs)*Z/FOC;
+        champ(X, Z);
+        const Zp = max(1, Z + CH.dZ);
+        r.xs[s] = CXs + FOC*(X + CH.dX)/Zp;
+        r.ys[s] = Hy + FOC*(HC - CH.h)/Zp;
+        r.J[s] = CH.J;
+      }
+      reech(r.xs, r.ys, r.J, r.n, Yr[i], Jr[i]);
+    }
+    if (!ENVW || ENVW.length !== NG) ENVW = new Float32Array(NG);
+    for (let g = 0; g < NG; g++){
+      let e = IY + IH + 2;
+      for (let i = NR - 1; i >= 0; i--){
+        Er[i][g] = e;
+        e = min(e, Yr[i][g]);
+      }
+    }
+  }
+
+  /* ———————————————— la grande vague : un dos, une crête qui casse passé 1/7, une lèvre en orbite ———————————————— */
+  const raideur = g => .2 + .22*g;
+  function bezier(P0, P1, P2, P3, n, X, Y, sauter){
+    for (let q = sauter ? 1 : 0; q <= n; q++){
+      const u = q/n, v = 1 - u;
+      X.push(v*v*v*P0[0] + 3*v*v*u*P1[0] + 3*v*u*u*P2[0] + u*u*u*P3[0]);
+      Y.push(v*v*v*P0[1] + 3*v*v*u*P1[1] + 3*v*u*u*P2[1] + u*u*u*P3[1]);
+    }
+  }
+  function vague(g){
+    const V = VP, px = u => IX + u*IW, py = v => IY + v*IH;
+    const hl = raideur(g), br = clamp((hl - 1/7)/(.42 - 1/7));
+    const resp = .006*sin(simT*.8 + V.ph);
+    const C = [px(lerp(V.cu, V.cu1, g) + resp), py(lerp(V.cv, V.cv1, g))];
+    const B0 = [px(-1.1), py(1.25)], c1 = [px(lerp(-.2, -.4, g)), py(lerp(1.0, .7, g))];
+    const c2 = [C[0] - IW*lerp(.22, .24, g), C[1] + IH*lerp(.085, .06, g)];
+    const BX = [], BY = [];
+    bezier(B0, c1, c2, C, NB, BX, BY);
+    // les normales du dos, vers l'intérieur de l'eau
+    const BNX = new Float32Array(NB + 1), BNY = new Float32Array(NB + 1);
+    for (let s = 0; s <= NB; s++){
+      const p = max(0, s - 1), q = min(NB, s + 1);
+      let tx = BX[q] - BX[p], ty = BY[q] - BY[p];
+      const tl = hypot(tx, ty) || 1;
+      tx /= tl;
+      ty /= tl;
+      BNX[s] = -ty;
+      BNY[s] = tx;
+    }
+    // la lèvre : l'orbite de la particule de crête, qui s'enroule d'autant plus que H/L dépasse 1/7
+    const R0 = IW*lerp(.19, .34, g), sweep = PI*(.85 + .45*br), b = .2, th0 = R0*lerp(.6, .5, g);
+    const nx = BNX[NB], ny = BNY[NB];
+    const O = [C[0] + nx*R0, C[1] + ny*R0], a0 = atan2(C[1] - O[1], C[0] - O[0]);
+    const L = { ox: [], oy: [], ix: [], iy: [], ang: [], rr: [], th: [], O, R0, a0, sweep, b, th0 };
+    for (let q = 0; q <= NL; q++){
+      const u = q/NL, phi = sweep*u, rr = R0*exp(-b*phi), th = th0*pow(1 - .7*u, 1.1), a = a0 + phi;
+      L.ox.push(O[0] + rr*cos(a));
+      L.oy.push(O[1] + rr*sin(a));
+      L.ix.push(O[0] + (rr - th)*cos(a));
+      L.iy.push(O[1] + (rr - th)*sin(a));
+      L.ang.push(a);
+      L.rr.push(rr);
+      L.th.push(th);
+    }
+    const Fi = [L.ix[0], L.iy[0]], T = [px(lerp(V.tu, V.tu1, g)), py(lerp(V.tv, V.tv1, g))];
+    const FX = [], FY = [];
+    bezier(Fi, [Fi[0] + (T[0] - Fi[0])*.16, Fi[1] + (T[1] - Fi[1])*.62], [Fi[0] + (T[0] - Fi[0])*.5, T[1]], T, 50, FX, FY);
+    // la vague est à la distance de son creux : les rangées plus proches passent devant son pied
+    const Zw = FOC*HC/max(6, T[1] - Hy);
+    ENVW.fill(1e9);
+    for (let i = 0; i < NR; i++){
+      if (rows[i].z >= Zw) continue;
+      for (let g2 = 0; g2 < NG; g2++) ENVW[g2] = min(ENVW[g2], Yr[i][g2]);
+    }
+    for (let g2 = 0; g2 < NG; g2++) ENVW[g2] = min(ENVW[g2], IY + IH + 2);
+    // au-delà du creux, le pied de la vague : une écume qui descend sous les rangées proches
+    const nT = FX.length;
+    for (let k = 1; k <= 16; k++){
+      const u = k/16, x = T[0] + IW*.12*u;
+      FX.push(x);
+      FY.push(T[1] + (envAt(x) + 4 - T[1])*u*u);
+    }
+    // les lignes de courant : parallèles au dos, les premières continuent dans la lèvre
+    const lignes = DK.map((dk, k) => {
+      const d = th0*dk, n = NB + 1 + NL, X = new Float32Array(n), Y = new Float32Array(n);
+      for (let s = 0; s <= NB; s++){
+        X[s] = BX[s] + BNX[s]*d;
+        Y[s] = BY[s] + BNY[s]*d;
+      }
+      const dansLevre = dk < 1;
+      if (dansLevre){
+        for (let q = 1; q <= NL; q++){
+          const r = L.rr[q] - L.th[q]*dk;
+          X[NB + q] = O[0] + r*cos(L.ang[q]);
+          Y[NB + q] = O[1] + r*sin(L.ang[q]);
+        }
+      }
+      const a = floor(NB*(.3 + .075*k));
+      const fin = dansLevre ? NB + round(NL*(.94 - .16*k)) : NB - round(NB*(.02 + .05*(k - 3)));
+      return { X, Y, a, b: fin, d };
+    });
+    // les doigts d'écume, au bord de la lèvre : partent dehors, se recourbent vers l'avant
+    const doigts = [];
+    const NF = 12;
+    for (let m = 0; m < NF; m++){
+      const u = .34 + .62*m/(NF - 1), q = round(u*NL), a = L.ang[q];
+      const ox = L.ox[q], oy = L.oy[q], dxo = cos(a), dyo = sin(a), fx = -sin(a), fy = cos(a);
+      const len = R0*(.15 + .07*hs(m, 3))*(1 - .3*u), X = [], Y = [];
+      for (let k = 0; k <= 8; k++){
+        const v = k/8;
+        X.push(ox + len*(dxo*(.85*v - .35*v*v) + fx*(.5*v + .7*v*v)));
+        Y.push(oy + len*(dyo*(.85*v - .35*v*v) + fy*(.5*v + .7*v*v)));
+      }
+      doigts.push({ X, Y, w0: len*.36 });
+    }
+    // la dentelle d'écume sur la crête : des festons le long du dos et du début de la lèvre
+    const dentelle = [], rL = th0*.11, df = th0*.17;
+    let acc = 0;
+    for (let s = round(NB*.8); s <= NB; s++){
+      const x = BX[s] + BNX[s]*df, y = BY[s] + BNY[s]*df;
+      if (s > round(NB*.8)) acc += hypot(x - dentelle.lx, y - dentelle.ly);
+      dentelle.lx = x;
+      dentelle.ly = y;
+      if (acc >= rL*1.7 || s === round(NB*.8)){ dentelle.push([x, y, rL*(.8 + .4*hs(s, 7))]); acc = 0; }
+    }
+    for (let q = 1; q <= round(NL*.3); q++){
+      const r = L.rr[q] - L.th[q]*.3, x = O[0] + r*cos(L.ang[q]), y = O[1] + r*sin(L.ang[q]);
+      acc += hypot(x - dentelle.lx, y - dentelle.ly);
+      dentelle.lx = x;
+      dentelle.ly = y;
+      if (acc >= rL*1.7){ dentelle.push([x, y, rL*(.8 + .4*hs(q, 9))]); acc = 0; }
+    }
+    // l'écume du pied, là où la vague entre dans la mer
+    // la neige d'embruns de l'estampe (le gofun, au repos)
+    const neige = [];
+    for (let k = 0; k < 30; k++){
+      const u = .35 + .65*hs(k, 1), q = round(u*NL), r = L.rr[q] + R0*(.06 + .4*hs(k, 2)*hs(k, 5));
+      const a = L.ang[q] + (hs(k, 4) - .5)*.2;
+      neige.push([O[0] + r*cos(a), O[1] + r*sin(a), (.6 + 1.3*hs(k, 6))*KK]);
+    }
+    // la vague sort de la mer : son pied est caché par les rangées les plus proches (leur enveloppe)
+    let sb = 0;
+    while (sb < NB - 1 && BY[sb] >= envAt(BX[sb])) sb++;
+    let fe = 0;
+    while (fe < FX.length - 1 && FY[fe] < envAt(FX[fe])) fe++;
+    const PX_ = [], PY_ = [];
+    for (let s = sb; s <= NB; s++){ PX_.push(BX[s]); PY_.push(BY[s]); }
+    for (let q = 0; q <= NL; q++){ PX_.push(L.ox[q]); PY_.push(L.oy[q]); }
+    for (let q = NL; q >= 0; q--){ PX_.push(L.ix[q]); PY_.push(L.iy[q]); }
+    for (let s = 1; s <= fe; s++){ PX_.push(FX[s]); PY_.push(FY[s]); }
+    for (let x = FX[fe] - GX; x > BX[sb]; x -= GX){ PX_.push(x); PY_.push(envAt(x) + 1); }
+    return { nT, Zw, BX, BY, BNX, BNY, C, L, Fi, T, FX, FY, PX: PX_, PY: PY_, lignes, doigts, dentelle, neige, hl, br, R0, th0 };
+  }
+  // le contour de la vague (dos, lèvre dehors, lèvre dedans, face) : une seule figure
+  function contourVague(c, v){
+    c.moveTo(v.PX[0], v.PY[0]);
+    for (let s = 1; s < v.PX.length; s++) c.lineTo(v.PX[s], v.PY[s]);
+    c.closePath();
+  }
+  // l'enveloppe des trois rangées les plus proches : la mer qui passe devant le pied de la vague
+  let ENVW = null;
+  function envAt(x){
+    // hors du cadre, il n'y a plus de mer devant : la vague sortie du tableau descend jusqu'au bas du cadre
+    if (x < IX - 1) return IY + IH;
+    const g = clamp(round((x - IX)/GX), 0, NG - 1);
+    return ENVW ? ENVW[g] : IY + IH;
+  }
+
+  /* ———————————————— formes fixes : volcan, brumes, soleil, barques ———————————————— */
+  function mont(){
+    if (MTc) return MTc;
+    const xp = IX + MT.u*IW, Hm = MT.h*IH, X = [], Y = [], SN = [];
+    for (let x = xp - MT.hl*IW; x <= xp + MT.hr*IW + .01; x += 2){
+      const dd = (x - xp)/(IW*(x < xp ? MT.hl : MT.hr)), f = min(.95, pow(1 - abs(dd), 1.9))/.95;
+      X.push(x);
+      Y.push(Hy - Hm*f);
+      SN.push(Hy - Hm*(.6 + .08*sin(x*.35 + MT.ph) + .07*abs(sin(x*.9 + MT.ph*2))));
+    }
+    return (MTc = { X, Y, SN, xp, Hm });
+  }
+  function kasumiPath(c, k){
+    const x0 = IX + k.u0*IW, x1 = IX + k.u1*IW, L = x1 - x0, yc = IY + k.v*IH, e = k.e*IH, r = e/2;
+    const a1 = x0 + L*k.s0, a2 = x0 + L*k.s1, hb = e*.8;
+    c.moveTo(x0 + r, yc + r);
+    c.arc(x0 + r, yc, r, PI/2, PI*1.5);
+    c.lineTo(a1, yc - r);
+    c.quadraticCurveTo(a1 + r, yc - r, a1 + r, yc - r - hb/2);
+    c.quadraticCurveTo(a1 + r, yc - r - hb, a1 + 2*r, yc - r - hb);
+    c.lineTo(a2 - 2*r, yc - r - hb);
+    c.quadraticCurveTo(a2 - r, yc - r - hb, a2 - r, yc - r - hb/2);
+    c.quadraticCurveTo(a2 - r, yc - r, a2, yc - r);
+    c.lineTo(x1 - r, yc - r);
+    c.arc(x1 - r, yc, r, -PI/2, PI/2);
+    for (let x = x1 - r; x > x0 + r; x -= 4) c.lineTo(x, yc + r + .18*e*sin((x - x0)*.05 + k.v*40));
+    c.closePath();
+  }
+  const COQUE = [[-.5, -.9], [-.3, -1], [0, -1.05], [.25, -1.15], [.4, -1.55], [.5, -2.7], [.46, -1.25], [.36, .1], [.15, .55], [-.15, .6], [-.4, .35], [-.5, -.2]];
+  function barque(B){
+    champ(B.X, B.Z);
+    const sc = FOC/B.Z, x = CXs + FOC*(B.X + CH.dX)/B.Z, y = Hy + sc*(HC - CH.h);
+    return { x, y, ang: clamp(-atan(CH.hx)*.9, -.35, .35), Lp: B.L*sc, hp: B.L*sc*.075, Z: B.Z, ph: B.ph };
+  }
+  const pt = (B, u, v) => {
+    const ca = cos(B.ang), sa = sin(B.ang), X = u*B.Lp, Yv = v*B.hp;
+    return [B.x + X*ca - Yv*sa, B.y + X*sa + Yv*ca];
+  };
+  // la coque, coupée par l'eau des rangées plus proches (env)
+  function coque(c, B, env){
+    COQUE.forEach((p, k) => {
+      const q = pt(B, p[0], p[1]);
+      let y = q[1];
+      if (env){
+        const g = clamp(round((q[0] - IX)/GX), 0, NG - 1);
+        y = min(y, env[g]);
+      }
+      if (k) c.lineTo(q[0], y); else c.moveTo(q[0], y);
+    });
+    c.closePath();
+  }
+  function rameurs(c, B, plein){
+    const h = B.hp;
+    for (let k = 0; k < 7; k++){
+      const u = -.33 + k*.1, lean = .5 + .4*sin(simT*2.1 + k*.22 + B.ph);
+      const a = pt(B, u - .012, -1.0), b = pt(B, u + .012, -1.0);
+      const tx = u + lean*h/B.Lp*1.1, t = pt(B, tx, -2.1), hd = pt(B, tx + .3*h/B.Lp, -2.6);
+      c.moveTo(a[0], a[1]);
+      c.lineTo(t[0] - h*.22, t[1]);
+      c.lineTo(t[0] + h*.22, t[1]);
+      c.lineTo(b[0], b[1]);
+      c.closePath();
+      c.moveTo(hd[0] + h*.3, hd[1]);
+      c.arc(hd[0], hd[1], h*.3, 0, TAU);
+      if (plein){
+        // la rame : un trait fin vers l'eau
+        const r0 = pt(B, u + .02, -1.4), r1 = pt(B, u - .09 - .04*lean, 1.6);
+        const nx = -(r1[1] - r0[1]), ny = r1[0] - r0[0], nl = hypot(nx, ny) || 1, w = h*.09;
+        c.moveTo(r0[0] + nx/nl*w, r0[1] + ny/nl*w);
+        c.lineTo(r1[0] + nx/nl*w*.5, r1[1] + ny/nl*w*.5);
+        c.lineTo(r1[0] - nx/nl*w*.5, r1[1] - ny/nl*w*.5);
+        c.lineTo(r0[0] - nx/nl*w, r0[1] - ny/nl*w);
+        c.closePath();
+      }
+    }
+  }
+  // l'eau des rangées plus proches qu'une barque
+  function envBarque(B){
+    const env = new Float32Array(NG).fill(1e9);
+    for (let i = 0; i < NR; i++){
+      if (rows[i].z >= B.Z*.97) continue;
+      for (let g = 0; g < NG; g++) env[g] = min(env[g], Yr[i][g]);
+    }
+    return env;
+  }
+
+  /* ———————————————— le trait ———————————————— */
+  function ruban(c, X, Y, a, b, wf){
+    if (b - a < 1) return;
+    const Lx = [], Ly = [], Rx = [], Ry = [];
+    for (let s = a; s <= b; s++){
+      const p = max(a, s - 1), q = min(b, s + 1);
+      let tx = X[q] - X[p], ty = Y[q] - Y[p];
+      const l = hypot(tx, ty) || 1, w = wf(s, (s - a)/(b - a), atan2(ty, tx))*.5;
+      tx /= l;
+      ty /= l;
+      Lx.push(X[s] - ty*w);
+      Ly.push(Y[s] + tx*w);
+      Rx.push(X[s] + ty*w);
+      Ry.push(Y[s] - tx*w);
+    }
+    c.moveTo(Lx[0], Ly[0]);
+    for (let k = 1; k < Lx.length; k++) c.lineTo(Lx[k], Ly[k]);
+    for (let k = Rx.length - 1; k >= 0; k--) c.lineTo(Rx[k], Ry[k]);
+    c.closePath();
+  }
+  // le trait du keyban : plein quand il croise la plume, délié quand il la suit, effilé aux deux bouts
+  function trait(c, X, Y, a, b, w0){
+    const nn = b - a;
+    ruban(c, X, Y, a, b, (s, u, d) => {
+      const bout = clamp(min(s - a, b - s)/max(2, min(7, nn*.22)));
+      const wv = typeof w0 === "function" ? w0(s, u) : w0;
+      return wv*(.32 + .68*abs(sin(d - NIB)))*(.2 + .8*sqrt(bout));
+    });
+  }
+  function plages(cond, f){
+    let a = -1;
+    for (let g = 0; g <= NG; g++){
+      const on = g < NG && cond(g);
+      if (on && a < 0) a = g;
+      if (!on && a >= 0){
+        if (g - 1 > a) f(a, g - 1);
+        a = -1;
+      }
+    }
+  }
+  let XG = null;
+  function bande(c, i, d1, d2){
+    const yi = Yr[i], e = Er[i];
+    plages(g => yi[g] + d1 < e[g] - .3, (a, b) => {
+      c.moveTo(XG[a], yi[a] + d1);
+      for (let g = a + 1; g <= b; g++) c.lineTo(XG[g], yi[g] + d1);
+      for (let g = b; g >= a; g--) c.lineTo(XG[g], min(e[g], yi[g] + d2));
+      c.closePath();
+    });
+  }
+  const entre = (c, X0, Y0, X1, Y1, a, b) => {
+    c.moveTo(X0[a], Y0[a]);
+    for (let s = a + 1; s <= b; s++) c.lineTo(X0[s], Y0[s]);
+    for (let s = b; s >= a; s--) c.lineTo(X1[s], Y1[s]);
+    c.closePath();
+  };
+  // les découpes : hors de la vague, hors des barques, hors des brumes
+  function horsVague(c, v){
+    c.beginPath();
+    c.rect(IX - 2, IY - 2, IW + 4, IH + 4);
+    contourVague(c, v);
+    c.clip("evenodd");
+  }
+  function horsBarques(c){
+    c.beginPath();
+    c.rect(IX - 2, IY - 2, IW + 4, IH + 4);
+    for (const B of BARQ) coque(c, barque(B), envBarque(B));
+    c.clip("evenodd");
+  }
+  function horsKasumi(c){
+    c.beginPath();
+    c.rect(IX - 2, IY - 2, IW + 4, IH + 4);
+    for (const k of KAS) kasumiPath(c, k);
+    c.clip("evenodd");
+  }
+  const dansImage = c => { c.beginPath(); c.rect(IX, IY, IW, IH); c.clip(); };
+
+  /* ———————————————— les planches ———————————————— */
+  const AMP = 1.1;
+  // 990 : le bleu de Prusse de la mer et de la vague
+  function planche0(c, v){
+    const col = PC[0].encre;
+    c.save();
+    horsVague(c, v);
+    horsBarques(c);
+    encre(c, col, .5);
+    c.fillRect(IX, Hy, IW, IY + IH - Hy);
+    encre(c, col, .45);
+    c.beginPath();
+    for (let i = 1; i < NR; i++) bande(c, i, 0, FOC/rows[i].z*AMP);
+    c.fill();
+    c.restore();
+    // la vague : un aplat, deux bandes plus sombres entre les lignes de courant, le dedans de la lèvre
+    const L = v.L, l = v.lignes;
+    encre(c, col, .62);
+    c.beginPath();
+    contourVague(c, v);
+    c.fill();
+    c.save();
+    c.beginPath();
+    contourVague(c, v);
+    c.clip();
+    encre(c, col, .42);
+    c.beginPath();
+    for (const [k1, k2] of [[0, 1], [2, 3], [4, 5]]){
+      const a = max(l[k1].a, l[k2].a), b = min(l[k1].b, l[k2].b);
+      if (b > a) entre(c, l[k1].X, l[k1].Y, l[k2].X, l[k2].Y, a, b);
+    }
+    c.fill();
+    c.restore();
+  }
+  // CUMBRE : le rose de l'aube, le soleil, son reflet sur la mer
+  function planche1(c, v){
+    const col = PC[1].encre;
+    c.save();
+    horsVague(c, v);
+    c.save();
+    horsKasumi(c);
+    const g = c.createLinearGradient(0, Hy, 0, Hy - (Hy - IY)*.66);
+    g.addColorStop(0, rgb(col, .92));
+    g.addColorStop(.42, rgb(col, .5));
+    g.addColorStop(1, rgb(col, 0));
+    c.fillStyle = g;
+    c.fillRect(IX, IY, IW, Hy - IY);
+    encre(c, col, 1);
+    c.beginPath();
+    c.arc(SUN.x, SUN.y, SUN.r, 0, TAU);
+    c.fill();
+    c.restore();
+    // la mer lointaine prend l'aube, et le reflet du soleil en traits sur les crêtes
+    horsBarques(c);
+    encre(c, col, .3);
+    c.beginPath();
+    bande(c, 0, -1, FOC/rows[0].z*8);
+    for (let i = 1; i < 5; i++) bande(c, i, 0, FOC/rows[i].z*AMP*1.2);
+    c.fill();
+    encre(c, col, .95);
+    c.beginPath();
+    for (let i = 0; i < 8; i++){
+      const hw = SUN.r*(1.05 - i*.1), x0 = SUN.x - hw + (hs(i, 3) - .5)*6, x1 = SUN.x + hw + (hs(i, 4) - .5)*6;
+      const a = clamp(round((x0 - IX)/GX), 0, NG - 1), b = clamp(round((x1 - IX)/GX), 0, NG - 1);
+      const yi = Yr[i], e = Er[i];
+      const Yd = Float32Array.from(yi, y => y + .8 + i*.3);
+      plages(g2 => g2 >= a && g2 <= b && yi[g2] + 1 < e[g2], (p, q) => ruban(c, XG, Yd, p, q, (s, u) => (1.3 + .45*i)*KK*sin(PI*(.08 + .84*u))));
+    }
+    c.fill();
+    c.restore();
+  }
+  // Lecture : l'ocre des brumes, du volcan et des barques
+  function planche2(c, v){
+    const col = PC[2].encre, m = mont();
+    c.save();
+    horsVague(c, v);
+    encre(c, col, .78);
+    c.beginPath();
+    c.moveTo(m.X[0], Hy + 2);
+    for (let k = 0; k < m.X.length; k++) c.lineTo(m.X[k], max(m.Y[k], m.SN[k]));
+    c.lineTo(m.X[m.X.length - 1], Hy + 2);
+    c.closePath();
+    c.fill();
+    encre(c, col, .5);
+    c.beginPath();
+    for (const k of KAS) kasumiPath(c, k);
+    c.fill();
+    encre(c, col, .95);
+    c.beginPath();
+    for (const B of BARQ) coque(c, barque(B), envBarque(B));
+    c.fill();
+    c.restore();
+  }
+  // LE CLOSING : l'indigo des fonds (haut du ciel, ombres de la mer, cœur de la vague), puis le gofun de l'écume
+  function planche3(c, v){
+    const col = PC[3].encre, L = v.L, l = v.lignes, mode = c.globalCompositeOperation;
+    c.save();
+    horsVague(c, v);
+    c.save();
+    horsKasumi(c);
+    const g = c.createLinearGradient(0, IY, 0, IY + (Hy - IY)*.42);
+    g.addColorStop(0, rgb(col, .95));
+    g.addColorStop(.5, rgb(col, .55));
+    g.addColorStop(1, rgb(col, 0));
+    c.fillStyle = g;
+    c.fillRect(IX, IY, IW, (Hy - IY)*.42 + 1);
+    c.restore();
+    horsBarques(c);
+    encre(c, col, .78);
+    c.beginPath();
+    for (let i = 3; i < NR; i++){
+      const sc = FOC/rows[i].z;
+      bande(c, i, sc*.06, sc*AMP*.32);
+    }
+    c.fill();
+    c.restore();
+    // le cœur de la vague, l'ombre sous la lèvre, l'ombre du creux le long de la face
+    c.save();
+    c.beginPath();
+    contourVague(c, v);
+    c.clip();
+    const k5 = l[5];
+    encre(c, col, .82);
+    c.beginPath();
+    c.moveTo(k5.X[0], k5.Y[0]);
+    for (let s = 1; s <= k5.b; s++) c.lineTo(k5.X[s], k5.Y[s]);
+    c.lineTo(v.FX[v.FX.length - 1], v.FY[v.FY.length - 1] + 4);
+    c.lineTo(v.T[0], IY + IH + 80);
+    c.lineTo(v.BX[0], IY + IH + 80);
+    c.closePath();
+    c.fill();
+    encre(c, col, .6);
+    c.beginPath();
+    {
+      const a = NB, b = l[2].b, X2 = l[2].X, Y2 = l[2].Y;
+      c.moveTo(L.ix[0], L.iy[0]);
+      for (let q = 1; q <= b - NB; q++) c.lineTo(L.ix[q], L.iy[q]);
+      for (let s = b; s >= a; s--) c.lineTo(X2[s], Y2[s]);
+      c.closePath();
+    }
+    c.fill();
+    // l'ombre du creux, sous la lèvre, le long de la face
+    const nF = v.FX.length, FXo = [], FYo = [], wF = v.R0*.28;
+    for (let s = 0; s < nF; s++){
+      const p = max(0, s - 1), q = min(nF - 1, s + 1);
+      let tx = v.FX[q] - v.FX[p], ty = v.FY[q] - v.FY[p];
+      const tl = hypot(tx, ty) || 1, w = wF*(1 - s/nF);
+      FXo.push(v.FX[s] - ty/tl*w);
+      FYo.push(v.FY[s] + tx/tl*w);
+    }
+    encre(c, col, .55);
+    c.beginPath();
+    entre(c, v.FX, v.FY, FXo, FYo, 0, round(nF*.7));
+    c.fill();
+    c.restore();
+    // le gofun : écume des rangées, neige du volcan, dentelle, bord de lèvre, doigts, neige d'embruns
+    op(c, mode === "multiply" ? "source-over" : mode);
+    const blanc = D.gofun, m = mont();
+    c.save();
+    horsVague(c, v);
+    encre(c, blanc, .95);
+    c.beginPath();
+    c.moveTo(m.X[0], m.Y[0]);
+    for (let k = 0; k < m.X.length; k++) c.lineTo(m.X[k], m.Y[k]);
+    for (let k = m.X.length - 1; k >= 0; k--) c.lineTo(m.X[k], max(m.Y[k], m.SN[k]));
+    c.closePath();
+    c.fill();
+    horsBarques(c);
+    c.beginPath();
+    for (let i = 2; i < NR; i++){
+      const yi = Yr[i], ji = Jr[i], e = Er[i], pr = i/(NR - 1);
+      const Yd = Float32Array.from(yi, y => y - .3);
+      plages(g2 => ji[g2] < .55 && yi[g2] < e[g2] - .5, (a, b) => ruban(c, XG, Yd, a, b,
+        (s, u) => ((.8 + 4.5*pr*pr)*clamp((.55 - ji[s])*4)*sin(PI*(.05 + .9*u)) + .3)*KK));
+      if (i >= 7){
+        for (let g2 = 0; g2 < NG; g2 += 3){
+          if (ji[g2] < .5 && hs(i, g2) < .3){
+            const y = yi[g2] - 1.5 - hs(g2, i)*FOC/rows[i].z*.5, r = (.5 + 1.3*pr*hs(i + 1, g2))*KK;
+            if (y < e[g2] - r){
+              c.moveTo(XG[g2] + r, y);
+              c.arc(XG[g2], y, r, 0, TAU);
+            }
+          }
+        }
+      }
+    }
+    c.fill();
+    c.restore();
+    c.save();
+    dansImage(c);
+    encre(c, blanc, .96);
+    c.beginPath();
+    // la dentelle : une bande sous la crête, festonnée
+    const df = v.th0*.17, a0 = round(NB*.8);
+    {
+      const X = [], Y = [];
+      for (let s = a0; s <= NB; s++){ X.push(v.BX[s]); Y.push(v.BY[s]); }
+      for (let q = 1; q <= round(NL*.3); q++){ X.push(L.ox[q]); Y.push(L.oy[q]); }
+      const X2 = [], Y2 = [];
+      for (let s = a0; s <= NB; s++){ X2.push(v.BX[s] + v.BNX[s]*df); Y2.push(v.BY[s] + v.BNY[s]*df); }
+      for (let q = 1; q <= round(NL*.3); q++){
+        const r = L.rr[q] - L.th[q]*.3;
+        X2.push(L.O[0] + r*cos(L.ang[q]));
+        Y2.push(L.O[1] + r*sin(L.ang[q]));
+      }
+      entre(c, X, Y, X2, Y2, 0, X.length - 1);
+    }
+    for (const [x, y, r] of v.dentelle){ c.moveTo(x + r, y); c.arc(x, y, r, 0, TAU); }
+    // le bord blanc de la lèvre, qui s'élargit vers la pointe
+    {
+      const X2 = [], Y2 = [];
+      for (let q = 0; q <= NL; q++){
+        const r = L.rr[q] - L.th[q]*(.08 + .22*q/NL);
+        X2.push(L.O[0] + r*cos(L.ang[q]));
+        Y2.push(L.O[1] + r*sin(L.ang[q]));
+      }
+      entre(c, L.ox, L.oy, X2, Y2, round(NL*.15), NL);
+    }
+    for (const d of v.doigts) ruban(c, d.X, d.Y, 0, 8, (s, u) => d.w0*2*pow(1 - u, .7) + .3);
+    const tq = NL;
+    c.moveTo(L.ox[tq] + L.th[tq]*.9, L.oy[tq]);
+    c.arc((L.ox[tq] + L.ix[tq])/2, (L.oy[tq] + L.iy[tq])/2, L.th[tq]*.9, 0, TAU);
+    for (const [x, y, r] of v.neige){ c.moveTo(x + r, y); c.arc(x, y, r, 0, TAU); }
+    c.fill();
+    c.restore();
+    op(c, mode);
+  }
+  const PLANCHES = [planche0, planche1, planche2, planche3];
+
+  // le keyban : le trait noir, calligraphique
+  function* keyban(c, v){
+    const k = KK, m = mont();
+    encre(c, D.keyban, 1);
+    c.save();
+    horsVague(c, v);
+    // le ciel : brumes, soleil (derrière la brume), volcan
+    c.beginPath();
+    for (const ka of KAS){
+      const p = new Path2D();
+      kasumiPath(p, ka);
+      c.save();
+      c.strokeStyle = rgb(D.keyban);
+      c.lineWidth = .95*k;
+      c.stroke(p);
+      c.restore();
+    }
+    c.save();
+    horsKasumi(c);
+    c.strokeStyle = rgb(D.keyban);
+    c.lineWidth = .9*k;
+    c.beginPath();
+    c.arc(SUN.x, SUN.y, SUN.r, 0, TAU);
+    c.stroke();
+    // le volcan : la crête en trait plein, la neige en dents, trois ravines
+    c.beginPath();
+    trait(c, m.X, m.Y, 0, m.X.length - 1, 1.5*k);
+    const sy = m.X.map((x, q) => max(m.Y[q], m.SN[q]));
+    let a = -1;
+    for (let q = 0; q <= m.X.length; q++){
+      const on = q < m.X.length && m.SN[q] > m.Y[q] + .5;
+      if (on && a < 0) a = q;
+      if (!on && a >= 0){ trait(c, m.X, sy, a, q - 1, .85*k); a = -1; }
+    }
+    for (let q = -2; q <= 2; q++){
+      const x0 = m.xp + q*IW*.02, y0 = Hy - m.Hm*.55, x1 = m.xp + q*IW*.065, y1 = Hy - m.Hm*.08;
+      const X = [], Y = [];
+      for (let u = 0; u <= 10; u++){
+        const w = u/10;
+        X.push(x0 + (x1 - x0)*w + q*1.5*sin(w*PI));
+        Y.push(y0 + (y1 - y0)*w);
+      }
+      trait(c, X, Y, 0, 10, .5*k);
+    }
+    c.fill();
+    c.restore();
+    // l'horizon
+    c.fillRect(IX, Hy - .35*k, IW, .7*k);
+    yield;
+    // la mer : chaque crête est un trait, gras sur la crête, effilé dans le creux ; coupé à chaque creux
+    c.save();
+    horsBarques(c);
+    c.beginPath();
+    for (let i = 0; i < NR; i++){
+      const yi = Yr[i], e = Er[i], ji = Jr[i], pr = i/(NR - 1), w0 = (.45 + 1.7*pr)*k;
+      plages(g => yi[g] < e[g] - .3, (a2, b2) => {
+        let s0 = a2;
+        for (let g = a2 + 1; g <= b2; g++){
+          const creux = g === b2 || (yi[g] >= yi[g - 1] && yi[g] > yi[g + 1]);
+          if (creux && g - s0 > 2){
+            trait(c, XG, yi, s0, g, s => w0*(.3 + 1.1*clamp((1.1 - ji[s])/.7)));
+            s0 = g;
+          }
+        }
+      });
+      if (i >= 5){
+        const dd = FOC/rows[i].z*.3, Yd = Float32Array.from(yi, y => y + dd);
+        plages(g => ji[g] < .85 && Yd[g] < e[g] - .3, (a2, b2) => trait(c, XG, Yd, a2, b2, w0*.38));
+      }
+    }
+    c.fill();
+    c.restore();
+    // les barques : la coque cernée, les rameurs pleins
+    for (const Bq of BARQ){
+      const B = barque(Bq), env = envBarque(Bq);
+      c.save();
+      // au-dessus de l'eau qui est devant la barque
+      c.beginPath();
+      c.moveTo(IX, IY);
+      c.lineTo(IX + IW, IY);
+      for (let g = NG - 1; g >= 0; g--) c.lineTo(XG[g], min(env[g], IY + IH + 2));
+      c.closePath();
+      c.clip();
+      c.strokeStyle = rgb(D.keyban);
+      c.lineWidth = (.7 + .5*(B.Lp/IW))*k;
+      c.beginPath();
+      coque(c, B, null);
+      c.stroke();
+      c.beginPath();
+      rameurs(c, B, true);
+      c.fill();
+      c.restore();
+    }
+    c.restore();
+    yield;
+    // la vague
+    c.save();
+    dansImage(c);
+    traitsVague(c, v);
+    c.restore();
+    // le cadre et le kentō
+    c.fillRect(IX - 1.4*k, IY - 1.4*k, IW + 2.8*k, 1.4*k);
+    c.fillRect(IX - 1.4*k, IY + IH, IW + 2.8*k, 1.4*k);
+    c.fillRect(IX - 1.4*k, IY, 1.4*k, IH);
+    c.fillRect(IX + IW, IY, 1.4*k, IH);
+    c.fillRect(IX + IW + 6, IY + IH - 10, 1.4, 17);
+    c.fillRect(IX + IW - 10, IY + IH + 6, 17, 1.4);
+  }
+  function traitsVague(c, v){
+    const L = v.L, k = KK*(.85 + .35*clamp(v.R0/(IW*.3)));
+    c.beginPath();
+    trait(c, v.BX, v.BY, 0, NB, s => k*(.9 + 1.8*pow(s/NB, 2)));
+    trait(c, L.ox, L.oy, 0, NL, (s, u) => k*2.7*(1 - .55*u));
+    trait(c, L.ix, L.iy, 0, NL, (s, u) => k*1.5*(1 - .5*u));
+    trait(c, v.FX, v.FY, 0, v.nT - 1, (s, u) => k*1.5*(1 - .5*u));
+    for (const l of v.lignes) trait(c, l.X, l.Y, l.a, l.b, (s, u) => k*.8*(.5 + .5*sin(PI*u)));
+    c.fill();
+    // les festons de la dentelle, les doigts cernés
+    c.strokeStyle = rgb(D.keyban);
+    c.lineWidth = .6*k;
+    c.beginPath();
+    for (const [x, y, r] of v.dentelle){
+      c.moveTo(x + r*cos(.15), y + r*sin(.15));
+      c.arc(x, y, r, .15, PI - .15);
+    }
+    c.stroke();
+    c.lineWidth = .55*k;
+    c.beginPath();
+    for (const d of v.doigts) ruban(c, d.X, d.Y, 0, 8, (s, u) => d.w0*2*pow(1 - u, .7) + .3);
+    c.stroke();
+  }
+
+  /* ———————————————— l'estampe entière ———————————————— */
+  const pris = j => fait[j] !== null;
+  const sceauFait = (j, t) => fait[j] !== null && t - fait[j] >= TP + T_SC;
+  function patchPapier(c, x, y, w, h){
+    if (papier){
+      const k = CP.width/(SW + 28);
+      c.drawImage(papier.cv, (x - SX + 14)*k, (y - SY + 14)*k, w*k, h*k, x, y, w, h);
+    } else {
+      c.fillStyle = rgb(D.papier);
+      c.fillRect(x, y, w, h);
+    }
+  }
+  // l'estampe entière, en pas (papier, chaque planche, keyban, cartouche) : on peut l'étaler sur plusieurs images
+  function* peindrePrint(cv, t, st, avecMarge){
+    const c = cv.getContext("2d");
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    op(c, "source-over");
+    c.globalAlpha = 1;
+    c.clearRect(0, 0, cv.width, cv.height);
+    c.setTransform(DPR, 0, 0, DPR, -(SX - 14)*DPR, -(SY - 14)*DPR);
+    if (papier) c.drawImage(papier.cv, SX - 14, SY - 14, SW + 28, SH + 28);
+    else {
+      c.fillStyle = rgb(D.papier);
+      c.fillRect(SX, SY, SW, SH);
+    }
+    c.lineJoin = c.lineCap = "round";
+    op(c, "multiply");
+    for (let j = 0; j < 4; j++){
+      if (!pris(j)) continue;
+      PUITS.drawImage(cv, 0, 0, 1, 1);
+      yield;
+      c.save();
+      dansImage(c);
+      PLANCHES[j](c, VG);
+      c.restore();
+    }
+    PUITS.drawImage(cv, 0, 0, 1, 1);
+    yield;
+    for (const _ of keyban(c, VG)){
+      PUITS.drawImage(cv, 0, 0, 1, 1);
+      yield;
+    }
+    op(c, "source-over");
+    cartouche(c, t, st);
+    if (avecMarge) marge(c, t, st);
+    PUITS.drawImage(cv, 0, 0, 1, 1);
+  }
+  function rendrePrint(t, st, avecMarge){
+    for (const _ of peindrePrint(CP, t, st, avecMarge));
+    signeCP = cle(t, st);
+    jobP = null;
+  }
+  const colX = j => CART.x1 - CART.pc - CART.colW*(j + .5);
+  const colSig = () => CART.x0 + CART.pc + CART.colW*.5;
+  function colonne(c, txt, x, y){
+    c.font = `600 ${CART.fs}px ${SERIF}`;
+    c.textAlign = "center";
+    for (const ch of txt){
+      if (ch === " "){ y += CART.lh*.55; continue; }
+      if (ch > "~") c.font = `700 ${CART.fs*1.1}px ${CJK}`;
+      c.fillText(ch, x, y);
+      y += CART.lh;
+    }
+    c.textAlign = "left";
+    return y;
+  }
+  function gaufre(c, f){
+    c.fillStyle = "rgba(255,255,250,.6)";
+    f(-.5);
+    c.fillStyle = "rgba(40,38,34,.22)";
+    f(.5);
+  }
+  function tampon(c, cv, x, y, s, k){
+    if (k <= 0 || !cv) return;
+    const e = 1 + .35*(1 - doux(k));
+    op(c, "multiply");
+    c.globalAlpha = doux(k);
+    c.drawImage(cv, x + s/2 - s*e/2, y + s/2 - s*e/2, s*e, s*e);
+    c.globalAlpha = 1;
+    op(c, "source-over");
+  }
+  // le cartouche : papier réservé, double cadre, colonnes ; noms gaufrés puis imprimés ; sceaux ; signature
+  function cartouche(c, t, st){
+    const K = CART, k = KK;
+    patchPapier(c, K.x0, K.y0, K.w, K.h);
+    c.strokeStyle = rgb(D.keyban, .95);
+    c.lineWidth = 1.1*k;
+    c.strokeRect(K.x0, K.y0, K.w, K.h);
+    c.lineWidth = .45*k;
+    c.strokeRect(K.x0 + 2.4*k, K.y0 + 2.4*k, K.w - 4.8*k, K.h - 4.8*k);
+    c.beginPath();
+    for (let j = 1; j < 4; j++){
+      const x = K.x1 - K.pc - K.colW*j;
+      c.moveTo(x, K.y0 + K.pc);
+      c.lineTo(x, K.y1 - K.pc);
+    }
+    const xs = K.x1 - K.pc - K.colW*4 - K.colW*.15;
+    c.moveTo(xs, K.y0 + 2.4*k);
+    c.lineTo(xs, K.y1 - 2.4*k);
+    c.moveTo(xs - 2*k, K.y0 + 2.4*k);
+    c.lineTo(xs - 2*k, K.y1 - 2.4*k);
+    c.stroke();
+    for (let j = 0; j < 4; j++){
+      const x = colX(j), ys = K.y0 + K.pc;
+      if (pris(j)){
+        encre(c, PC[j].encre);
+        c.fillRect(x - K.swt/2, ys, K.swt, K.swt);
+        c.fillStyle = rgb(D.keyban, .95);
+        colonne(c, PR[j].nom.toUpperCase(), x, K.ny);
+        if (sceauFait(j, t)) tampon(c, SCEAUX[j], x - K.sealS/2, K.y1 - K.pc - K.sealS, K.sealS, 1);
+      } else {
+        c.lineWidth = .5*k;
+        c.strokeRect(x - K.swt/2, ys, K.swt, K.swt);
+        gaufre(c, d => colonne(c, PR[j].nom.toUpperCase(), x + d, K.ny + d));
+      }
+    }
+    const x = colSig();
+    if (st >= S_SIGNE){
+      c.fillStyle = rgb(D.keyban, .95);
+      const y = colonne(c, D.artiste + "画", x, K.y0 + K.pc + K.fs);
+      if (st >= S_SIGNE + .5) tampon(c, SCEAUX[4], x - K.colW*.52, y - K.lh*.3, K.colW*1.05, 1);
+    } else gaufre(c, d => colonne(c, D.artiste, x + d, K.y0 + K.pc + K.fs + d));
+  }
+  // la marge : l'état, et la loi lue en direct, en encre noire
+  function marge(c, t, st){
+    const fs = clamp(IW*.026, 7.5, 10.5);
+    c.textAlign = "left";
+    c.font = `${fs}px ${MONO}`;
+    c.fillStyle = rgb(D.keyban, .88);
+    c.fillText(ligneMarge(t, st), IX, IY + IH + fs + 6);
+    c.fillStyle = rgb(D.keyban, .62);
+    c.fillText(ligneLoi(st), IX, IY + IH + 2*fs + 9);
+  }
+  function ligneLoi(st){
+    const hl = VG ? VG.hl : raideur(0);
+    const etat = hl > 1/7 ? " > 1/7 : la crête casse" : " < 1/7";
+    if (st >= S_REEL0) return "Gerstner · H/L " + hl.toFixed(2) + etat + " · Schlick F₀ 0,02";
+    return "Gerstner 1802 · six houles · H/L " + hl.toFixed(2) + etat;
+  }
+  function ligneMarge(t, st){
+    if (st >= S_SIGNE) return "Merci, " + D.artiste.charAt(0) + D.artiste.slice(1).toLowerCase() + ". " + (D.chaine + 1) + " jours d'affilée.";
+    if (st >= 0) return st < S_REEL0 ? "l'estampe s'anime" : st < S_REEL1 ? "le dessin devient la mer" : "la vague sort du cadre";
+    return ligneEtat(t);
+  }
+  function cle(t, st){
+    let s = (papier ? "p" : "-") + (SCEAUX.length ? "s" : "-");
+    for (let j = 0; j < 4; j++) s += fait[j] === null ? "-" : sceauFait(j, t) ? "S" : "F";
+    if (tS !== null) s += st >= S_SIGNE + .5 ? "Z" : st >= S_SIGNE ? "Y" : "b";
+    const vivant = tS === null || st < S_REEL0;
+    if (vivant) s += "|" + simT.toFixed(4) + "|" + gWave.toFixed(4) + "|" + ondes.length;
+    if (tS === null) s += "|" + ligneEtat(t);
+    return s;
+  }
+
+  /* ———————————————— la feuille qui se soulève : dessous, le bois encré en miroir ———————————————— */
+  function preparerBloc(j){
+    const c = BLOC.getContext("2d");
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    op(c, "source-over");
+    c.clearRect(0, 0, BLOC.width, BLOC.height);
+    c.setTransform(DPR, 0, 0, DPR, -(SX - 14)*DPR, -(SY - 14)*DPR);
+    c.fillStyle = "rgba(0,0,0,.45)";
+    c.fillRect(IX - 8, IY - 6, IW + 20, IH + 18);
+    if (BOIS){
+      const pat = c.createPattern(BOIS, "repeat");
+      pat.setTransform(new DOMMatrix().translateSelf(IX, IY).scaleSelf(1.3, .8));
+      c.fillStyle = pat;
+    } else c.fillStyle = rgb(D.bois);
+    c.fillRect(IX - 12, IY - 12, IW + 24, IH + 24);
+    c.strokeStyle = "rgba(0,0,0,.4)";
+    c.strokeRect(IX - 11.5, IY - 11.5, IW + 23, IH + 23);
+    c.save();
+    c.translate(2*IX + IW, 0);
+    c.scale(-1, 1);
+    dansImage(c);
+    c.lineJoin = c.lineCap = "round";
+    PLANCHES[j](c, VG);
+    c.restore();
+    blocDe = j;
+  }
+  function feuille(ctx, j, e){
+    const p = e < T_LEVE ? doux(e/T_LEVE) : e < T_LEVE + T_TIENT ? 1 : 1 - lisse((e - T_LEVE - T_TIENT)/T_POSE);
+    const src = e < T_LEVE + T_TIENT ? CPa : CP;
+    const a = p*1.15;
+    if (p > .002) ctx.drawImage(BLOC, SX - 14, SY - 14, SW + 28, SH + 28);
+    const y0 = SY - 14, Ls = SH + 28, N = 36, ds = Ls/N, Fd = max(W, H)*2.6, cx = W/2, cy = H/2, k = src.width/(SW + 28);
+    const bandes = [];
+    let yy = y0, zz = 0;
+    for (let s = 0; s < N; s++){
+      const u = (s + .5)/N, aa = a*(.75 + .5*u);
+      const y2 = yy + cos(aa)*ds, z2 = zz + sin(aa)*ds, s0 = Fd/(Fd - zz), s1 = Fd/(Fd - z2);
+      bandes.push({ Y0: cy + (yy - cy)*s0, Y1: cy + (y2 - cy)*s1, sc: (s0 + s1)/2, src: s*ds });
+      yy = y2;
+      zz = z2;
+    }
+    if (p > .002){
+      // l'ombre de la feuille levée, en trois aplats nets
+      for (const [f, al] of [[1, .14], [.66, .14], [.33, .18]]){
+        const dx = (5 + 14*p)*f, dy = (8 + 26*p)*f, ox0 = SX - 14, ow = SW + 28;
+        ctx.fillStyle = `rgba(0,0,0,${al*min(1, p*3)})`;
+        ctx.beginPath();
+        ctx.moveTo(ox0 + dx, y0);
+        for (const b of bandes) ctx.lineTo(cx + (ox0 - cx)*b.sc + dx, b.Y1 + dy);
+        for (let s = N - 1; s >= 0; s--){ const b = bandes[s]; ctx.lineTo(cx + (ox0 + ow - cx)*b.sc + dx, b.Y1 + dy); }
+        ctx.lineTo(ox0 + ow + dx, y0);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    for (const b of bandes){
+      if (b.Y1 <= b.Y0) continue;
+      const x0 = cx + (SX - 14 - cx)*b.sc, w = (SW + 28)*b.sc;
+      ctx.drawImage(src, 0, b.src*k, src.width, ds*k, x0, b.Y0, w, b.Y1 - b.Y0 + .7);
+    }
+    if (p > .01){
+      const b = bandes[N - 1];
+      ctx.fillStyle = `rgba(255,255,250,${.3*p})`;
+      ctx.fillRect(cx + (SX - cx)*b.sc, b.Y1 - 1, SW*b.sc, 1);
+    }
+  }
+  function feuilleActive(t){
+    for (let j = 0; j < 4; j++) if (fait[j] !== null && t - fait[j] >= 0 && t - fait[j] < TP) return j;
+    return -1;
+  }
+
+  /* ———————————————— le réel : ciel, mer, vague, eau ———————————————— */
+  // le ciel de l'aube, selon l'élévation (tangente) : or à l'horizon, rose, mauve, indigo au zénith
+  function lutCiel(){
+    const ST = [[0, [255, 202, 150]], [.025, [252, 168, 126]], [.08, [226, 116, 126]], [.18, [150, 84, 128]], [.36, [62, 50, 104]], [.7, [24, 26, 62]], [1.6, [12, 14, 40]]];
+    LR = new Float32Array(512);
+    LG = new Float32Array(512);
+    LB = new Float32Array(512);
+    for (let i = 0; i < 512; i++){
+      const e = i/511*1.6;
+      let k = 0;
+      while (k < ST.length - 2 && e > ST[k + 1][0]) k++;
+      const u = clamp((e - ST[k][0])/(ST[k + 1][0] - ST[k][0])), sm = u*u*(3 - 2*u);
+      LR[i] = lerp(ST[k][1][0], ST[k + 1][1][0], sm);
+      LG[i] = lerp(ST[k][1][1], ST[k + 1][1][1], sm);
+      LB[i] = lerp(ST[k][1][2], ST[k + 1][1][2], sm);
+    }
+  }
+  function cielLUT(e){
+    const li = e <= 0 ? 0 : e >= 1.6 ? 511 : (e*319.375) | 0;
+    CR = LR[li]; CG = LG[li]; CB = LB[li];
+  }
+  function ciel(x, e, gl = 1){
+    const li = e <= 0 ? 0 : e >= 1.6 ? 511 : (e*319.375) | 0;
+    let r = LR[li], g = LG[li], b = LB[li];
+    const dx = x - SUN.x, dy = (e - (Hy - SUN.y)/FOC)*FOC, d = sqrt(dx*dx + dy*dy);
+    const g1 = exp(-d/(SUN.r*1.2)), g2 = exp(-d/(SUN.r*5));
+    r += (150*g1 + 70*g2)*gl;
+    g += (120*g1 + 40*g2)*gl;
+    b += (70*g1 + 10*g2)*gl;
+    if (d < SUN.r + 1){
+      const k = clamp(SUN.r + .5 - d);
+      r += (255 - r)*k;
+      g += (244 - g)*k;
+      b += (220 - b)*k;
+    }
+    CR = r; CG = g; CB = b;
+  }
+  function frontR(st){
+    // le réel gagne depuis la crête : lentement d'abord, puis il emporte toute la feuille
+    const u = clamp((st - S_REEL0)/(S_REEL1 - S_REEL0)), C = VG ? VG.C : [W/2, H/2];
+    const loin = max(hypot(C[0], C[1]), hypot(W - C[0], C[1]), hypot(C[0], H - C[1]), hypot(W - C[0], H - C[1]));
+    return pow(u, 1.9)*(loin + 160);
+  }
+  function preparerColonnes(v, st){
+    // le dessus de la vague par colonne (dos, crête, face) ; la face par ligne (pour l'épaisseur)
+    {
+    const cs = csB;
+    TOPB.fill(1e9);
+    const X = v.BX.concat(v.FX), Y = v.BY.concat(v.FY);
+    for (let s = 0; s < X.length - 1; s++){
+      let xa = X[s], xb = X[s + 1], ya = Y[s], yb = Y[s + 1];
+      if (xa > xb){ let q = xa; xa = xb; xb = q; q = ya; ya = yb; yb = q; }
+      const sl = (yb - ya)/((xb - xa) || 1e-3);
+      for (let bx = max(0, ceil(xa/cs - .5)), b1 = min(BW - 1, floor(xb/cs - .5)); bx <= b1; bx++){
+        const x = (bx + .5)*cs, y = ya + (x - xa)*sl;
+        if (y < TOPB[bx]){ TOPB[bx] = y; SLB[bx] = clamp(sl, -6, 6); }
+      }
+    }
+    for (let bx = 0; bx < BW; bx++) ENVB[bx] = envAt((bx + .5)*cs);
+    FACEX.fill(1e9);
+    for (let s = 0; s < v.FX.length - 1; s++){
+      let xa = v.FX[s], xb = v.FX[s + 1], ya = v.FY[s], yb = v.FY[s + 1];
+      if (ya > yb){ let q = xa; xa = xb; xb = q; q = ya; ya = yb; yb = q; }
+      for (let by = max(0, ceil(ya/cs - .5)), b1 = min(BH - 1, floor(yb/cs - .5)); by <= b1; by++){
+        const y = (by + .5)*cs;
+        FACEX[by] = xa + (xb - xa)*(y - ya)/((yb - ya) || 1e-3);
+      }
+    }
+    // l'eau qui monte au bas de l'écran
+    const crue = lisse((st - S_CRUE0)/(S_CRUE1 - S_CRUE0)), haut = crue*H*.2;
+    for (let bx = 0; bx < BW; bx++){
+      const x = (bx + .5)*cs;
+      FLY[bx] = haut < 1 ? 1e9 : H - haut + 3*sin(x*.045 - simT*2.2) + 2*sin(x*.11 + simT*1.4) + 6*(1 - crue)*sin(x*.02 + simT*3);
+    }
+    }
+    // le volcan, par colonne de la mer
+    const m = mont();
+    for (let ax = 0; ax < AW; ax++){
+      const x = IX + (ax + .5)*cs, q = (x - m.X[0])/2;
+      if (q < 0 || q >= m.X.length - 1){ MTOP[ax] = 1e9; MSN[ax] = 0; continue; }
+      const i = floor(q), f = q - i;
+      MTOP[ax] = lerp(m.Y[i], m.Y[i + 1], f);
+      MSN[ax] = lerp(m.SN[i], m.SN[i + 1], f);
+    }
+  }
+  function rendreReel(st){
+    const v = VG, L = v.L, mk = st < S_REEL1 + .25, Rf = frontR(st), M0x = v.C[0], M0y = v.C[1];
+    const n = COMP.length, sunX = SUN.x, sunY = SUN.y, kasY = KAS.map(k => [IY + k.v*IH, k.e*IH]);
+    for (let j = 0; j < n; j++){
+      const c = COMP[j];
+      CK[j] = c.k; CA[j] = c.A; CDX[j] = c.dx; CDZ[j] = c.dz; CW[j] = c.w; CPH[j] = c.ph - c.w*simT; CQK[j] = S*c.p;
+    }
+    // la direction du soleil (x droite, y haut, z au loin)
+    let sdx = (sunX - CXs)/FOC, sdy = (Hy - sunY)/FOC, sdz = 1;
+    const sl0 = 1/sqrt(sdx*sdx + sdy*sdy + 1);
+    sdx *= sl0; sdy *= sl0; sdz *= sl0;
+    const hzR = LR[0], hzG = LG[0], hzB = LB[0];
+    for (let ax = 0; ax < AW; ax++) BLC[ax] = exp(-abs(IX + (ax + .5)*cs - sunX)/(IW*.45));
+    const dA = imA.data, __tA = performance.now();
+    const ondesA = ondes.length > 0;
+    /* A : le ciel et la mer, dans le cadre */
+    // la couleur se recalcule une ligne sur deux (le ciel, une sur huit) ; le front, lui, avance à chaque image
+    for (let ay = 0; ay < AH; ay++){
+      const y = IY + (ay + .5)*cs, due = PLEIN || (ay & 1) === PAR;
+      let i = ay*AW*4;
+      const ciel_ = y < Hy, e = (Hy - y)/FOC;
+      let kb = 0, rDy = 0, rZ = 0, rFg = 0;
+      if (!ciel_){
+        // tout ce qui ne dépend que de la distance se calcule une fois par ligne
+        rDy = y - Hy + .3;
+        rZ = HC*FOC/rDy;
+        rFg = 1 - exp(-rZ/(Z_MAX*1.1));
+        const fp = rZ*rZ/(FOC*HC)*cs;
+        for (let j = 0; j < n; j++) WJ[j] = clamp(1.3 - fp*CK[j]*.32);
+        WJ[n - 1] = 0;   // la plus courte ride ne sert qu'à l'estampe
+      }
+      if (ciel_){
+        for (const [yk, ek] of kasY){ const u = (y - yk)/(ek*1.5); kb += exp(-u*u); }
+      }
+      for (let ax = 0; ax < AW; ax++, i += 4){
+        const x = IX + (ax + .5)*cs;
+        let q = 1e9;
+        if (mk){
+          const ddx = x - M0x, ddy = y - M0y;
+          q = Rf - sqrt(ddx*ddx + ddy*ddy) + (nz(x*.03, y*.03) - .5)*150;
+          if (q < -50){ dA[i + 3] = 0; continue; }
+        }
+        let r, g, b;
+        if (ciel_ && SKOK[ay*AW + ax] && !(due && (ay >> 1) % 4 === NFR % 4)){
+          const ic = (ay*AW + ax)*3;
+          r = SKYC[ic]; g = SKYC[ic + 1]; b = SKYC[ic + 2];
+        } else if (ciel_){
+          ciel(x, e);
+          r = CR; g = CG; b = CB;
+          // le volcan, dans la brume de l'aube
+          if (y > MTOP[ax]){
+            const neige = y < MSN[ax], cote = x < IX + MT.u*IW ? 1 : .7;
+            const vr = neige ? 236*cote : 96*cote, vg = neige ? 196*cote : 74*cote, vb = neige ? 204*cote : 112*cote;
+            const brume = .25 + .5*(1 - (Hy - y)/(MT.h*IH + 1));
+            const aa = clamp((y - MTOP[ax])/cs + .5);
+            r = lerp(r, lerp(vr, hzR, brume), aa);
+            g = lerp(g, lerp(vg, hzG, brume), aa);
+            b = lerp(b, lerp(vb, hzB, brume), aa);
+          }
+          // les nuages : des bandes étirées, plus denses là où étaient les brumes de l'estampe
+          const cd = nz(x*.011 + simT*.015, y*.085) + .42*kb - .6 + .1*nz(x*.05, y*.2);
+          if (cd > 0){
+            const sdx_ = x - sunX, sdy_ = y - sunY, ca = clamp(cd*5)*.92, sp = exp(-sqrt(sdx_*sdx_ + sdy_*sdy_)/(IW*.3));
+            const lit = clamp(.25 + (y - IY)/(Hy - IY)*.75 + sp*.6 - (nz(x*.03 + 7, y*.12) - .5)*.8);
+            r = lerp(r, lerp(70, 255, lit), ca);
+            g = lerp(g, lerp(48, 178 + 40*sp, lit), ca);
+            b = lerp(b, lerp(88, 150 + 20*sp, lit), ca);
+          }
+          const ic = (ay*AW + ax)*3;
+          SKYC[ic] = r; SKYC[ic + 1] = g; SKYC[ic + 2] = b;
+          SKOK[ay*AW + ax] = 1;
+        } else if (SKOK[ay*AW + ax] && !due){
+          const ic = (ay*AW + ax)*3;
+          r = SKYC[ic]; g = SKYC[ic + 1]; b = SKYC[ic + 2];
+        } else {
+          // la mer : la surface de Gerstner, vue d'une falaise
+          const dy = rDy, Z = rZ, X = (x - CXs)*Z/FOC;
+          let h = 0, hx = 0, hz = 0, J = 1;
+          for (let j = 0; j < n; j++){
+            const k = CK[j], w = WJ[j];
+            if (w <= 0) continue;
+            const th = k*(CDX[j]*X + CDZ[j]*Z) + CPH[j], c_ = cos(th), s_ = sin(th), A = CA[j]*w;
+            h += A*c_;
+            hx -= A*k*CDX[j]*s_;
+            hz -= A*k*CDZ[j]*s_;
+            J -= CQK[j]*w*CDX[j]*CDX[j]*c_;
+          }
+          if (ondesA){
+            champOndes(X, Z);
+            h += CH.h; hx += CH.hx; hz += CH.hz;
+          }
+          let nxw = -hx*.38, nyw = 1, nzw = -hz*.38;
+          const nl = 1/sqrt(nxw*nxw + 1 + nzw*nzw);
+          nxw *= nl; nyw = nl; nzw *= nl;
+          let vx = (x - CXs)/FOC, vy = -dy/FOC, vz = 1;
+          const vl = 1/sqrt(vx*vx + vy*vy + 1);
+          vx *= vl; vy *= vl; vz *= vl;
+          const dn = vx*nxw + vy*nyw + vz*nzw, cosT = dn < 0 ? -dn : 0;
+          const c1 = 1 - cosT, c2 = c1*c1, F = .02 + .98*c2*c2*c1;
+          const rx = vx - 2*dn*nxw, rz = vz - 2*dn*nzw;
+          let ry = vy - 2*dn*nyw;
+          if (ry < .002) ry = .002;
+          ciel(CXs + FOC*rx/max(.05, rz), ry/sqrt(rx*rx + rz*rz), .55);
+          const sd = rx*sdx + ry*sdy + rz*sdz;
+          let spec = 0;
+          if (sd > .95){ const s2 = sd*sd, s4 = s2*s2, s8 = s4*s4, s16 = s8*s8, s32 = s16*s16, s128 = s32*s32*s32*s32; spec = s128*.9 + s32*.1; }
+          // la couleur de l'eau : les crêtes, minces, laissent passer la lumière (devant le soleil)
+          const bl = BLC[ax], cr = clamp(h/ATOT*.6 + .45), sss = cr*cr*(.3 + .7*bl);
+          const wr = 4 + 30*sss, wg = 28 + 92*sss, wb = 46 + 70*sss;
+          r = wr*(1 - F) + CR*F + 255*spec;
+          g = wg*(1 - F) + CG*F + 226*spec;
+          b = wb*(1 - F) + CB*F + 190*spec;
+          // l'écume, là où le jacobien s'effondre
+          const fo = clamp((.5 - J)*2.6 + (nz(X*.5, Z*.5) - .5)*1.6);
+          if (fo > 0){
+            r = lerp(r, 236, fo*.9);
+            g = lerp(g, 230, fo*.9);
+            b = lerp(b, 228, fo*.9);
+          }
+          // la brume de l'horizon
+          const fg = rFg;
+          r = lerp(r, hzR, fg);
+          g = lerp(g, hzG, fg);
+          b = lerp(b, hzB, fg);
+          const ic = (ay*AW + ax)*3;
+          SKYC[ic] = r; SKYC[ic + 1] = g; SKYC[ic + 2] = b;
+          SKOK[ay*AW + ax] = 1;
+        }
+        let a = 255;
+        if (mk && q < 30){
+          if (q < 0){
+            // l'encre du keyban qui se dissout dans l'eau
+            const fil = ss(.5, .68, nz(x*.09 + 40, y*.09));
+            r = 18; g = 24; b = 44;
+            a = 255*.62*(1 + q/50)*fil;
+          } else {
+            const rim = 1 - abs(q - 13)/13;
+            if (rim > 0){
+              r = lerp(r, 244, rim);
+              g = lerp(g, 246, rim);
+              b = lerp(b, 242, rim);
+            }
+            a = 255*max(clamp(q/10), rim);
+          }
+        }
+        dA[i] = r; dA[i + 1] = g; dA[i + 2] = b; dA[i + 3] = a;
+      }
+    }
+    bufA.getContext("2d").putImageData(imA, 0, 0);
+    __P("A", __tA); const __tB = performance.now();
+
+    /* B : la vague, la brume du rouleau, l'eau qui monte — sur tout l'écran */
+    const dB = imB.data;
+
+    {
+    const cs = csB;
+    const O = L.O, R0 = L.R0, Rb = (R0 + 2*cs)*(R0 + 2*cs), a0 = L.a0, swp = L.sweep, bb = L.b, th0 = L.th0;
+    const Cx = v.C[0], tau0 = IW*.085;
+    for (let by = 0; by < BH; by++){
+      const y = (by + .5)*cs, fx = FACEX[by];
+      let i = by*BW*4;
+      dB.fill(0, i, i + BW*4);
+      for (let bx = 0; bx < BW; bx++, i += 4){
+        const x = (bx + .5)*cs, top = TOPB[bx], fly = FLY[bx], envb = ENVB[bx];
+        const corps = y > top - cs && y < envb + cs && y < IY + IH + cs;
+        const ox = x - O[0], oy = y - O[1], r2 = ox*ox + oy*oy;
+        const pres = r2 < Rb;
+        if (!corps && !pres && y < fly - 2) continue;
+        let q = 1e9;
+        if (mk){
+          const ddx = x - M0x, ddy = y - M0y;
+          q = Rf - sqrt(ddx*ddx + ddy*ddy) + (nz(x*.03, y*.03) - .5)*150;
+          if (q < 0) continue;
+        }
+        let r = 0, g = 0, b = 0, a = 0;
+        const sdx_ = x - sunX, sdy_ = y - sunY, sp = corps || pres ? exp(-sqrt(sdx_*sdx_ + sdy_*sdy_)/(IW*.36)) : 0;
+        if (corps){
+          const d = y - top, sl = SLB[bx], inv = 1/sqrt(1 + sl*sl), qd = min(1, d/(IH*.4));
+          let nxb = sl*inv*(1 - .7*qd), nyb = inv*(1 - .7*qd) + .05, nzb = -(.35 + qd);
+          const nl = 1/sqrt(nxb*nxb + nyb*nyb + nzb*nzb);
+          nxb *= nl; nyb *= nl; nzb *= nl;
+          const c1 = 1 + nzb, c2 = c1*c1, F = .02 + .98*c2*c2*c1;
+          const rx = -2*nzb*nxb, ry = -2*nzb*nyb, rz = 1 - 2*nzb*nzb;
+          cielLUT(ry/sqrt(rx*rx + rz*rz + 1e-4));
+          let ep = d;
+          if (x < fx) ep = min(ep, (fx - x)*1.3);
+          const Tr = exp(-ep/(tau0*(1 + .9*sp)));
+          let wr = 4 + (20 + 150*sp)*Tr, wg = 26 + (140 + 70*sp)*Tr, wb = 48 + (122 - 50*sp)*Tr;
+          // les filets d'écume qui suivent la surface, et l'écume de la crête
+          const fl = nz(x*.012 - simT*.35, d*.075) + .3*nz(x*.05, d*.25) - .12;
+          const filet = ss(.56, .74, fl)*(1 - qd*.6)*.6;
+          // le ciel de l'aube accroché aux rides de la surface
+          const ride = ss(.6, .78, nz(x*.03 + d*.02 + 50, d*.14 - simT*.2))*(1 - qd)*.55;
+          const prox = x < Cx ? clamp(1 - (Cx - x)/(IW*.5)) : 1;
+          const crete = clamp(1 - d/(th0*(.22 + .5*nz(x*.06, y*.06))))*prox;
+          // l'eau qui coule le long de la face : des filets verticaux près de la face
+          let coule = 0;
+          if (x < fx && fx - x < IW*.3){
+            const df = fx - x;
+            coule = ss(.6, .82, nz(df*.09 + 11, y*.018 - simT*.7))*(1 - df/(IW*.3))*.8;
+          }
+          r = wr*(1 - F) + CR*F + (CR - wr)*ride;
+          g = wg*(1 - F) + CG*F + (CG - wg)*ride;
+          b = wb*(1 - F) + CB*F + (CB - wb)*ride;
+          const fo = max(filet, crete, coule);
+          r = lerp(r, 238, fo);
+          g = lerp(g, 242, fo);
+          b = lerp(b, 240, fo);
+          a = clamp((y - top)*inv/cs + .5)*clamp((envb - y)/cs + .5);
+        }
+        if (pres){
+          const rr0 = sqrt(r2);
+          let phi = atan2(oy, ox) - a0;
+          phi -= TAU*floor(phi/TAU);
+          if (phi <= swp){
+            const u = phi/swp, rr = R0*exp(-bb*phi), th = th0*pow(1 - .7*u, 1.1);
+            if (!corps && rr0 < rr - th + cs){
+              tube(x, y, max(0, rr - th - rr0), u, sp);
+              r = TU[0]; g = TU[1]; b = TU[2]; a = TU[3];
+            }
+            if (rr0 < rr + cs && rr0 > rr - th - cs){
+              const w = clamp((rr - rr0)/th);
+              let al = min(clamp((rr - rr0)/cs + .5), clamp((rr0 - (rr - th))/cs + .5));
+              const nv = nz(x*.05 + simT*.2, y*.05);
+              if (u > .88) al *= clamp((1 - u)/.12 + (nv - .5)*1.6);
+              if (al > 0){
+                const ca = ox/rr0, sa = oy/rr0, ff = 1 - 1.3*w;
+                let nxl = ca*ff, nyl = -sa*ff, nzl = -.6;
+                const nl = 1/sqrt(nxl*nxl + nyl*nyl + nzl*nzl);
+                nxl *= nl; nyl *= nl; nzl *= nl;
+                const c1 = 1 + nzl, c2 = c1*c1, F = .02 + .98*c2*c2*c1;
+                const rx = -2*nzl*nxl, ry = -2*nzl*nyl, rz = 1 - 2*nzl*nzl;
+                cielLUT(ry/sqrt(rx*rx + rz*rz + 1e-4));
+                const Tr = exp(-th*(.55 + .6*w)/(tau0*(1 + 1.2*sp)));
+                const wr = 5 + (24 + 150*sp)*Tr, wg = 30 + (150 + 60*sp)*Tr, wb = 50 + (115 - 40*sp)*Tr;
+                let lr = wr*(1 - F) + CR*F, lg = wg*(1 - F) + CG*F, lb = wb*(1 - F) + CB*F;
+                const bord = ss(0, .2, .2 - w + (nv - .5)*.25)*(.5 + .5*u);
+                const coulee = ss(.64, .82, nz(phi*16 - simT*.9, w*7 + 3))*(.15 + .3*u);
+                const fo = max(ss(.55, .95, u + (nv - .5)*.7), bord, coulee);
+                lr = lerp(lr, 240, fo);
+                lg = lerp(lg, 244, fo);
+                lb = lerp(lb, 242, fo);
+                r = lr*al + r*(1 - al);
+                g = lg*al + g*(1 - al);
+                b = lb*al + b*(1 - al);
+                a = al + a*(1 - al);
+              }
+            }
+          } else if (!corps){
+            // l'ouverture du rouleau, de la pointe jusqu'au pied de la lèvre : l'eau de la face, à l'ombre
+            const rs = lerp(R0*exp(-bb*swp) - th0*pow(.3, 1.1), R0 - th0, (phi - swp)/(TAU - swp));
+            if (rr0 < rs + cs*.5){
+              tube(x, y, rs - rr0, 1, sp);
+              r = TU[0]; g = TU[1]; b = TU[2]; a = TU[3];
+            }
+          }
+        }
+        if (corps && y < envb && envb - y < 7*KK){
+          // l'écume au pied, là où la vague rencontre les rangées proches
+          const ep = ss(.35, .7, nz(x*.08 + simT*.4, y*.05))*(1 - (envb - y)/(7*KK));
+          r = lerp(r, 236, ep); g = lerp(g, 240, ep); b = lerp(b, 238, ep);
+        }
+        if (y > fly){
+          // l'eau qui inonde le bas de la feuille : on voit le papier au travers
+          const dd = y - fly;
+          let fr = 22, fg = 92, fb = 110, fa = .38 + .32*min(1, dd/(H*.14));
+          const cv = nz(x*.05 + simT*.2, y*.07 - simT*.1);
+          const lum = ss(.55, .75, cv)*.5;
+          fr += 50*lum; fg += 70*lum; fb += 60*lum;
+          if (dd < 22){
+            const k = 1 - dd/22;
+            ciel(x, .02);
+            fr = lerp(fr, CR, k*.5); fg = lerp(fg, CG, k*.5); fb = lerp(fb, CB, k*.5);
+          }
+          const ec = max(dd < 2*cs ? 1 - dd/(2*cs) : 0, ss(.64, .8, nz(x*.05 + simT*.25, dd*.12))*clamp(1 - dd/30)*.7);
+          fr = lerp(fr, 238, ec); fg = lerp(fg, 242, ec); fb = lerp(fb, 240, ec);
+          fa = max(fa, ec*.92)*clamp(dd/cs + .5);
+          r = fr*fa + r*(1 - fa);
+          g = fg*fa + g*(1 - fa);
+          b = fb*fa + b*(1 - fa);
+          a = fa + a*(1 - fa);
+        }
+        if (a <= 0) continue;
+        if (mk && q < 26){
+          const rim = 1 - abs(q - 13)/13;
+          if (rim > 0){ r = lerp(r, 244, rim); g = lerp(g, 246, rim); b = lerp(b, 242, rim); a = max(a, rim); }
+          a *= clamp(q/6);
+        }
+        dB[i] = r; dB[i + 1] = g; dB[i + 2] = b; dB[i + 3] = a*255;
+      }
+    }
+    }
+    bufB.getContext("2d").putImageData(imB, 0, 0);
+    window.__DBG = { bufB, bufA, L: v.L, C: v.C };
+    PAR ^= 1;
+    NFR++;
+    PLEIN = false;
+  }
+  // le dedans du rouleau : on voit la face à l'ombre de la lèvre, la lumière passe près de la lèvre, de la brume
+  const TU = [0, 0, 0, 0];
+  function tube(x, y, dl, u, sp){
+    const glow = exp(-dl/(IW*.035))*(.45 + .7*sp);
+    let r = 3 + 30*glow + 80*sp*glow, g = 16 + 100*glow + 40*sp*glow, b = 28 + 80*glow;
+    const mv = ss(.45, .8, nz(x*.04 - simT*.3, y*.04))*(.15 + .3*u);
+    const st = ss(.62, .8, nz(x*.02 + 31, y*.07 - simT*.6))*.35;
+    const f = max(mv, st);
+    TU[0] = lerp(r, 214, f); TU[1] = lerp(g, 228, f); TU[2] = lerp(b, 232, f); TU[3] = 1;
+  }
+  function champOndes(X, Z){
+    let h = 0, hx = 0, hz = 0;
+    for (const o of ondes){
+      const age = max(0, nowMs - o.t0)/1000, rx = X - o.X, rz = Z - o.Z, r = sqrt(rx*rx + rz*rz) + 1e-3;
+      const cp = sqrt(GR/o.k), u = r - cp*.5*age*o.acc, env = o.A*exp(-u*u/(o.sig*o.sig) - age/3.5);
+      const ph = o.k*(r - cp*age*o.acc);
+      h += env*cos(ph);
+      hx -= env*o.k*sin(ph)*rx/r;
+      hz -= env*o.k*sin(ph)*rz/r;
+    }
+    CH.h = h; CH.hx = hx; CH.hz = hz;
+  }
+  // les barques, au réel : des silhouettes à contre-jour, bordées de lumière
+  function barquesReel(ctx, st){
+    const Rf = frontR(st), v = VG;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(IX, IY, IW, IH);
+    ctx.clip();
+    for (const Bq of BARQ){
+      const B = barque(Bq);
+      if (Rf < hypot(B.x - v.C[0], B.y - v.C[1]) + 30) continue;
+      ctx.fillStyle = "rgba(14,16,26,.94)";
+      ctx.beginPath();
+      coque(ctx, B, null);
+      rameurs(ctx, B, true);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,196,150,.55)";
+      ctx.lineWidth = .8;
+      ctx.beginPath();
+      for (let k = 0; k < 6; k++){
+        const p = pt(B, COQUE[k][0], COQUE[k][1]);
+        if (k) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* ———————————————— embruns, brumes, éclats devant l'écran, gouttes sur la vitre ———————————————— */
+  function emettre(nb, v, souffle){
+    const L = v.L, R = Math.random, kk = KK;
+    for (let m = 0; m < nb; m++){
+      const i = pIdx++ % NP, u = .45 + .55*R(), q = round(u*NL), a = L.ang[q];
+      const fx = -sin(a), fy = cos(a), dx = cos(a), dy = sin(a);
+      let sp = (110 + 420*R()*R())*kk*souffle, x = L.ox[q], y = L.oy[q];
+      let vx = fx*sp + dx*(-30 + 140*R())*kk, vy = fy*sp + dy*(-30 + 140*R())*kk;
+      if (R() < .3){
+        // l'impact : la pointe frappe l'eau et rejaillit
+        x = L.ox[NL] + (R() - .5)*v.R0*.6;
+        y = L.oy[NL] + (R() - .5)*v.R0*.3;
+        vx = (R() - .4)*420*kk*souffle;
+        vy = -(220 + 620*R())*kk*souffle;
+      }
+      PX[i] = x; PY[i] = y; PVX[i] = vx; PVY[i] = vy; PAGE[i] = 0; PVIE[i] = .7 + 1.8*R(); PT[i] = (.6 + 2.2*R()*R()*R())*kk;
+    }
+  }
+  function bougerParticules(dt){
+    const Gp = H*.9;
+    for (let i = 0; i < NP; i++){
+      if (PVIE[i] <= 0) continue;
+      PAGE[i] += dt;
+      if (PAGE[i] > PVIE[i]){ PVIE[i] = 0; continue; }
+      PVY[i] += Gp*dt;
+      PVX[i] *= 1 - .4*dt;
+      PX[i] += PVX[i]*dt;
+      PY[i] += PVY[i]*dt;
+    }
+  }
+  function dessinerParticules(ctx){
+    for (const [lo, hi, al] of [[0, .45, .9], [.45, .8, .6], [.8, 1.01, .28]]){
+      ctx.fillStyle = `rgba(246,250,250,${al})`;
+      ctx.beginPath();
+      for (let i = 0; i < NP; i++){
+        if (PVIE[i] <= 0) continue;
+        const f = PAGE[i]/PVIE[i];
+        if (f < lo || f >= hi) continue;
+        const s = PT[i];
+        ctx.rect(PX[i] - s/2, PY[i] - s/2, s, s);
+      }
+      ctx.fill();
+    }
+  }
+  function naitreBrumes(v){
+    const L = v.L;
+    brumes = Array.from({ length: 14 }, (_, k) => {
+      return { x: L.ox[NL] + (hs(k, 22) - .3)*v.R0*1.6, y: L.oy[NL] + (hs(k, 23) - .2)*v.R0*.8, r: v.R0*(.3 + .45*hs(k, 24)),
+               vx: (hs(k, 25) - .3)*30*KK, vy: -(8 + 20*hs(k, 26))*KK, ph: hs(k, 27)*TAU, t0: S_EMB + .3 + 1.6*hs(k, 28) };
+    });
+  }
+  function naitreVitre(){
+    const R = graine(seed + 501);
+    eclats = Array.from({ length: 30 }, () => ({
+      t0: 5.2 + 2.4*R(), x1: R()*W, y1: R()*H*.85, s: (26 + 46*R())*KK, du: .55 + .5*R()
+    }));
+    gouttes = Array.from({ length: 26 }, (_, k) => {
+      const big = R() < .35;
+      return { t0: 5.8 + 2.2*R(), x: W*(.04 + .92*R()), y: H*(.05 + .8*R()*R() + .05*R()), r: (big ? 9 + 12*R() : 3.5 + 5*R())*KK,
+               v: big ? 6 + 16*R() : 0, ph: R()*9, trace: 0 };
+    });
+  }
+  function dessinerVitre(ctx, st, dt){
+    const v = VG, L = v.L, tx = L.ox[NL], ty = L.oy[NL];
+    // les brumes de l'impact
+    for (const b of brumes){
+      const age = st - b.t0;
+      if (age < 0) continue;
+      const cyc = age % 6, f = lisse(cyc/1.2)*(1 - lisse((cyc - 3.5)/2.5));
+      const x = b.x + b.vx*cyc + 10*sin(cyc + b.ph), y = b.y + b.vy*cyc, r = b.r*(1 + .25*cyc);
+      ctx.globalAlpha = .1*f;
+      ctx.drawImage(SPR.tache, x - r, y - r, 2*r, 2*r);
+    }
+    // les éclats d'écume qui passent devant l'écran : ils grossissent en venant vers nous
+    for (const e of eclats){
+      const u = (st - e.t0)/e.du;
+      if (u < 0 || u > 1) continue;
+      const k = u*u, x = lerp(tx, e.x1, u), y = lerp(ty, e.y1, u) - sin(u*PI)*H*.08, s = e.s*(.15 + 3.2*k);
+      ctx.globalAlpha = .75*sin(PI*u)*(1 - .4*u);
+      ctx.drawImage(SPR.tache, x - s/2, y - s/2, s, s);
+    }
+    ctx.globalAlpha = 1;
+    // les gouttes posées sur la vitre ; les plus grosses glissent et laissent une trace
+    for (const g of gouttes){
+      const age = st - g.t0;
+      if (age < 0) continue;
+      if (g.v > 0 && dt > 0){
+        const marche = .5 + .5*sin(st*.9 + g.ph) > .35 ? 1 : .08;
+        const dy = g.v*marche*dt;
+        g.y += dy;
+        g.trace = min(g.r*9, g.trace + dy);
+        if (g.y > H + g.r*2){ g.y = -g.r*2; g.trace = 0; }
+      }
+      const pop = age < .18 ? 1.35 - 1.9*age : 1, r = g.r*pop;
+      if (g.trace > 1){
+        ctx.fillStyle = "rgba(225,240,250,.13)";
+        ctx.beginPath();
+        ctx.moveTo(g.x - r*.28, g.y - g.trace);
+        ctx.lineTo(g.x + r*.28, g.y - g.trace);
+        ctx.lineTo(g.x + r*.55, g.y);
+        ctx.lineTo(g.x - r*.55, g.y);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.drawImage(SPR.goutte, g.x - r, g.y - r*(g.v > 0 ? 1.12 : 1), 2*r, 2*r*(g.v > 0 ? 1.12 : 1));
+    }
+  }
+  // l'état final, sans attendre : les embruns en régime, les gouttes déjà posées
+  function avanceFinale(){
+    if (!VG) return;
+    naitreBrumes(VG);
+    naitreVitre();
+    for (const g of gouttes){
+      g.t0 = -1;
+      if (g.v > 0){ g.y = (g.y + g.v*hs(g.ph, 2)*20) % H; g.trace = g.r*4; }
+    }
+    PVIE.fill(0);
+    for (let k = 0; k < 60; k++){
+      emettre(4, VG, .8);
+      bougerParticules(1/30);
+    }
+  }
+
+  /* ———————————————— l'image ———————————————— */
+  function croissance(st){
+    if (st < 0) return 0;
+    return .2*lisse(st/1.5) + .3*lisse((st - 1.5)/2.2) + .5*lisse((st - S_MONTE0)/(S_MONTE1 - S_MONTE0));
+  }
+  function frame(ctx, t){
+    const __f0 = performance.now();
+    nowMs = t;
+    const dt = dernier ? min(.05, (t - dernier)/1000) : 1/60;
+    dernier = t;
+    if (genA){
+      const h0 = performance.now();
+      while (performance.now() - h0 < 5){
+        if (genA.next().done){ genA = null; break; }
+      }
+    }
+    const st = tS !== null ? (t - tS)/1000 : -1;
+    ondes = ondes.filter(o => t - o.t0 < 8000);
+    if (st >= 0) simT += dt*(st < 2.2 ? .3 + .7*lisse(st/2.2) : 1);
+    else if (ondes.length) simT += 0;
+    gWave = st >= 0 ? croissance(st) + (st > S_MONTE1 ? .015*sin(simT*.55)*lisse(st - S_MONTE1) : 0) : 0;
+    S = st >= 0 ? .82 + .2*lisse(st/3) : .82;
+    if (!XG || XG.length !== NG) XG = Float32Array.from({ length: NG }, (_, g) => IX + g*GX);
+    const vivant = tS === null || st < S_REEL0;
+    const k = cle(t, st);
+    if (!VG || st >= 0 || k !== signeCP){
+      const __t1 = performance.now();
+      calcMer();
+      __P("mer", __t1);
+      VG = vague(gWave);
+      if (k !== signeCP){
+        const __t0 = performance.now();
+        if (signeCP === "") rendrePrint(t, st, tS === null);
+        else {
+          const anime = st >= 0 && st < S_REEL0;
+          if (!jobP || (!anime && jobP.cle !== k)) jobP = { gen: peindrePrint(CPn, t, st, tS === null), cle: k };
+          while (performance.now() - __t0 < 6){
+            if (jobP.gen.next().done){
+              const q = CP; CP = CPn; CPn = q;
+              signeCP = jobP.cle;
+              jobP = null;
+              break;
+            }
+          }
+        }
+        __P("print", __t0);
+      }
+    }
+    ctx.fillStyle = rgb(D.table);
+    ctx.fillRect(0, 0, W, H);
+    const j = feuilleActive(t);
+    if (j >= 0 && tS === null){
+      if (blocDe !== j){ const __t0 = performance.now(); preparerBloc(j); __P("bloc", __t0); }
+      feuille(ctx, j, t - fait[j]);
+    } else ctx.drawImage(CP, SX - 14, SY - 14, SW + 28, SH + 28);
+    // les sceaux qui tombent
+    for (let q = 0; q < 4; q++){
+      if (fait[q] === null) continue;
+      const e = t - fait[q] - TP;
+      if (e >= 0 && e < T_SC) tampon(ctx, SCEAUX[q], colX(q) - CART.sealS/2, CART.y1 - CART.pc - CART.sealS, CART.sealS, e/T_SC);
+    }
+    if (st >= 0){
+      // la marge, sur la feuille (sous l'eau qui monte)
+      patchPapier(ctx, IX, IY + IH + 2.5*KK, IW, SY + SH - IY - IH - 6);
+      marge(ctx, t, st);
+    }
+    __P("debut", __f0);
+    if (st >= S_REEL0){
+      let __t=performance.now();
+      preparerColonnes(VG, st);
+      rendreReel(st);
+      __P("reel", __t); __t=performance.now();
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(IX, IY, IW, IH);
+      ctx.clip();
+      ctx.drawImage(bufA, IX, IY, AW*cs, AH*cs);
+      ctx.restore();
+      barquesReel(ctx, st);
+      // le cadre et le cartouche restent imprimés
+      encre(ctx, D.keyban, .95);
+      const kb = 1.4*KK;
+      ctx.fillRect(IX - kb, IY - kb, IW + 2*kb, kb);
+      ctx.fillRect(IX - kb, IY + IH, IW + 2*kb, kb);
+      ctx.fillRect(IX - kb, IY, kb, IH);
+      ctx.fillRect(IX + IW, IY, kb, IH);
+      const kC = CP.width/(SW + 28);
+      ctx.drawImage(CP, (CART.x0 - 2 - SX + 14)*kC, (CART.y0 - 2 - SY + 14)*kC, (CART.w + 4)*kC, (CART.h + 4)*kC,
+                    CART.x0 - 2, CART.y0 - 2, CART.w + 4, CART.h + 4);
+      // la signature qui s'imprime, le sceau qui tombe
+      if (st >= S_SIGNE - .5 && st < S_SIGNE){
+        op(ctx, "multiply");
+        ctx.fillStyle = rgb(D.keyban, .94*lisse((st - S_SIGNE + .5)/.5));
+        colonne(ctx, D.artiste + "画", colSig(), CART.y0 + CART.pc + CART.fs);
+        op(ctx, "source-over");
+      }
+      if (st >= S_SIGNE && st < S_SIGNE + .5){
+        const y = CART.y0 + CART.pc + CART.fs + (D.artiste.length + 1)*CART.lh;
+        tampon(ctx, SCEAUX[4], colSig() - CART.colW*.52, y - CART.lh*.3, CART.colW*1.05, (st - S_SIGNE)/.5);
+      }
+      __P("compA", __t); __t=performance.now();
+      ctx.drawImage(bufB, 0, 0, BW*csB, BH*csB);
+      __P("drawB", __t); __t=performance.now();
+      // les embruns
+      if (st >= S_EMB){
+        if (!brumes.length) naitreBrumes(VG);
+        if (!gouttes.length) naitreVitre();
+        const rate = st < S_MONTE1 + 1 ? 420 : 150, souffle = st < S_MONTE1 + 1 ? 1 : .75;
+        emisJusque += rate*dt*clamp((st - S_EMB)/.6);
+        const nb = floor(emisJusque);
+        emisJusque -= nb;
+        emettre(nb, VG, souffle);
+      }
+      bougerParticules(dt);
+      dessinerParticules(ctx);
+      __P("part", __t); __t=performance.now();
+      if (SPR && gouttes.length) dessinerVitre(ctx, st, dt);
+      __P("vitre", __t);
+    }
+    const __g = performance.now();
+    passeGrain(ctx, W, H, t, .02);
+    __P("grain", __g);
+    __P("total", __f0);
+    { const d = performance.now() - __f0; if (d > 22){ (window.__LENT = window.__LENT || []).push([+st.toFixed(2), +d.toFixed(1), JSON.stringify(Object.fromEntries(Object.entries(window.__PROF).map(([k, v]) => [k, +v[3]||0])))]); } }
+    M.ligne = temp.fin > t ? temp.txt : ligneEtat(t);
+  }
+
+  /* ———————————————— les mots ———————————————— */
+  function ligneEtat(t){
+    if (tS !== null){
+      const st = ((t === undefined ? maintenant() : t) - tS)/1000;
+      if (st < S_REEL0) return "l'estampe s'anime";
+      if (st < S_REEL1) return "le dessin devient la mer";
+      if (st < S_SIGNE) return "H/L " + (VG ? VG.hl : .42).toFixed(2) + " > 1/7 · la vague déferle";
+      return "journée bouclée · merci · " + (D.chaine + 1) + " jours";
+    }
+    const j = feuilleActive(t === undefined ? maintenant() : t);
+    if (j >= 0) return "planche " + (j + 1) + " · " + PR[j].nom + " · " + PC[j].couleur;
+    const f = M.faits();
+    if (!f.length) return "keyban · le trait seul · chaîne " + D.chaine + " j";
+    return f.length + " sur 4 · " + f.map(i => PR[i].nom).join(" · ");
+  }
+  function maj(){
+    const f = M.faits();
+    M.bouton = tS !== null ? "Encore" : f.length === 4 ? "Boucler" : PR[[0, 1, 2, 3].find(i => fait[i] === null)].nom;
+    M.ligne = ligneEtat();
+  }
+  function remise(){
+    tS = null;
+    ondes = [];
+    simT = 0;
+    gWave = 0;
+    PVIE.fill(0);
+    brumes = [];
+    eclats = [];
+    gouttes = [];
+    for (let j = 0; j < 4; j++) fait[j] = null;
+  }
+  // une seule feuille à la fois : celle qui est en l'air se pose tout de suite
+  function poserTout(t){
+    for (let j = 0; j < 4; j++) if (fait[j] !== null && t - fait[j] < TP + T_SC) fait[j] = t - TP - T_SC - 1;
+  }
+
+  M.taille = (w, h, dpr) => {
+    W = w;
+    H = h;
+    DPR = dpr || 1;
+    layout();
+    for (const B of BARQ) B.X = (IX + B.u*IW - CXs)*B.Z/FOC;
+    if (tS !== null){ calcMer(); VG = vague(gWave); avanceFinale(); }
+  };
+  M.frame = frame;
+  M.etat = (liste, boucle) => {
+    const Lq = (liste || []).filter(i => i >= 0 && i < 4);
+    remise();
+    for (const i of Lq) fait[i] = -1e9;
+    if (boucle && Lq.length === 4){
+      tS = maintenant() - 60000;
+      PLEIN = true;
+      simT = 30;
+      gWave = 1;
+      S = 1.02;
+      calcMer();
+      VG = vague(1);
+      avanceFinale();
+    }
+    maj();
+  };
+  M.faire = i => {
+    if (i < 0 || i > 3 || fait[i] !== null || tS !== null) return;
+    const t = maintenant();
+    poserTout(t);
+    // l'état d'avant, gardé pour la feuille qui se lève
+    const c = CPa.getContext("2d");
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, CPa.width, CPa.height);
+    c.drawImage(CP, 0, 0);
+    fait[i] = t;
+    blocDe = -1;
+    maj();
+  };
+  M.retirer = i => {
+    if (i < 0 || i > 3 || fait[i] === null) return;
+    fait[i] = null;
+    if (tS !== null){
+      tS = null;
+      simT = 0;
+      gWave = 0;
+      PVIE.fill(0);
+      brumes = []; eclats = []; gouttes = [];
+    }
+    maj();
+  };
+  M.boucler = () => {
+    if (tS === null && fait.every(a => a !== null)){
+      const t = maintenant();
+      poserTout(t);
+      tS = t;
+      emisJusque = 0;
+      PLEIN = true;
+      maj();
+    }
+  };
+  // pour le banc : se placer à st secondes du seuil
+  M.voir = st => {
+    M.etat([0, 1, 2, 3], false);
+    tS = maintenant() - st*1000;
+    simT = st*.8;
+    PLEIN = true;
+    maj();
+  };
+  M.faits = () => [0, 1, 2, 3].filter(i => fait[i] !== null);
+  M.boucle = () => tS !== null;
+  M.aller = n => {
+    n = max(0, min(5, n | 0));
+    M.etat([0, 1, 2, 3].slice(0, min(n, 4)), n === 5);
+  };
+  M.geste = i => {
+    if (i !== undefined) return M.faire(i);
+    const t = maintenant();
+    if (t - dernierGeste < 900) return;
+    dernierGeste = t;
+    if (tS !== null){
+      seed = (seed*7 + 13) % 99991;
+      remise();
+      construire();
+      layout();
+      maj();
+      return;
+    }
+    if (fait.every(a => a !== null)) return M.boucler();
+    M.faire([0, 1, 2, 3].find(q => fait[q] === null));
+  };
+  M.tap = (x, y) => {
+    if (x < IX || x > IX + IW || y < Hy + 4 || y > IY + IH) return;
+    const Z = HC*FOC/(y - Hy), X = (x - CXs)*Z/FOC, k = TAU/(Z*.12 + 4);
+    ondes.push({ X, Z, t0: maintenant(), A: .9 + Z*.004, k, sig: TAU/k*1.3, acc: 1.6 });
+    const lam = TAU/k;
+    temp = { txt: "onde · λ " + lam.toFixed(1) + " m · c_g " + (sqrt(GR/k)/2).toFixed(1) + " m/s", fin: maintenant() + 2600 };
+  };
+  M.glisse = (dx, dy) => {
+    simT += dx*.012;
+    temp = { txt: "la houle " + (dx > 0 ? "avance" : "recule") + " · t " + simT.toFixed(1) + " s", fin: maintenant() + 1400 };
+  };
+  construire();
+  layout();
+  maj();
+  return M;
+}
+window.ETUDE = etude_estampe4;
