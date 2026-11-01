@@ -187,7 +187,7 @@ function biblioHtml(){
       ${r.chap.map((ch,i)=>{ const C=T.filter(c=>c.ci===i), k=C.filter(c=>L[c.id]).length;
         return `<details class="bib-ch"><summary>${esc(ch.t)}<em>${k}/${C.length}</em></summary>
           ${C.map(c=>`<button class="bib-l ${L[c.id]?"lu":""}" onclick="bibOuvrir('${c.id}')"><i>${L[c.id]?"✓":"·"}</i>${esc(c.t)}</button>`).join("")}</details>`; }).join("")}
-    </div>`; }).join("")+`<p class="bib-pied">D'autres rayons viendront : l'informatique (Wi-Fi, Bluetooth…), l'IA.</p>`;
+    </div>`; }).join("")+`<p class="bib-pied">D'autres rayons viendront : dis à Claude ce que tu veux comprendre.</p>`;
 }
 function bibOuvrir(id){
   const f=bibTrouve(id); if(!f) return; const {r,c}=f, T=bibTous(r), i=T.findIndex(x=>x.id===id), lu=!!bibLus()[id];
