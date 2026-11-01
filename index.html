@@ -1050,6 +1050,24 @@
   .cahier{max-width:640px}
   .cahseg{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin:8px 0 4px}
   .cahseg button{flex:1;height:38px;border:none;border-radius:10px;background:none;color:var(--muted);font:600 13.5px var(--sans);cursor:pointer}
+  .bib-jauge{height:3px;border-radius:2px;background:var(--line);margin:10px 0 12px;overflow:hidden}
+  .bib-jauge i{display:block;height:100%;background:var(--ink)}
+  .bib-jour{display:block;width:100%;text-align:left;padding:14px;border-radius:14px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);cursor:pointer;margin-bottom:8px}
+  .bib-jour small{display:block;font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .bib-jour b{display:block;font:500 19px/1.25 Georgia,serif;margin:6px 0 4px}
+  .bib-jour span{display:block;color:var(--muted);font:italic 14px/1.4 Georgia,serif}
+  .bib-ch{border-top:1px solid var(--line)}
+  .bib-ch summary{display:flex;justify-content:space-between;padding:12px 2px;cursor:pointer;font:500 12.5px Georgia,serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ink)}
+  .bib-ch summary em{font:500 11px var(--mono);font-style:normal;color:var(--muted);letter-spacing:.04em}
+  .bib-l{display:flex;gap:10px;width:100%;text-align:left;padding:9px 4px;border:none;background:none;color:var(--ink);font:15px/1.35 Georgia,serif;cursor:pointer}
+  .bib-l i{width:14px;flex:none;color:var(--muted);font-style:normal}
+  .bib-l.lu{color:var(--muted)}
+  .bib-pied{color:var(--faint);font:12px var(--mono);text-align:center;margin:14px 0}
+  .bib-f h3{font:500 24px/1.2 Georgia,serif;margin:8px 0 12px}
+  .bib-f p{font:16.5px/1.6 Georgia,serif;margin:0 0 12px}
+  .bib-f-sur{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .bib-ret{border-left:2px solid var(--ink);padding:6px 0 6px 12px;margin:16px 0;font:italic 16px/1.45 Georgia,serif}
+  .bib-ret small{display:block;font:500 10.5px var(--mono);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
   .cahseg button.on{background:var(--card2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2)}
   .cahecrire{margin:14px 0 0;padding:16px 18px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
   .cahecrire label{display:block;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.4}
@@ -1207,6 +1225,7 @@
 <div id="toast"></div>
 <script src="/forge/forge-sync.js"></script>
 <script src="lectures.js"></script>
+<script src="biblio.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
 <script src="atelier/pieces/t2-06-cretes-couleur.js"></script>
 <script src="atelier/pieces/t2-08-enluminure.js"></script>
@@ -4478,6 +4497,7 @@ function accMerge(Rc){
   Object.keys(Rc.sos||{}).forEach(d=>{ const A=acc(); if(!A.sos) A.sos={}; const L=A.sos[d]=A.sos[d]||[], seen=new Set(L.map(x=>x.at)); (Rc.sos[d]||[]).forEach(x=>{ if(!seen.has(x.at)){ L.push(x); ch=true; } }); });
   if(Array.isArray(Rc.work)){ const W=wAll(), ids=new Set(W.map(x=>x.id)); Rc.work.forEach(x=>{ if(x&&!ids.has(x.id)){ W.push(x); ch=true; } }); }
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
+  Object.keys(Rc.bib||{}).forEach(k=>{ const A=acc(); if(!A.bib) A.bib={}; if(!A.bib[k]){ A.bib[k]=Rc.bib[k]; ch=true; } });
   if(lireMerge(Rc.lire)) ch=true;
   return ch;
 }
@@ -5624,7 +5644,8 @@ function txRow(x){ const ex=String(x.txt||"").replace(/\s+/g," ").trim(), corps=
     ${corps?`<p><i class="lettrine">${esc(l)}</i>${esc(reste.length>180?reste.slice(0,180)+"…":reste)}</p>`:""}</button>`; }
 function cahierHtml(){
   const k=S.cahSeg||"auj", seg=(id,l)=>`<button class="${k===id?"on":""}" onclick="cahSeg('${id}')">${l}</button>`;
-  let h=`<div class="cahseg">${seg("auj","Aujourd'hui")}${seg("textes","Mes textes")}${seg("lire","À lire")}</div>`;
+  let h=`<div class="cahseg">${seg("auj","Aujourd'hui")}${seg("textes","Mes textes")}${seg("lire","À lire")}${typeof BIBLIO!=="undefined"?seg("biblio","Bibliothèque"):""}</div>`;
+  if(k==="biblio"&&typeof biblioHtml==="function") return `<div class="cahier">${h+biblioHtml()}</div>`;
   if(k==="textes"){
     const T=textes(), I=lir().idees.filter(x=>!x.del);
     h+=`<button class="btn" onclick="texteEdit('')">✎ Nouveau texte</button>
