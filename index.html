@@ -992,6 +992,11 @@
 
   /* la barre de la journée */
   .dbar{margin:14px 0 0;padding:14px 16px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  #rouleauOv{position:fixed;inset:0;z-index:80;background:#0F1014;animation:rouleauIn .6s ease}
+  #rouleauBloc{position:absolute;inset:0}
+  .rouleau-x{position:absolute;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:2;padding:12px 22px;border-radius:12px;border:1px solid rgba(242,240,234,.5);background:rgba(15,16,20,.6);color:#F2F0EA;font:500 13px Georgia,serif;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+  @keyframes rouleauIn{from{opacity:0}to{opacity:1}}
+  .dbar-h a.rouleau-revoir{text-transform:none;letter-spacing:.02em;color:var(--muted);text-decoration:underline;font-weight:500}
   .kapps{margin:14px 0 0;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
   .kapps-l{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
   .kapp{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--ink);font:500 13px/1.1 Georgia,'Times New Roman',serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
@@ -1232,6 +1237,7 @@
 <script src="atelier/pieces/t2-08-enluminure.js"></script>
 <script src="atelier/bibliotheque/monter.js"></script>
 <script src="atelier/bibliotheque/emaki.js"></script>
+<script src="atelier/pieces/t4-18-rouleau.js" defer></script>
 <script>
 const KEY="pointage_v1";
 const DEFAULT_APPS=[
@@ -1640,7 +1646,7 @@ function render(){
     ${corps}
     ${tabbarHtml()}
   `;
-  agBind(); cahBind(); mondePoser(); livrePoser(); menusPoser();
+  agBind(); cahBind(); mondePoser(); livrePoser(); menusPoser(); rouleauVerifier();
   if(keep){
     const el=document.getElementById(keep.id);
     if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} if(keep.id==="agIn") agPreview(); }
@@ -1841,6 +1847,34 @@ function appsDispoHtml(){
   return `<div class="kapps"><div class="dbar-h"><span>Tes apps</span><a href="#" onclick="event.preventDefault();goTab('domaines')">ranger ›</a></div>
     <div class="kapps-l">${L.map(a=>`<button class="kapp ${doneToday(a.id)?"on":""}" onclick="openById('${a.id}')"><span>${a.emoji||"•"}</span>${esc(a.name)}</button>`).join("")}</div></div>`;
 }
+/* LE ROULEAU DU JOUR (01/11) : la pièce que Thomas a jugée « la meilleure de toutes ».
+   Quand les quatre priorités du jour sont cochées, le rouleau se déroule en plein
+   écran et joue sa conclusion (日課成就 · journée accomplie). Une fois par jour ;
+   on peut le revoir depuis « Journée bouclée ». */
+let ROULEAU=null;
+function rouleauPossible(){ return typeof etude_rouleau4==="function"&&typeof monterPiece==="function"&&unitsOn(today()).length===4; }
+function rouleauOuvrir(){
+  if(!rouleauPossible()) return;
+  rouleauFermer(true);
+  const ov=document.createElement("div"); ov.id="rouleauOv";
+  ov.innerHTML=`<div id="rouleauBloc"></div><button class="rouleau-x" onclick="rouleauFermer()">Fermer</button>`;
+  document.body.appendChild(ov);
+  try{
+    const dt=new Date(today()+"T12:00:00"), K="〇一二三四五六七八九", j=dt.getDate();
+    const jk=j<=10?(j===10?"十":K[j]):j<20?"十"+K[j-10]:j===20?"二十":j<30?"廿"+K[j-20]:"三十"+(j>30?K[j-30]:"");
+    const MOIS=["睦月","如月","弥生","卯月","皐月","水無月","文月","葉月","長月","神無月","霜月","師走"];
+    const avec=Object.assign(mondeDonnees(), {titre:Object.assign({}, etude_rouleau4_DONNEES.titre, {petit:MOIS[dt.getMonth()]+jk+"日"})});
+    ROULEAU=monterPiece(document.getElementById("rouleauBloc"), etude_rouleau4, {donnees:etude_rouleau4_DONNEES, avec});
+    const M=ROULEAU.piece; M.aller(4); setTimeout(()=>{ try{ M.boucler(); }catch(e){} },900);
+  }catch(e){ console.error(e); rouleauFermer(); }
+  const C=acc(); if(!C.rouleau) C.rouleau={}; C.rouleau[today()]=1; save0();
+}
+function rouleauFermer(silence){ if(ROULEAU){ try{ ROULEAU.arreter(); }catch(e){} ROULEAU=null; } const o=document.getElementById("rouleauOv"); if(o) o.remove(); }
+function rouleauVerifier(){
+  if(curTab()!=="maintenant"||!rouleauPossible()||document.getElementById("rouleauOv")) return;
+  const AC=unitsOn(today()), C=acc();
+  if(AC.every(c=>catDone(c.id))&&!(C.rouleau&&C.rouleau[today()])) setTimeout(rouleauOuvrir,1200);
+}
 function dayBarHtml(){
   const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
   const fait=AC.filter(c=>catDone(c.id)).length, tout=fait===AC.length;
@@ -1850,7 +1884,7 @@ function dayBarHtml(){
   const COUL=AC.length===4&&typeof etude_enluminure==="function"?["#3E64C8","#D8452A","#2E9C80","#5A62C8"]
     :(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
   return `<div class="dbar ${tout?"tout":""}">
-    <div class="dbar-h"><span>${tout?"Journée bouclée":"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
+    <div class="dbar-h"><span>${tout?"Journée bouclée"+(rouleauPossible()?` · <a href="#" class="rouleau-revoir" onclick="event.preventDefault();rouleauOuvrir()">revoir le rouleau</a>`:""):"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
     ${typeof emakiMonter==="function"?`<div id="menuJSlot"></div><div class="menu-aide">glisse le rouleau · touche une scène pour l'ouvrir · touche le sceau pour cocher</div>`
     :`<div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
       return `<div class="dcoche ${ok?"on":""}" style="--c:${col}">
