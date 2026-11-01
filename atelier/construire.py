@@ -10,8 +10,9 @@ ICI = os.path.dirname(os.path.abspath(__file__))
 lire = lambda p: open(p, encoding="utf8").read()
 COMMUN = lire(os.path.join(ICI, "bibliotheque", "commun.js"))
 CADRE = lire(os.path.join(ICI, "cadre.html"))
-TOUR = "Tour 3 · 26 octobre"
-PREFIXE = "t3-"   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
+TOUR = "Tour 4 · 27 octobre"
+PREFIXE = "t4-"
+PRETES = {"t4-15-pierre", "t4-16-rosace", "t4-17-estampe", "t4-18-rouleau", "t4-20-mappemonde"}   # les pièces vérifiées ; les autres du tour arrivent ensuite   # la page de jugement montre les pièces du tour en cours ; toutes restent construites
 
 fautes, liste = [], []
 for chemin in sorted(glob.glob(os.path.join(ICI, "pieces", "*.js"))):
@@ -31,7 +32,7 @@ for chemin in sorted(glob.glob(os.path.join(ICI, "pieces", "*.js"))):
 if fautes:   # une pièce en chantier n'empêche pas les autres de se construire
     print("PIÈCES IGNORÉES :\n- " + "\n- ".join(fautes))
 
-du_tour = [p for p in liste if p["id"].startswith(PREFIXE)] or liste
+du_tour = [p for p in liste if p["id"].startswith(PREFIXE) and (not PRETES or p["id"] in PRETES)] or liste
 cartes = "\n".join(f'''<article class="carte" data-id="{p["id"]}">
   <div class="tete"><span class="num">{i+1:02d}</span><h2>{html.escape(p["titre"])}</h2></div>
   <p class="resume">{html.escape(p["resume"])}</p>
@@ -69,17 +70,17 @@ textarea:focus{{outline:none;border-color:var(--encre)}}
 .envoyer small{{display:block;text-align:center;color:var(--pale);margin-top:8px;font-size:12px}}
 </style></head><body><main>
 <div class="sur">L'atelier du Pointage · {TOUR}</div>
-<h1>Ta journée, tour 3</h1>
-<p class="intro">Tes mots du tour 2 ont décidé de celui-ci : la pierre qui explose et des couleurs plus belles, la rosace seule dans le noir avec sa lumière au sol,
-l'estampe nette sans pinceau, et une pièce neuve qui croise le manuscrit et le Japon. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
-<p class="intro">L'Enluminure, ta 5/5, est posée dans ton vrai écran Maintenant, en encre noire, avec une page neuve chaque jour.</p>
+<h1>Ta journée, tour 4</h1>
+<p class="intro">Tes mots du tour 3 ont décidé de celui-ci : « sois ambitieux » pour les seuils, « Merci ! » après l'explosion, plus de lignes bizarres au centre.
+Cinq pièces sont là, dont la Mappemonde, neuve ; le Codex arrive sur cette même page. Le bouton en bas fait la priorité suivante ; au cinquième geste, la journée est bouclée.</p>
+<p class="intro">Le menu-rouleau, lui, est déjà dans ton app : dans Maintenant et dans Domaines.</p>
 <p class="intro">Puis écris ce que tu ressens, avec tes mots, et donne une note. C'est toi qui juges : tes mots décident du tour suivant.</p>
 {cartes}
 <div class="envoyer"><button type="button" id="copier">Copier mes verdicts</button><small>puis colle-les dans la conversation avec Claude</small></div>
 </main>
 <script>
 const PIECES = {json.dumps([{"id": p["id"], "titre": p["titre"]} for p in du_tour], ensure_ascii=False)};
-const CLE = "atelier_tour3";
+const CLE = "atelier_tour4";
 let V = {{}}; try {{ V = JSON.parse(localStorage.getItem(CLE) || "{{}}") || {{}}; }} catch (e) {{}}
 const garder = () => {{ try {{ localStorage.setItem(CLE, JSON.stringify(V)); }} catch (e) {{}} }};
 document.querySelectorAll(".carte").forEach(c => {{

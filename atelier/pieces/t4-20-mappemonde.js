@@ -1,0 +1,1427 @@
+/* ======================= Tour 4, pièce 20 : LA MAPPEMONDE (etude_mappemonde) ======================= */
+/* Ce qu'on voit : une page de vélin ; en haut, une mappemonde enluminée en plate carrée, à la manière des portulans : côtes à l'encre
+   noire et lignes d'eau, réseau de rhumbs (noir, vert, rouge) tiré de Paris, rose des vents d'or, monts, nefs et serpent de mer au trait.
+   Dessous, quatre médaillons (un par priorité), esquissés au crayon au repos.
+   La loi : (1) la loxodromie (route de cap constant). En Mercator, ψ = ln tan(π/4 + φ/2) et la route est droite : cap θ = atan2(Δλ, Δψ),
+   φ(s) = φ1 + s·Δφ, λ(s) = λ1 + Δλ·(ψ(φ(s)) − ψ1)/Δψ, distance d = R·√(Δφ² + q²Δλ²), q = Δφ/Δψ (Mercator, 1569 ; Nunes, 1537).
+   Les rhumbs de la carte sont ces mêmes loxodromies : droites en Mercator, courbes en plate carrée, spirales vers les pôles sur le globe.
+   (2) Les projections : plate carrée x = λ, y = φ ; le seuil passe continûment à la sphère, point par point : la feuille s'enroule
+   sur une boule de courbure κ (0 → 1), x = cos(κφ)·sin(κλ)/κ, y = sin(κφ)/κ (κ → 0 : la carte plate ; κ = 1 : la projection
+   orthographique d'un globe), faces cachées triées par l'orientation des triangles. (3) Le terminateur : déclinaison du soleil
+   δ = −23,44°·cos(2π(N + 10)/365), longitude subsolaire par l'heure UTC et l'équation du temps ; cos z = sinφ sinδ + cosφ cosδ cos(λ − λs),
+   calculé au pixel pour la VRAIE date et l'heure de l'appareil. L'or : Blinn-Phong (1977), (N·H)^32, facette par facette.
+   La main : vélin gris, encre noire franche, lapis, vermillon, vert-de-gris, pourpre, or bruni ; hachures, lignes d'eau, grain.
+   L'usage : « Ta journée ». Chaque priorité faite lance une nef de Paris sur sa loxodromie calculée : 990 → Londres puis New York,
+   CUMBRE → Madrid puis México et Buenos Aires, Lecture → Athènes, LE CLOSING → Londres, New York, Hong Kong. La mer traversée se lave
+   de lapis, la terre atteinte prend son pigment et son or, son médaillon se peint et son mot s'écrit à l'encre (world, el mundo,
+   κόσμος, 成交), avec le cap et la distance vrais. LE CLOSING dore le cadre du monde.
+   Le seuil (Boucler, ~9,5 s) : les routes flambent, la page tombe dans la nuit, la carte se soulève et s'ENROULE en globe (on voit le
+   verso du vélin), sort de son cadre et remplit l'écran ; il se penche vers Paris et tourne ; le vrai soleil d'aujourd'hui l'éclaire
+   (jour, crépuscule, nuit), le dessin devient la Terre réelle (océans, déserts, glaces, reflet du soleil), les villes atteintes
+   s'allument dans la nuit, les routes se lèvent en arcs de lumière. Reste : le globe qui tourne, « LE MONDE EST À TOI ».
+   Le doigt : toucher un médaillon dit son cap et sa distance ; toucher une ville la nomme ; glisser déplace la lumière de l'or ;
+   après le seuil, glisser fait tourner le globe et toucher dit l'heure solaire du lieu touché.
+   Le budget : vélin, carte (1024 × 512), calques et Terre sont peints par tranches de 5 ms ; le globe est un maillage de 576 triangles
+   texturés, puis un rendu au pixel sur des tables précalculées (aucune trigonométrie par pixel), sur ≤ 480 × 480 px. */
+const etude_mappemonde_DONNEES = Object.assign({
+  titre: "MAPPA MUNDI",
+  depart: "Paris",
+  villes: {
+    "Paris": [2.35, 48.86], "Londres": [-0.13, 51.51], "New York": [-74.01, 40.71], "Madrid": [-3.70, 40.42],
+    "México": [-99.13, 19.43], "Buenos Aires": [-58.38, -34.60], "Athènes": [23.73, 37.98], "Hong Kong": [114.17, 22.32]
+  },
+  // une entrée par priorité, dans l'ordre de JOURNEE.priorites ; les étapes : [de, vers, début, fin] (fractions de la traversée)
+  voyages: [
+    { etapes: [["Paris", "Londres", 0, .2], ["Londres", "New York", .2, 1]], terres: ["bretagne", "irlande", "amerique_nord"],
+      mers: [[-78, 24, -6, 60], [-6, 49, 9, 60]], destination: "Londres · New York", mot: "world", glose: "anglais · le monde" },
+    { etapes: [["Paris", "Madrid", 0, .22], ["Madrid", "México", .22, 1], ["Madrid", "Buenos Aires", .22, 1]], terres: ["iberie", "amerique_latine"],
+      mers: [[-98, 9, -60, 30], [-58, -42, -8, 22]], destination: "Madrid · México · Buenos Aires", mot: "el mundo", glose: "espagnol · le monde" },
+    { etapes: [["Paris", "Athènes", 0, 1]], terres: ["grece"],
+      mers: [[-6, 30, 37, 46], [27, 40.6, 42, 47]], destination: "Athènes", mot: "κόσμος", glose: "grec · l'ordre du monde" },
+    { etapes: [["Paris", "Londres", 0, .25], ["Paris", "New York", 0, 1], ["Paris", "Hong Kong", 0, 1]], terres: [],
+      mers: [[42, -38, 100, 22], [104, 2, 126, 24]], destination: "Londres · New York · Hong Kong", mot: "成交", glose: "mandarin · l'affaire est conclue" }
+  ],
+  merci: "LE MONDE EST À TOI",
+  date: null   // null : la vraie date et l'heure de l'appareil (pour le terminateur du seuil)
+}, JOURNEE);
+
+/* Les côtes : un vrai contour simplifié (longitude, latitude en degrés), quelques centaines de points. Les « lacs » sont des mers
+   intérieures (remplies pair-impair : elles creusent la terre). Les bords en ±180° et en −90° sont des coupures, jamais encrées. */
+const etude_mappemonde_COTES = {
+  amerique_nord: [-168,65.6,-164.5,67.6,-166.5,68.4,-162,70.2,-156.5,71.3,-145,70.1,-135,69.5,-125,70,-115,68.5,-105,68,-95,72,-90,68.5,
+    -82,69.5,-85,66,-87,64,-94,59,-93,57,-88,56,-82,55,-80,51.5,-79,54.5,-77,60,-78,62.5,-73,62,-70,61,-65,60,-62,57,-60,55,-56,52,
+    -59.5,50.2,-64.5,50,-66.5,49.2,-64.5,48.8,-64.8,47.5,-61,45.5,-60,45.8,-63.5,44.6,-66,43.8,-67,44.6,-70,43.7,-70.7,42.5,-70,41.7,
+    -71.5,41.3,-74,40.6,-74,39.5,-75.5,38.5,-76,37,-75.5,35.2,-77.5,34.2,-79,33.3,-81,31.8,-81.5,30.5,-80.5,28,-80.1,26.5,-80.6,25.2,
+    -81.8,26.5,-82.8,28,-83.5,29.8,-84.5,30,-87,30.3,-89.5,30.2,-89.3,29,-91,29.5,-94,29.6,-97.3,27.5,-97.6,24,-97.5,21.5,-96,19,
+    -94.5,18.2,-91,18.7,-90.3,21,-87,21.5,-87.5,18.5,-88.3,16,-84,15.8,-83.4,14,-83.6,11,-82,9.2,-79.5,9.5,-77.4,8.6,-77.9,7.5,-80,7.4,
+    -83,8.2,-85.7,10,-87.5,13,-91.5,14,-94.5,16,-97,15.8,-100.5,17,-105.5,20,-105.7,22.5,-108,25.5,-112.5,30.5,-114.8,31.5,-113,29,
+    -110,24,-109.9,22.9,-112,24.7,-114.5,28,-116.5,31.5,-117.2,32.7,-118.5,34,-120.6,34.6,-122.5,37.8,-124.4,40.4,-124,46,-124.7,48.4,
+    -128,50.5,-130,54.5,-133,57,-137,58.5,-140,59.8,-146,60.8,-151.5,59.2,-154,57.5,-158,56.5,-163,54.8,-160,58.6,-162,60,-165,61.5,
+    -164.5,63.2,-161,64.5,-166,64.6],
+  groenland: [-73,78,-60,82,-40,83.5,-20,82.5,-17,80,-19,76,-22,72,-24,69.5,-32,68,-40,65,-43,60,-48,61,-52,65,-54,69,-56,72.5,-60,76,-70,77],
+  baffin: [-62,67,-64,63,-68,62.5,-72,64.5,-78,64.5,-80,70,-88,70.5,-90,73,-80,73.7,-75,72.5,-68,70.5],
+  victoria: [-118,71,-110,73,-101,71.5,-105,68.5,-115,68.8],
+  ellesmere: [-90,77,-80,76.5,-75,79,-65,81.5,-62,82.5,-80,83,-92,81,-95,79],
+  cuba: [-85,21.8,-82,23.1,-77.5,22,-74.2,20.2,-77.5,19.9,-80,21.7,-84,21.9],
+  hispaniola: [-74.4,18.4,-72.8,19.9,-69.9,19.6,-68.4,18.5,-71.4,17.6],
+  amerique_sud: [-77.4,8.6,-76,9.5,-74.8,11,-71.5,12.4,-71.5,11,-68,10.5,-64,10.6,-61.5,10.2,-60.5,8.5,-58,6.8,-55,6,-52,5,-50,1.8,-50,0,
+    -48,-1,-44.5,-2.5,-41,-2.9,-38.5,-3.8,-35.2,-5.5,-34.9,-8,-37,-11,-38.5,-13,-39,-17.5,-40.5,-20.5,-43.2,-23,-46,-24,-48.5,-26.5,
+    -48.8,-28.5,-50.5,-31,-52.5,-33.2,-54,-34.8,-56.5,-34.8,-58.5,-34.5,-57.3,-36.3,-57.6,-38.2,-62,-39,-62.3,-40.7,-65,-41,-64.5,-42.5,
+    -63.7,-42.8,-65,-45,-67.5,-46.5,-65.8,-47.8,-68.3,-50.1,-69.2,-51.6,-68.4,-52.4,-65.4,-54.7,-67.5,-55.5,-70.5,-55,-73.5,-53,-75,-50.5,
+    -75.5,-47,-74,-44,-73.5,-41.5,-73.7,-37,-71.6,-33,-71.4,-30,-70.3,-23.5,-70.2,-18.5,-75,-15.5,-76.3,-13.5,-77.2,-12,-79,-8,-81.2,-6,
+    -81.2,-4.2,-80,-2.5,-80.8,-1,-80,1,-78.8,2,-77.4,4,-77.3,6.5,-77.9,7.5],
+  afrique: [-5.9,35.8,-2,35.1,3,36.8,8.6,36.9,10.2,37.2,11,35.5,10.1,34,11.5,33.2,15.2,32.3,19,30.3,20,32,23,32.6,25,31.8,29.9,31.2,32.3,31.3,
+    32.6,29.9,33.8,27,35.5,24,37.2,21,38.5,18,39.7,15.5,41.7,13.8,43.3,12.6,43.1,11.6,44.5,10.4,51.2,11.8,51,10.5,49.8,7.5,47.8,4.5,44,1,
+    41.5,-2,39.8,-4,39.2,-7,39.6,-10,40.5,-12.5,40.6,-15.5,37,-18,35.4,-21.5,35.5,-24,32.8,-26,32.4,-28.6,30.8,-30.5,28,-32.8,25.6,-34,
+    22,-34.2,20,-34.8,18.4,-34.2,18.2,-32,17.3,-30,15.3,-27,14.4,-23,13,-20,11.8,-17,12.3,-14,13.5,-11.5,13.2,-8.8,12.2,-6,11.8,-4.5,
+    9.6,-2,9.3,0.5,9.6,3.8,8.5,4.5,6.3,4.3,5,5.8,3.4,6.4,1.2,6,-2,4.8,-4,5.2,-7.5,4.4,-9.5,5.5,-11.4,6.9,-13.3,8.8,-15,11,-16.7,13,
+    -17.4,14.7,-16.4,16.5,-16.2,19.5,-17,21,-15.8,23.7,-14.5,26,-11.5,28,-9.8,29.8,-9.6,32.5,-6.8,34],
+  madagascar: [49.3,-12,50.5,-15.5,49.5,-17,48,-22,47,-25,45,-25.5,43.7,-23,44,-20,44.3,-16.5,46.5,-15.8,48,-13.5],
+  eurasie: [-5.6,36,-6.3,36.8,-7.4,37.2,-8.9,37,-8.8,38.7,-9.4,39.4,-8.7,41.2,-8.9,42.5,-9.3,43,-7.7,43.8,-4,43.4,-1.8,43.4,-1.2,45.5,
+    -1.2,46.2,-2.3,47.2,-4.5,47.8,-4.7,48.4,-3,48.8,-1.6,48.7,-1.4,49.7,0.2,49.4,1.6,50.2,2.5,51.1,3.6,51.5,4.7,53,6.9,53.4,8.6,53.9,
+    8.1,55.5,8.3,57,10.5,57.7,10.2,56.2,10.9,54.4,12.5,54.4,14.3,53.9,18.5,54.8,21,55.4,21,57,21.5,57.5,24.3,57.2,24,58.3,23.4,59.2,
+    28,59.6,30,60,25,60.2,22.5,60.2,21.4,61.5,21.6,63.2,25,65,25.5,65.6,22.2,65.8,21,64.5,19,63.5,17.5,62.3,17.2,61,18.8,60,18,59,
+    16.5,57,16,56.2,14.2,55.4,12.8,55.7,12.5,56.6,11.8,58,10.6,59.3,8.5,58.1,7,58,5.6,58.8,5,60.5,5,62,8,63.5,10.5,64.7,12.5,66,
+    14.5,67.8,16.5,69,19,70,23,70.7,25.8,71.1,28.5,70.9,31,70.2,33,69.4,36.5,69,41,67.5,39,65,44,66.3,44.5,68.3,53,68.5,59,68.5,
+    61,69.8,66,69.2,68,69.5,70,73.2,73,71.5,73.5,68.5,80,72.5,87,74,98,76.2,104,77.7,113,73.8,121,72.9,129,71.5,130,71,140,72.5,
+    150,71.5,160,69.6,170,69.8,180,68.9,180,65,178.5,64.6,176.5,62.3,173,61.5,170,60,164,59.8,163,57.5,162,56,160,54,158.5,52.9,
+    156.7,51,156,53,155.5,56,156.7,57.8,160,61.5,155,59.3,151,59.3,143,59.3,140.5,57.8,137,54.5,140.5,53,140.5,48.5,138,46,135,43.5,
+    132,43,130.6,42.4,129.7,41,129.4,37.5,129.3,35.2,126.5,34.4,126.2,36.5,126.6,37.7,124.5,39.8,122,40.5,121,40.8,119.5,39.8,
+    118,39.1,117.8,38,118.9,37.4,120.7,37.8,122.6,37.3,120.3,36,119.2,34.8,120.9,32.4,121.9,31,121.5,29.5,120.5,27.5,119.5,25.5,
+    118,24.5,116,22.9,114.2,22.3,113,22,110.5,21.2,110,20.3,109.7,21.6,108,21.6,106.6,20.5,105.6,18.8,107,16.8,108.8,15.2,109.3,12,
+    107.7,10.5,106.6,9.8,104.8,8.6,105,10.4,103,11,102.3,12.3,100.9,12.7,100,13.4,99.2,10.5,100.4,7.3,102.1,6.2,103.4,4.5,103.5,2.5,
+    104.3,1.4,103.4,1.3,101.3,2.9,100.3,5.4,98.3,8,98.6,10.5,97.7,15.5,97.6,16.5,95.3,15.8,94.3,16.3,94.5,18.5,93.6,19.8,92.3,20.8,
+    91.8,22.4,90.5,22,88.8,21.6,87,21.2,86.5,20,84.8,19.3,82.3,16.6,80.3,15.5,80.2,13,79.8,10.3,78.2,8.9,77.5,8.1,76.3,9.8,75,12.8,
+    73.8,15.5,72.8,19,72.6,21.3,70.5,20.8,69,22.3,68.3,23.6,67,24.8,64,25.3,61.5,25.2,57.3,25.8,56.3,27.2,54.5,26.6,51.5,27.8,
+    50.3,29.3,48.7,30,48,29.5,49.6,27,50.8,25.6,51.6,24.3,54.4,24.3,56.2,25.7,56.4,24.4,58.7,23.6,59.8,22.5,58.5,20.5,57,18.9,
+    55.2,17.4,52.2,15.6,49,14,45,12.8,43.5,12.7,42.7,15.5,41.5,18,39.2,21.5,37.5,24.5,35.2,28,34.9,29.5,34.3,27.8,32.6,29.9,32.3,31.3,
+    34.5,31.6,35,33.1,35.9,35.3,36.2,36.6,34.6,36.8,32.5,36.1,30.6,36.8,28.2,36.7,27.3,37,26.3,38.3,26.5,40,26.2,40.1,26,40.8,24,40.8,
+    23,40.5,22.6,40.2,23.3,39.2,24,38.2,23.7,37.9,23,37.4,22.4,36.5,21.7,36.8,21.1,37.8,21.4,38.4,20.7,39,19.4,40.4,19.5,41.8,18.5,42.4,
+    16,43.5,14,44.8,13.6,45.6,12.3,45.3,12.4,44.2,13.6,43.5,15,41.9,16.2,41.8,18.5,40.2,17,40.5,16.6,39,16,38,15.7,38,15.6,40,14.3,40.8,
+    12.2,41.8,10.5,43,8.8,44.4,7.5,43.8,5.4,43.3,4,43.5,3,43,3.2,41.9,2.2,41.4,0.8,40.7,-0.3,39.5,0.2,38.7,-0.7,37.6,-2.1,36.7,-4.4,36.7],
+  tchoukotka: [-180,68.9,-175,67.6,-171,66.9,-169.7,66.1,-171,65.5,-172.5,64.4,-176,64.9,-178,65.4,-180,65],
+  mer_noire: [29,41.1,31,41.1,33.5,42,36,41.7,38.5,40.9,41.5,41.5,41.6,42.6,40,43.5,37.8,44.7,36.6,45.3,35,45,33.5,44.4,32.5,45.4,
+    31,46.6,30.2,45.8,29.6,45.2,28.6,44,27.9,42.6,28,41.6],
+  caspienne: [47.5,45.7,46.8,44.5,47.5,43,48.6,41.8,49.5,40.2,49,38.4,50.3,37.1,53.9,37.3,53.1,39.5,52.8,41.5,52.9,42.7,51.3,43.2,
+    50.5,44.6,53,45.3,53,46.9,51.2,47.1,49.2,46.4],
+  bretagne: [-5.7,50.05,-3.5,50.3,-1,50.7,1.4,51.2,1.7,52.7,0.3,53.3,-0.2,54.1,-1.6,55.6,-2.1,56.9,-1.8,57.6,-4,57.7,-3.1,58.6,-5,58.6,
+    -6.2,57.2,-5.6,56,-5,55,-3.3,54.9,-3.3,54.2,-3,53.3,-4.6,53.3,-4.2,52.3,-5.2,51.8,-3.2,51.4,-4.6,51.1],
+  irlande: [-6,52.2,-6.2,53.4,-5.5,54.6,-6.5,55.2,-8.3,55.2,-10,54.2,-9.9,52.2,-10.3,51.8,-8.4,51.6],
+  islande: [-22.5,64,-24,65.5,-22,66.4,-18,66.2,-14.5,66.4,-13.6,65.2,-15,64.2,-18.6,63.4,-21.5,63.8],
+  sicile: [12.4,38.1,15.6,38.3,15.1,36.7,12.5,37.6],
+  sardaigne: [8.4,41,9.6,41.1,9.7,39.2,8.6,38.9,8.4,40],
+  corse: [8.6,42.9,9.4,43,9.5,42,9.2,41.4,8.6,41.9],
+  crete: [23.5,35.6,26.3,35.3,24,34.9],
+  chypre: [32.3,35,34.6,35.7,33.9,34.9,32.6,34.7],
+  srilanka: [79.8,6.2,79.9,9.8,81.2,8.5,81.8,7.4,81.4,6.3,80.2,5.95],
+  honshu: [130.9,34,132.5,35.4,136,35.9,137,37,138.5,37.6,140,39.5,140,41.2,141.5,41.4,142,39.5,141,38.3,140.8,36.9,140.9,35.7,
+    139.8,35,138.8,34.6,137,34.6,135.8,33.5,135,34.6,133,34.3,131.6,33.9],
+  kyushu: [129.8,33.3,130.5,31.3,131.3,31.4,131.9,32.9,131,33.9],
+  hokkaido: [140.4,43.3,141.7,45.4,143.5,44.2,145.6,43.3,143.9,42.9,143.3,42,141.1,42.4,140.1,41.8],
+  sakhaline: [141.9,46.1,142.2,49,142,51.5,142.7,54.3,143.3,52,143.5,49.3,144.5,48.9,143,47,142.5,46],
+  taiwan: [120.1,23,121,25.2,121.9,24.9,121,22,120.7,22],
+  hainan: [108.6,19.2,110.3,20.1,111,19.6,109.6,18.2,108.7,18.5],
+  luzon: [120.6,18.5,122.2,18.5,122.5,16.5,121.5,15.5,124,13,120.6,13.8,120,16],
+  mindanao: [122,7,124,8.5,125.5,9.7,126.5,7.2,125.5,5.6,124,6.5],
+  borneo: [109.6,2,111,1.6,113,3.2,115.3,5,116.8,7,119.2,5.1,118,4.4,118.6,1,117.5,0.5,116.6,-1.5,116,-3.6,114.5,-3.5,111,-3,110.2,-1.8,109,0],
+  sumatra: [95.3,5.6,97.5,5.2,100.4,2.2,103.8,-1,106,-3,105.8,-5.8,104.5,-5.9,102.3,-4,100.3,-1,98.7,1.7,96.6,3.7],
+  java: [105.2,-6.8,106.5,-6,108.3,-6.3,111,-6.4,112.6,-6.9,114.6,-7.8,114.4,-8.7,111,-8.2,108,-7.8,106,-7.4],
+  celebes: [118.8,-3,119.5,0.5,120.9,1.3,124.9,1.5,123,0.4,120.5,0.5,121.5,-1,123.3,-1,122,-2.5,122.8,-4.5,121.5,-4.6,121,-2.8,120.4,-5.6,119.4,-5.4],
+  nouvelle_guinee: [131,-1.4,134,-0.9,135.5,-3.3,138,-1.6,141,-2.6,144.5,-3.8,147.5,-6,147.5,-7.8,150.2,-10.6,147,-10.1,144,-7.8,142.3,-9.2,
+    140.9,-9.1,138.5,-8.4,138,-7.5,135,-4.4,132.8,-4.1,132,-2.8],
+  australie: [113.7,-22,114.2,-26.2,114.9,-29,115.7,-32,115,-34.3,117.9,-35.1,122,-33.9,124,-33,126,-32.3,129,-31.6,131.5,-31.5,134.2,-32.7,
+    135.6,-34.8,137.5,-33,137.8,-35.6,138.5,-35,139.6,-36.8,140.6,-38,143.5,-38.8,144.9,-37.9,146.3,-39.1,148,-37.8,150,-37.5,150.8,-34.5,
+    151.3,-33.8,152.5,-32,153.6,-28.2,153,-25.5,151,-23.5,149,-21,146.3,-19,145.4,-16,145.3,-14.8,143.5,-14,142.5,-10.7,141.6,-13,
+    141.5,-16.5,140.5,-17.6,139.3,-17.4,137.8,-16,135.9,-15,136.7,-12.3,135.5,-12,132.6,-11.5,131,-12.3,129.5,-14.9,128,-14.9,126,-14,
+    124.4,-16.3,122.2,-18,121.2,-19.5,119,-20,116.8,-20.6,114.6,-21.8],
+  tasmanie: [144.6,-40.7,148.3,-40.9,148,-43.2,146.9,-43.6,145.2,-42.2],
+  nz_nord: [172.7,-34.5,174.4,-35.7,175.9,-37.5,178.5,-37.7,177.9,-39.1,176.8,-40.1,175.2,-41.6,174.6,-41.2,173.8,-39.2,174.6,-38,174.2,-36.4],
+  nz_sud: [172.7,-40.5,174.3,-41.7,173,-43.8,171.2,-44.5,169,-46.6,166.5,-46,168.4,-44,170.8,-42.5,172.1,-40.9],
+  nouvelle_zemble: [52,71.5,55.5,73.3,60,76,68.5,76.9,63,74.5,57,70.6,53,70.8],
+  svalbard: [11,78.5,15,80,27,80.2,22,77.4,16,76.6],
+  antarctique: [-180,-90,-180,-78.5,-160,-78,-150,-77,-140,-75,-120,-73.5,-100,-73,-80,-73,-75,-70.5,-68,-68,-62,-64.5,-57,-63.3,-60,-66,
+    -62,-70,-61,-74,-55,-77,-40,-78,-30,-76,-20,-73.5,-10,-71,0,-70.2,20,-70,40,-69,55,-66.5,70,-67.8,75,-69.5,90,-66.5,110,-66.2,
+    130,-66.3,150,-68.5,165,-71,170,-71.5,166,-76,165,-78,180,-78.5,180,-90]
+};
+
+function etude_mappemonde(donnees){
+  const { PI, abs, atan2, asin, ceil, cos, exp, floor, hypot, log, max, min, pow, round, sin, sqrt, tan } = Math;
+  const D = donnees ? Object.assign({}, etude_mappemonde_DONNEES, donnees) : etude_mappemonde_DONNEES;
+  const P = D.priorites, RAD = PI / 180, TAU = 2 * PI;
+
+  /* — la palette : un vélin gris, l'encre noire, quatre pigments et l'or — */
+  const ENCRE = [20, 17, 15], GRAPH = [74, 74, 80], VELIN = [192, 184, 168], VERSO = [168, 158, 140];
+  const LAPIS = [36, 66, 150], LAPIS_M = [52, 96, 212];                    // LAPIS_M : le lavis, posé en « multiplier »
+  const VERMIL = [204, 56, 30], VERDET = [30, 128, 104], POURPRE = [124, 40, 112];
+  const OR_S = [112, 80, 28], OR_C = [255, 238, 180], OR_P = [208, 162, 60];
+  const TONS = [VERMIL, VERDET, POURPRE, OR_P];                             // une couleur par priorité
+  const TONS_M = [[224, 66, 40], [44, 158, 136], [150, 58, 156], [236, 186, 92]];
+  const SERIF = "Georgia, 'Times New Roman', serif", MONO = "ui-monospace, Consolas, monospace";
+  const TW = 1024, TH = 512, TILT = 27;                                     // la carte-texture ; la pente du globe final
+
+  let W = 390, H = 760, DPR = 1, seed = D.graine || 1569;
+  let L = null;                                                              // la mise en page
+  let page = null, base = null, carte = null, cctx = null;                   // vélin de page, carte de base, carte composée
+  let calques = [null, null, null, null];                                    // par priorité : { lavis, encre }
+  let medCache = [null, null, null, null], fileGen = [], composition = null;
+  let fait = [false, false, false, false], tF = [null, null, null, null], cuit = [false, false, false, false], tS = null;
+  let TERRE = null, PIX = null, GL = null, tGlobePret = null, SOL = null, cosT = null, solAuPixel = null;
+  let lum = { x: 0, y: 0 }, lumMain = false, flash = [-1e9, -1e9, -1e9, -1e9], dernierGeste = -1e9, tourneMain = 0;
+  let decor = null;
+  const M = { titre: "LA MAPPEMONDE", bouton: libelleGeste(0), ligne: ligneGeste(0), dprMax: 1.5 };
+  const mes = document.createElement("canvas").getContext("2d");
+
+  /* ———————————————————— petits outils ———————————————————— */
+  const ink = a => rgb(ENCRE, a), mine = a => rgb(GRAPH, a);
+  const lisse5 = u => { u = clamp(u); return u * u * u * (u * (u * 6 - 15) + 10); };
+  function espace(c, txt, x, y, sp, centre){
+    const ch = [...txt], ws = ch.map(k => c.measureText(k).width);
+    const w = ws.reduce((a, b) => a + b + sp, -sp);
+    let xx = centre ? x - w / 2 : x;
+    ch.forEach((k, i) => { c.fillText(k, xx, y); xx += ws[i] + sp; });
+    return w;
+  }
+  function largeur(txt, sp){ return [...txt].reduce((a, k) => a + mes.measureText(k).width + sp, -sp); }
+  const TX = lo => (lo + 180) / 360 * TW, TY = la => (90 - la) / 180 * TH;
+
+  /* ———————————————————— la géographie ———————————————————— */
+  // densifier : aucun côté de plus de 2° (le globe courbe les côtés)
+  function densifier(pts, pas){
+    const o = [];
+    for (let i = 0; i < pts.length; i++){
+      const a = pts[i], b = pts[(i + 1) % pts.length], n = max(1, ceil(hypot(b[0] - a[0], b[1] - a[1]) / pas));
+      for (let k = 0; k < n; k++) o.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]);
+    }
+    return o;
+  }
+  const paires = arr => { const o = []; for (let i = 0; i < arr.length; i += 2) o.push([arr[i], arr[i + 1]]); return o; };
+  const POLY = {};
+  for (const nom in etude_mappemonde_COTES) POLY[nom] = densifier(paires(etude_mappemonde_COTES[nom]), 2);
+  const LISTE = Object.keys(POLY);
+  const coupure = (a, b) => (abs(a[0]) === 180 && abs(b[0]) === 180) || (a[1] <= -89.9 && b[1] <= -89.9);
+  const BOITES = {
+    mexique: [[-118, 32.6], [-111, 31.3], [-106.5, 31.8], [-104.5, 29.6], [-101, 29.8], [-99.5, 27.5], [-97.2, 25.9], [-90, 25], [-70, 14], [-75, 5], [-125, 10], [-125, 32.6]],
+    iberie: [[-11, 44.5], [-1.8, 43.4], [0.7, 42.8], [3.2, 42.4], [5, 40], [3, 35], [-11, 35]],
+    grece: [[19.3, 39.6], [20.6, 40.9], [23, 41.4], [26.3, 41.75], [26.5, 40.4], [25.9, 39.5], [26, 37.5], [28.5, 35.5], [22, 33.5], [19, 35]]
+  };
+  for (const k in BOITES) BOITES[k] = densifier(BOITES[k], 2);
+  const REGIONS = {
+    bretagne: [{ p: "bretagne" }], irlande: [{ p: "irlande" }],
+    amerique_nord: [{ p: "amerique_nord", hors: "mexique" }],
+    iberie: [{ p: "eurasie", dans: "iberie" }],
+    amerique_latine: [{ p: "amerique_nord", dans: "mexique" }, { p: "amerique_sud" }, { p: "cuba" }, { p: "hispaniola" }],
+    grece: [{ p: "eurasie", dans: "grece" }, { p: "crete" }]
+  };
+  const MONTS = [[6,45.3,10,46.5,14,47], [-1.5,42.9,2.5,42.5], [-8,31,0,33,8,35.5], [40,43.3,47,42], [59,51,60,58,64,66],
+    [72,35,80,31,88,28,95,28], [78,36,90,35,100,33], [-125,58,-116,49,-110,42,-106,35], [-75,8,-78,-2,-76,-12,-69,-22,-70,-33,-72,-45],
+    [-84,34,-78,39,-73,43], [38,8,39,13], [29,-29,31,-25], [146,-37,150,-30,147,-20], [8,61,14,66,19,69]].map(paires);
+  const DESERTS = [[10,23,24,8], [47,23,10,7], [70,27,5,3], [103,43,12,4], [83,39,7,3], [132,-25,15,7], [21,-24,6,5], [-69,-25,3,9],
+    [-112,34,7,5], [57,31,7,4], [-68,-44,4,5]];
+  const LUMIERES = [[-74,40.7,9],[-118.2,34,8],[-87.6,41.9,6],[-79.4,43.7,5],[-99.1,19.4,8],[-46.6,-23.5,8],[-43.2,-22.9,6],[-58.4,-34.6,6],
+    [-77,-12,5],[-74.1,4.7,5],[-0.1,51.5,7],[2.35,48.86,7],[13.4,52.5,5],[-3.7,40.4,5],[12.5,41.9,5],[37.6,55.8,7],[28.9,41,6],
+    [31.2,30,7],[3.4,6.5,6],[36.8,-1.3,4],[28,-26.2,5],[55.3,25.2,5],[72.9,19,8],[77.2,28.6,8],[88.4,22.6,7],[80.3,13.1,5],
+    [100.5,13.8,6],[106.8,-6.2,7],[103.8,1.35,5],[114.2,22.3,7],[121.5,31.2,8],[116.4,39.9,8],[113.3,23.1,7],[127,37.6,7],
+    [139.7,35.7,9],[135.5,34.7,6],[151.2,-33.9,5],[144.9,-37.8,5],[-122.4,37.8,5],[-95.4,29.8,5],[-80.2,25.8,5],[-71,42.4,5],
+    [44.4,33.3,5],[51.4,35.7,6],[67,24.9,6],[90.4,23.8,7],[120.98,14.6,7],[-90.5,14.6,3],[30.5,50.4,5],[21,52.2,4]];
+  const GL_MAX = 240;
+
+  /* — la loxodromie : la vraie formule, en Mercator — */
+  const merc = f => log(tan(PI / 4 + f / 2));
+  function loxodromie(a, b){
+    const l1 = a[0] * RAD, f1 = a[1] * RAD, f2 = b[1] * RAD;
+    let dl = b[0] * RAD - l1;
+    if (abs(dl) > PI) dl -= Math.sign(dl) * TAU;
+    const dpsi = merc(f2) - merc(f1), df = f2 - f1;
+    const cap = (atan2(dl, dpsi) / RAD + 360) % 360;
+    const q = abs(dpsi) > 1e-9 ? df / dpsi : cos(f1);
+    const km = sqrt(df * df + q * q * dl * dl) * 6371;
+    const n = max(6, ceil(km / 160)), pts = [];
+    for (let k = 0; k <= n; k++){
+      const s = k / n, f = f1 + s * df;
+      const l = abs(dpsi) > 1e-9 ? l1 + dl * (merc(f) - merc(f1)) / dpsi : l1 + s * dl;
+      pts.push([l / RAD, f / RAD]);
+    }
+    return { pts, cap, km };
+  }
+  // un rhumb du réseau : la loxodromie de cap β tirée jusqu'au bord du monde (droite en Mercator)
+  function rhumb(o, beta){
+    const pts = [], l0 = o[0] * RAD, p0 = merc(o[1] * RAD), pmax = merc(84 * RAD);
+    for (let s = 0; s < 12; s += .012){
+      const l = l0 + s * sin(beta), p = p0 + s * cos(beta);
+      if (abs(l) > PI || abs(p) > pmax) break;
+      pts.push([l / RAD, (2 * Math.atan(exp(p)) - PI / 2) / RAD]);
+    }
+    return pts;
+  }
+  const VOY = D.voyages.map((v, i) => {
+    const etapes = v.etapes.map(([a, b, t0, t1]) => {
+      const lx = loxodromie(D.villes[a], D.villes[b]);
+      return { de: a, vers: b, t0, t1, pts: lx.pts, cap: lx.cap, km: lx.km };
+    });
+    const longue = etapes.reduce((m, e) => e.km > m.km ? e : m, etapes[0]);
+    // le centre et le rayon du médaillon : la moyenne des points sur la sphère
+    let sx = 0, sy = 0, sz = 0;
+    const tous = etapes.flatMap(e => e.pts);
+    for (const [lo, la] of tous){ const c = cos(la * RAD); sx += c * cos(lo * RAD); sy += c * sin(lo * RAD); sz += sin(la * RAD); }
+    const n = hypot(sx, sy, sz), cl = atan2(sy, sx) / RAD, cf = asin(sz / n) / RAD;
+    let cap = 0;
+    for (const [lo, la] of tous){
+      const d = Math.acos(clamp(sin(cf * RAD) * sin(la * RAD) + cos(cf * RAD) * cos(la * RAD) * cos((lo - cl) * RAD), -1, 1)) / RAD;
+      cap = max(cap, d);
+    }
+    const villes = [...new Set(etapes.map(e => e.vers))];
+    return Object.assign({}, v, { i, etapes, longue, centre: [cl, cf], ouverture: clamp(cap + 7, 13, 86), villes, ton: TONS[i] });
+  });
+
+  /* — tracer un contour avec une projection pr(lo, la) → [x, y, visible] — */
+  function tracer(c, pts, pr){
+    for (let k = 0; k < pts.length; k++){ const q = pr(pts[k][0], pts[k][1]); k ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }
+    c.closePath();
+  }
+  function encrer(c, pts, pr, ferme){
+    let avant = null, levee = true;
+    const n = ferme ? pts.length + 1 : pts.length;
+    for (let k = 0; k < n; k++){
+      const p = pts[k % pts.length], q = pr(p[0], p[1]);
+      if (!q[2] || (avant && coupure(avant, p))){ levee = true; avant = p; continue; }
+      if (levee){ c.moveTo(q[0], q[1]); levee = false; } else c.lineTo(q[0], q[1]);
+      avant = p;
+    }
+  }
+  function terres(c, pr){ c.beginPath(); for (const nom of LISTE) tracer(c, POLY[nom], pr); }
+  function region(c, nom, pr, faire){
+    for (const part of REGIONS[nom]){
+      c.save();
+      if (part.dans){ c.beginPath(); tracer(c, BOITES[part.dans], pr); c.clip(); }
+      if (part.hors){ c.beginPath(); c.rect(-1e5, -1e5, 3e5, 3e5); tracer(c, BOITES[part.hors], pr); c.clip("evenodd"); }
+      c.beginPath(); tracer(c, POLY[part.p], pr);
+      faire(c, part);
+      c.restore();
+    }
+  }
+  const prTex = (lo, la) => [TX(lo), TY(la), true];
+  function prOrtho(l0, f0, R, cx, cy){
+    const sf = sin(f0 * RAD), cf = cos(f0 * RAD);
+    return (lo, la) => {
+      const l = (lo - l0) * RAD, f = la * RAD, c = cos(f);
+      let x = c * sin(l), y0 = sin(f), z0 = c * cos(l);
+      let y = y0 * cf - z0 * sf; const z = y0 * sf + z0 * cf, vis = z > 0;
+      if (!vis){ const n = hypot(x, y) || 1; x /= n; y /= n; }
+      return [cx + R * x, cy - R * y, vis];
+    };
+  }
+
+  /* ———————————————————— l'or : Blinn-Phong par facette ———————————————————— */
+  const OCACHE = new Map();
+  function orCoul(a, sp){
+    const qa = round(clamp(a, 0, 1.6) * 20), qs = round(clamp(sp, 0, 2) * 20), k = qa * 64 + qs;
+    let v = OCACHE.get(k);
+    if (!v){ v = rgb(OR_S.map((o, j) => min(255, o * qa / 20 * 1.35 + OR_C[j] * qs / 20))); OCACHE.set(k, v); }
+    return v;
+  }
+  function orFacette(Lp, x, y, nx, ny, nz, boost){
+    let lx = Lp[0] - x, ly = Lp[1] - y, lz = Lp[2];
+    const ln = hypot(lx, ly, lz); lx /= ln; ly /= ln; lz /= ln;
+    const hz = lz + 1, hm = hypot(lx, ly, hz), nn = hypot(nx, ny, nz);
+    const nl = max(0, (nx * lx + ny * ly + nz * lz) / nn), nh = max(0, (nx * lx + ny * ly + nz * hz) / (nn * hm));
+    let s = nh * nh; s *= s; s *= s; s *= s; s *= s;
+    return orCoul(.42 + .85 * nl, s * 1.5 * (boost || 1));
+  }
+  function piece(c, x, y, r, Lp, eclat){
+    c.beginPath(); c.arc(x, y, r + .7, 0, TAU); c.fillStyle = ink(.85); c.fill();
+    c.beginPath(); c.arc(x, y, r, 0, TAU); c.fillStyle = orFacette(Lp, x, y, 0, 0, 1, 1 + eclat * 2); c.fill();
+    // le bombé : un anneau de facettes
+    for (let k = 0; k < 8; k++){
+      const a = k * PI / 4;
+      c.beginPath(); c.arc(x, y, r, a, a + PI / 4); c.arc(x, y, r * .62, a + PI / 4, a, true); c.closePath();
+      c.fillStyle = orFacette(Lp, x, y, cos(a + PI / 8) * .8, sin(a + PI / 8) * .8, 1, 1 + eclat * 2); c.fill();
+    }
+    if (eclat > .05){
+      c.save(); c.globalCompositeOperation = "lighter"; c.globalAlpha = min(1, eclat);
+      c.strokeStyle = rgb(OR_C); c.lineWidth = .8; const a = r * (2 + eclat * 4);
+      c.beginPath(); c.moveTo(x - a, y); c.lineTo(x + a, y); c.moveTo(x, y - a); c.lineTo(x, y + a); c.stroke(); c.restore();
+    }
+  }
+  // la rose des vents : 16 pointes, chacune deux facettes d'or calculées
+  function rose(c, x, y, R, Lp){
+    c.save(); c.lineJoin = "round";
+    c.strokeStyle = ink(.85); c.lineWidth = max(.6, R * .025);
+    c.beginPath(); c.arc(x, y, R * 1.1, 0, TAU); c.stroke();
+    c.beginPath(); c.arc(x, y, R * 1.02, 0, TAU); c.stroke();
+    c.beginPath();
+    for (let k = 0; k < 32; k++){ const a = k * PI / 16, r1 = R * (k % 4 ? 1.02 : .96); c.moveTo(x + cos(a) * r1, y + sin(a) * r1); c.lineTo(x + cos(a) * R * 1.1, y + sin(a) * R * 1.1); }
+    c.stroke();
+    const ordre = [...Array(16).keys()].sort((a, b) => (b % 4 === 0) - (a % 4 === 0) || (b % 2) - (a % 2));
+    for (const k of ordre.reverse()){
+      const a = k * PI / 8 - PI / 2, Lk = R * (k % 4 === 0 ? 1 : k % 2 === 0 ? .7 : .48), w = Lk * .17;
+      const T = [x + cos(a) * Lk, y + sin(a) * Lk], G = [x + cos(a - PI / 2) * w, y + sin(a - PI / 2) * w], Dd = [x + cos(a + PI / 2) * w, y + sin(a + PI / 2) * w];
+      for (const [S, s] of [[G, -1], [Dd, 1]]){
+        c.beginPath(); c.moveTo(x, y); c.lineTo(S[0], S[1]); c.lineTo(T[0], T[1]); c.closePath();
+        if (k % 2) c.fillStyle = s < 0 ? rgb(ENCRE) : rgb(mix(ENCRE, VELIN, .45));
+        else c.fillStyle = orFacette(Lp, (x + T[0]) / 2, (y + T[1]) / 2, cos(a + s * PI / 2) * .75, sin(a + s * PI / 2) * .75, 1);
+        c.fill(); c.lineWidth = max(.5, R * .02); c.strokeStyle = ink(.9); c.stroke();
+      }
+    }
+    // la fleur du nord et le cœur
+    const tN = [x, y - R * 1.1];
+    c.beginPath(); c.moveTo(tN[0], tN[1] - R * .3); c.lineTo(tN[0] + R * .1, tN[1] - R * .08); c.lineTo(tN[0], tN[1]); c.lineTo(tN[0] - R * .1, tN[1] - R * .08); c.closePath();
+    c.fillStyle = rgb(VERMIL); c.fill(); c.strokeStyle = ink(.9); c.stroke();
+    c.beginPath(); c.arc(x, y, R * .1, 0, TAU); c.fillStyle = orFacette(Lp, x, y, -.3, -.3, 1); c.fill(); c.stroke();
+    c.restore();
+  }
+
+  /* ———————————————————— la nef, le serpent, la baleine (au trait) ———————————————————— */
+  function nef(c, x, y, s, dir, voile){
+    c.save(); c.translate(x, y); c.scale(dir, 1); c.lineJoin = "round"; c.lineCap = "round";
+    const lw = max(.5, s * .09);
+    // l'eau
+    c.strokeStyle = ink(.7); c.lineWidth = lw * .8; c.beginPath();
+    for (let k = -1; k <= 1; k++){ c.moveTo(-s * 1.2 + k * s * .5, s * .5 + abs(k) * s * .12); c.quadraticCurveTo(-s * .95 + k * s * .5, s * .38, -s * .7 + k * s * .5, s * .5 + abs(k) * s * .12); }
+    c.stroke();
+    // la coque
+    c.beginPath(); c.moveTo(-s * 1.05, -s * .32); c.quadraticCurveTo(-s * .8, s * .38, 0, s * .38); c.quadraticCurveTo(s * .85, s * .34, s * 1.1, -s * .42);
+    c.lineTo(s * .6, -s * .2); c.lineTo(-s * .7, -s * .2); c.closePath();
+    c.fillStyle = rgb([118, 90, 62]); c.fill(); c.strokeStyle = ink(.95); c.lineWidth = lw; c.stroke();
+    c.lineWidth = lw * .6; c.beginPath(); c.moveTo(-s * .85, 0); c.quadraticCurveTo(0, s * .18, s * .9, -s * .12); c.moveTo(-s * .7, s * .18); c.quadraticCurveTo(0, s * .3, s * .7, s * .05); c.stroke();
+    // les châteaux
+    c.fillStyle = rgb(VELIN); c.lineWidth = lw * .8;
+    c.fillRect(-s * 1.0, -s * .5, s * .38, s * .3); c.strokeRect(-s * 1.0, -s * .5, s * .38, s * .3);
+    // le mât, la voile (gonflée), la croix, la flamme
+    c.lineWidth = lw; c.beginPath(); c.moveTo(0, -s * .2); c.lineTo(0, -s * 1.7); c.stroke();
+    c.beginPath(); c.moveTo(-s * .55, -s * 1.45); c.lineTo(s * .55, -s * 1.45); c.quadraticCurveTo(s * .82, -s * .95, s * .58, -s * .42);
+    c.lineTo(-s * .58, -s * .42); c.quadraticCurveTo(-s * .3, -s * .95, -s * .55, -s * 1.45); c.closePath();
+    c.fillStyle = rgb(voile || [226, 220, 204]); c.fill(); c.stroke();
+    c.strokeStyle = rgb(VERMIL); c.lineWidth = lw * 1.3; c.beginPath(); c.moveTo(s * .08, -s * 1.3); c.lineTo(s * .08, -s * .56); c.moveTo(-s * .25, -s * .95); c.lineTo(s * .4, -s * .95); c.stroke();
+    c.beginPath(); c.moveTo(0, -s * 1.7); c.lineTo(s * .55, -s * 1.6); c.lineTo(0, -s * 1.5); c.closePath(); c.fillStyle = rgb(VERMIL); c.fill();
+    c.restore();
+  }
+  function serpent(c, x, y, s){
+    c.save(); c.translate(x, y); c.lineJoin = "round"; c.lineCap = "round"; c.strokeStyle = ink(.9); c.lineWidth = max(.7, s * .05);
+    for (let k = 0; k < 3; k++){
+      const cx = s * (.2 + k * .62), r = s * (.28 - k * .04);
+      c.beginPath(); c.arc(cx, 0, r, PI, 0); c.arc(cx, 0, r * .55, 0, PI, true); c.closePath();
+      c.fillStyle = rgb([150, 146, 128]); c.fill(); c.stroke();
+      c.save(); c.clip(); c.lineWidth *= .5; c.beginPath();
+      for (let j = -6; j < 7; j++){ c.moveTo(cx + j * r * .22, -r); c.lineTo(cx + j * r * .22 + r * .3, 0); } c.stroke(); c.restore();
+    }
+    // la tête, la gueule ouverte, l'œil
+    c.beginPath(); c.moveTo(-s * .05, 0); c.quadraticCurveTo(-s * .1, -s * .42, -s * .42, -s * .48); c.lineTo(-s * .75, -s * .36);
+    c.lineTo(-s * .45, -s * .32); c.lineTo(-s * .72, -s * .2); c.quadraticCurveTo(-s * .35, -s * .18, -s * .25, 0); c.closePath();
+    c.fillStyle = rgb([150, 146, 128]); c.fill(); c.stroke();
+    c.beginPath(); c.arc(-s * .4, -s * .42, s * .035, 0, TAU); c.fillStyle = ink(1); c.fill();
+    // la queue en crosse
+    c.beginPath(); c.moveTo(s * 1.55, 0); c.quadraticCurveTo(s * 1.7, -s * .35, s * 1.5, -s * .38); c.quadraticCurveTo(s * 1.38, -s * .3, s * 1.48, -s * .22); c.stroke();
+    // l'eau
+    c.lineWidth *= .7; c.beginPath();
+    for (let k = -1; k < 5; k++){ c.moveTo(s * (k * .4 - .1), s * .06); c.quadraticCurveTo(s * (k * .4 + .05), -s * .03, s * (k * .4 + .2), s * .06); } c.stroke();
+    c.restore();
+  }
+  function baleine(c, x, y, s){
+    c.save(); c.translate(x, y); c.lineJoin = "round"; c.strokeStyle = ink(.9); c.lineWidth = max(.7, s * .05);
+    c.beginPath(); c.moveTo(-s, 0); c.quadraticCurveTo(-s * .9, -s * .5, -s * .2, -s * .48); c.quadraticCurveTo(s * .5, -s * .45, s * .8, -s * .1);
+    c.lineTo(s * 1.15, -s * .35); c.lineTo(s * 1.05, 0); c.lineTo(s * 1.18, s * .2); c.lineTo(s * .8, s * .05); c.quadraticCurveTo(0, s * .2, -s, 0); c.closePath();
+    c.fillStyle = rgb([140, 138, 126]); c.fill(); c.stroke();
+    c.save(); c.clip(); c.lineWidth *= .45; c.beginPath(); for (let k = 0; k < 9; k++){ c.moveTo(-s + k * s * .22, s * .1); c.quadraticCurveTo(-s * .9 + k * s * .22, -s * .1, -s * .7 + k * s * .22, -s * .02); } c.stroke(); c.restore();
+    c.beginPath(); c.arc(-s * .68, -s * .2, s * .04, 0, TAU); c.fillStyle = ink(1); c.fill();
+    c.lineWidth *= .8; c.beginPath(); c.moveTo(-s * .55, -s * .5); c.quadraticCurveTo(-s * .7, -s * .9, -s * .85, -s * .85); c.moveTo(-s * .55, -s * .5); c.quadraticCurveTo(-s * .45, -s * .95, -s * .3, -s * .88); c.stroke();
+    c.restore();
+  }
+
+  /* ———————————————————— le vélin (au pixel, à demi-résolution) ———————————————————— */
+  function* velin(c, w, h, dpr, ton, graineV){
+    const w2 = ceil(w * dpr / 2), h2 = ceil(h * dpr / 2), [nc, nx] = toile(w2, h2, 1), im = nx.createImageData(w2, h2), d = im.data;
+    const n1 = bruit2(graineV + 1), n2 = bruit2(graineV + 2), n3 = bruit2(graineV + 3), nf = bruit2(graineV + 4), sc = 2 / dpr;
+    for (let y = 0; y < h2; y++){
+      for (let x = 0; x < w2; x++){
+        const X = x * sc, Y = y * sc;
+        let v = (n1(X / 140, Y / 140) - .5) * 22 + (n2(X / 36, Y / 36) - .5) * 9 + (n3(X / 6, Y / 6) - .5) * 7 + (nf(X / 80, Y / 7) - .5) * 6;
+        const chaud = (n1(X / 300 + 9, Y / 300) - .5) * 14, bord = min(X, w - X, Y, h - Y);
+        v -= 16 * exp(-bord / 22) + 5 * exp(-bord / 90);
+        const q = (y * w2 + x) * 4;
+        d[q] = ton[0] + v + chaud * .5; d[q + 1] = ton[1] + v + chaud * .15; d[q + 2] = ton[2] + v - chaud * .3; d[q + 3] = 255;
+      }
+      if (y % 18 === 17) yield;
+    }
+    nx.putImageData(im, 0, 0);
+    c.imageSmoothingEnabled = true; c.drawImage(nc, 0, 0, w, h); yield;
+    // follicules et fibres
+    const R = graine(graineV * 7 + 3);
+    c.fillStyle = "rgba(70,62,54,.1)"; c.beginPath();
+    for (let k = 0; k < w * h / 900; k++){ const X = R() * w, Y = R() * h, r = .35 + R() * .4; c.moveTo(X + r, Y); c.arc(X, Y, r, 0, TAU); }
+    c.fill(); yield;
+    for (const [col, lw] of [["rgba(236,230,216,.12)", .5], ["rgba(76,68,60,.08)", .45]]){
+      c.strokeStyle = col; c.lineWidth = lw; c.beginPath();
+      for (let k = 0; k < w * h / 1400; k++){
+        const X = R() * w, Y = R() * h, a = (nf(X / 120, Y / 120) - .5) * 1.6, l = 4 + R() * 12;
+        c.moveTo(X, Y); c.quadraticCurveTo(X + cos(a) * l * .5, Y + sin(a) * l * .5 + (R() - .5) * 2, X + cos(a) * l, Y + sin(a) * l);
+      }
+      c.stroke(); yield;
+    }
+    for (let k = 0; k < 5; k++){
+      const X = R() * w, Y = R() * h, r = 18 + R() * 60, g = c.createRadialGradient(X, Y, 0, X, Y, r);
+      g.addColorStop(0, "rgba(120,104,80,.08)"); g.addColorStop(.85, "rgba(120,104,80,.04)"); g.addColorStop(1, "rgba(120,104,80,0)");
+      c.fillStyle = g; c.fillRect(X - r, Y - r, 2 * r, 2 * r);
+    }
+  }
+  function* peindrePage(){
+    const [cv, c] = toile(W, H, DPR);
+    yield* velin(c, W, H, DPR, [164, 159, 149], seed * 3 + 11);
+    page = cv;
+  }
+
+  /* ———————————————————— la carte de base (1024 × 512, une fois par graine) ———————————————————— */
+  function batirDecor(){
+    const R = graine(seed * 17 + 5);
+    decor = {
+      rose: [-150 + R() * 22, -6 + R() * 16],
+      serpent: [-128 + R() * 10, -38 + R() * 8],
+      baleine: [68 + R() * 18, -34 + R() * 6],
+      nef: [-30 + R() * 8, -30 + R() * 6]
+    };
+  }
+  function* peindreCarte(){
+    const [cv, c] = toile(TW, TH, 1);
+    yield* velin(c, TW, TH, 1, [196, 188, 170], seed * 5 + 1);
+    const R = graine(seed * 9 + 4);
+    // la terre : un lavis chaud, à peine
+    c.save(); terres(c, prTex); c.fillStyle = "rgba(150,120,80,.13)"; c.fill("evenodd"); c.restore(); yield;
+    // les lignes d'eau : des anneaux parallèles aux côtes, côté mer
+    const [lc, lx] = toile(TW, TH, 1);
+    lx.lineJoin = "round"; terres(lx, prTex);
+    for (let k = 5; k >= 1; k--){
+      const d = k * 3.4;
+      lx.globalCompositeOperation = "source-over"; lx.lineWidth = 2 * d; lx.strokeStyle = ink(.42 * (1 - k / 6.5)); lx.stroke();
+      lx.globalCompositeOperation = "destination-out"; lx.lineWidth = 2 * d - 1.15; lx.strokeStyle = "#000"; lx.stroke();
+      yield;
+    }
+    lx.globalCompositeOperation = "destination-out"; lx.fillStyle = "#000"; lx.fill("evenodd");
+    c.drawImage(lc, 0, 0); yield;
+    // l'équateur (double), les tropiques et les cercles polaires (tirets rouges)
+    c.lineWidth = 1.2; c.strokeStyle = rgb(VERMIL, .55); c.setLineDash([7, 5]);
+    c.beginPath(); for (const la of [23.44, -23.44, 66.56, -66.56]){ c.moveTo(0, TY(la)); c.lineTo(TW, TY(la)); } c.stroke();
+    c.setLineDash([]); c.strokeStyle = ink(.55); c.lineWidth = 1; c.beginPath(); c.moveTo(0, TY(0) - 1.5); c.lineTo(TW, TY(0) - 1.5); c.moveTo(0, TY(0) + 1.5); c.lineTo(TW, TY(0) + 1.5); c.stroke();
+    // le réseau des rhumbs : 32 loxodromies depuis Paris, 16 depuis la rose (noir : vents ; vert : demi-vents ; rouge : quarts)
+    const coul = k => k % 4 === 0 ? ink(.42) : k % 2 === 0 ? rgb([30, 110, 70], .4) : rgb(VERMIL, .38);
+    for (const [o, n] of [[D.villes[D.depart], 32], [decor.rose, 16]]){
+      for (let k = 0; k < n; k++){
+        const kk = n === 32 ? k : k * 2, pts = rhumb(o, kk * TAU / 32);
+        c.strokeStyle = coul(kk); c.lineWidth = kk % 4 === 0 ? 1.1 : .9;
+        c.beginPath(); pts.forEach((p, j) => j ? c.lineTo(TX(p[0]), TY(p[1])) : c.moveTo(TX(p[0]), TY(p[1]))); c.stroke();
+      }
+      yield;
+    }
+    // les monts : petites collines hachées
+    c.lineWidth = 1; c.strokeStyle = ink(.75);
+    for (const m of MONTS){
+      const pts = densifier(m, 2.4).slice(0, -1).concat([m[m.length - 1]]);
+      for (const p of pts){
+        const x = TX(p[0]) + (R() - .5) * 3, y = TY(p[1]) + (R() - .5) * 3, s = 4 + R() * 2.5;
+        c.beginPath(); c.moveTo(x - s, y + s * .5); c.quadraticCurveTo(x - s * .2, y - s * 1.1, x, y - s); c.quadraticCurveTo(x + s * .3, y - s * .9, x + s, y + s * .5);
+        c.fillStyle = rgb([176, 160, 132]); c.fill(); c.stroke();
+        c.beginPath(); for (let h = 1; h < 4; h++){ c.moveTo(x + s * .15 * h, y - s * .7 + h * s * .3); c.lineTo(x + s * .15 * h + s * .25, y + s * .4); } c.stroke();
+      }
+    }
+    yield;
+    // le décor : rose d'or, serpent, baleine, nef
+    rose(c, TX(decor.rose[0]), TY(decor.rose[1]), 34, [TX(decor.rose[0]) - 260, TY(decor.rose[1]) - 300, 420]);
+    serpent(c, TX(decor.serpent[0]), TY(decor.serpent[1]), 46);
+    baleine(c, TX(decor.baleine[0]), TY(decor.baleine[1]), 34);
+    nef(c, TX(decor.nef[0]), TY(decor.nef[1]), 13, 1);
+    yield;
+    // les côtes à l'encre noire franche
+    c.lineJoin = "round"; c.lineCap = "round";
+    c.beginPath(); for (const nom of LISTE) encrer(c, POLY[nom], prTex, true);
+    c.strokeStyle = ink(.95); c.lineWidth = 2.1; c.stroke();
+    c.strokeStyle = "rgba(236,228,210,.35)"; c.lineWidth = .7; c.save(); c.translate(-.9, -.9); c.stroke(); c.restore();
+    yield;
+    // les mers nommées
+    c.fillStyle = ink(.7); c.textAlign = "left";
+    for (const [txt, lo, la, fs] of [["OCEANUS", -150, 22, 26], ["MARE ATLANTICUM", -45, 3, 17], ["MARE INDICUM", 62, -8, 17], ["OCEANUS", 160, 12, 22]]){
+      c.font = `italic ${fs}px ${SERIF}`; mes.font = c.font; espace(c, txt, TX(lo), TY(la), fs * .35, true);
+    }
+    // Paris, le port de départ
+    c.font = `italic 15px ${SERIF}`; c.fillStyle = ink(.92); c.fillText("Paris", TX(2.35) + 6, TY(48.86) + 14);
+    yield;
+    base = cv;
+  }
+  // le masque de la mer (pour les lavis)
+  let MER = null;
+  function* peindreMer(){
+    const [cv, c] = toile(TW, TH, 1);
+    c.fillStyle = "#fff"; c.fillRect(0, 0, TW, TH);
+    c.globalCompositeOperation = "destination-out"; terres(c, prTex); c.fill("evenodd");
+    MER = cv; yield;
+  }
+
+  /* ———————————————————— le calque d'une priorité : le lavis (multiplier) et l'encre ———————————————————— */
+  function* peindreCalque(i){
+    const v = VOY[i], R = graine(seed * 31 + i * 7);
+    const [lv, l] = toile(TW, TH, 1), [ev, e] = toile(TW, TH, 1);
+    // 1. le lapis : des flaques de lavis dans les mers du voyage et le long de ses routes
+    l.fillStyle = rgb(LAPIS_M, .2);
+    for (const b of v.mers){
+      const x0 = TX(b[0]), x1 = TX(b[2]), y0 = TY(b[3]), y1 = TY(b[1]), n = round((x1 - x0) * (y1 - y0) / 260);
+      l.beginPath();
+      for (let k = 0; k < n; k++){ const x = x0 + R() * (x1 - x0), y = y0 + R() * (y1 - y0), r = 10 + R() * 26; l.moveTo(x + r, y); l.arc(x, y, r, 0, TAU); }
+      l.fill();
+      yield;
+    }
+    for (const et of v.etapes){
+      for (const p of et.pts){
+        l.beginPath();
+        for (let k = 0; k < 4; k++){ const x = TX(p[0]) + (R() - .5) * 40, y = TY(p[1]) + (R() - .5) * 40, r = 10 + R() * 22; l.moveTo(x + r, y); l.arc(x, y, r, 0, TAU); }
+        l.fill();
+      }
+    }
+    l.globalCompositeOperation = "destination-in"; l.drawImage(MER, 0, 0);
+    l.globalCompositeOperation = "source-atop"; l.globalAlpha = .22; l.fillStyle = l.createPattern(GRAIN, "repeat"); l.fillRect(0, 0, TW, TH);
+    l.globalAlpha = 1; l.globalCompositeOperation = "source-over";
+    yield;
+    // 2. la terre atteinte : son pigment, ses hachures, son filet d'or
+    for (const nom of v.terres){
+      region(l, nom, prTex, c => {
+        c.fillStyle = rgb(TONS_M[i], .92); c.fill("evenodd");
+        c.clip("evenodd"); c.strokeStyle = rgb(mix(TONS_M[i], ENCRE, .4), .45); c.lineWidth = 1; c.beginPath();
+        for (let x = -TH; x < TW; x += 5){ c.moveTo(x, TH); c.lineTo(x + TH, 0); } c.stroke();
+      });
+      region(e, nom, prTex, (c, part) => {
+        c.save(); c.clip("evenodd"); c.strokeStyle = rgb(OR_P, .95); c.lineWidth = 4; c.lineJoin = "round";
+        c.beginPath(); encrer(c, POLY[part.p], prTex, true); c.stroke(); c.restore();
+        c.strokeStyle = ink(.95); c.lineWidth = 2.1; c.beginPath(); encrer(c, POLY[part.p], prTex, true); c.stroke();
+      });
+      yield;
+    }
+    // 3. les routes (loxodromies) au pigment, cernées d'encre
+    e.lineJoin = "round"; e.lineCap = "round";
+    for (const et of v.etapes){
+      e.beginPath(); et.pts.forEach((p, j) => j ? e.lineTo(TX(p[0]), TY(p[1])) : e.moveTo(TX(p[0]), TY(p[1])));
+      e.strokeStyle = ink(.95); e.lineWidth = 5.2; e.stroke();
+      e.strokeStyle = rgb(i === 3 ? OR_P : TONS[i]); e.lineWidth = 3.2; e.stroke();
+      e.strokeStyle = "rgba(255,246,226,.45)"; e.lineWidth = .9; e.stroke();
+    }
+    // 4. les villes atteintes, leur nom à l'encre, la nef au mouillage
+    e.font = `italic 16px ${SERIF}`;
+    for (const nomV of v.villes){
+      const p = D.villes[nomV], x = TX(p[0]), y = TY(p[1]);
+      e.beginPath(); e.arc(x, y, 5, 0, TAU); e.fillStyle = rgb(OR_P); e.fill(); e.strokeStyle = ink(1); e.lineWidth = 1.4; e.stroke();
+      const dx = nomV === "Londres" ? -8 : 8, al = nomV === "Londres" ? "right" : "left";
+      e.textAlign = al; e.lineWidth = 3.5; e.strokeStyle = "rgba(214,206,188,.85)"; e.strokeText(nomV, x + dx, y - 7); e.fillStyle = ink(1); e.fillText(nomV, x + dx, y - 7);
+    }
+    const fin = v.longue.pts[v.longue.pts.length - 1], av = v.longue.pts[v.longue.pts.length - 3] || v.longue.pts[0];
+    nef(e, TX(fin[0]) + (fin[0] < av[0] ? 16 : -16), TY(fin[1]) + 20, 9, fin[0] < av[0] ? -1 : 1, mix(TONS[i], [236, 230, 214], .35));
+    yield;
+    calques[i] = { lavis: lv, encre: ev };
+  }
+
+  /* ———————————————————— la composition : base + calques cuits ———————————————————— */
+  function cuireDans(c, i){
+    c.globalCompositeOperation = "multiply"; c.drawImage(calques[i].lavis, 0, 0);
+    c.globalCompositeOperation = "source-over"; c.drawImage(calques[i].encre, 0, 0);
+  }
+  function* composer(){
+    while (!base || calques.some(k => !k)) yield;
+    const liste = [0, 1, 2, 3].filter(i => fait[i] && tF[i] < -1e8);
+    const [cv, c] = toile(TW, TH, 1);
+    c.drawImage(base, 0, 0); yield;
+    for (const i of liste){ cuireDans(c, i); yield; }
+    carte = cv; cctx = c;
+    cuit = [0, 1, 2, 3].map(i => liste.includes(i));
+    composition = null;
+    PIX = null;
+  }
+
+  /* ———————————————————— la Terre réelle (texture du seuil, au texel) ———————————————————— */
+  function* peindreTerre(){
+    const N = TW * TH, couleur = new Uint8Array(N * 3), ocean = new Uint8Array(N), nuit = new Uint8Array(N);
+    const [mc, mx] = toile(TW, TH, 1); mx.fillStyle = "#fff"; terres(mx, prTex); mx.fill("evenodd");
+    const md = mx.getImageData(0, 0, TW, TH).data; yield;
+    // climat : déserts (rouge) et monts (vert) à 256 × 128 ; proximité de la côte (flou de la terre)
+    const KW = 256, KH = 128, [kc, kx] = toile(KW, KH, 1);
+    kx.fillStyle = "#000"; kx.fillRect(0, 0, KW, KH); kx.globalCompositeOperation = "lighter";
+    for (const [lo, la, rx, ry] of DESERTS){
+      kx.save(); kx.translate((lo + 180) / 360 * KW, (90 - la) / 180 * KH); kx.scale(rx / 360 * KW, ry / 180 * KH);
+      const g = kx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, "rgba(255,0,0,1)"); g.addColorStop(.55, "rgba(170,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,1)");
+      kx.fillStyle = g; kx.beginPath(); kx.arc(0, 0, 1, 0, TAU); kx.fill(); kx.restore();
+    }
+    kx.lineJoin = "round"; kx.lineCap = "round";
+    for (const [wl, a] of [[5, .35], [2.5, .55], [1.2, .7]]){
+      kx.strokeStyle = `rgba(0,255,0,${a})`; kx.lineWidth = wl; kx.beginPath();
+      for (const m of MONTS) m.forEach((p, j) => j ? kx.lineTo((p[0] + 180) / 360 * KW, (90 - p[1]) / 180 * KH) : kx.moveTo((p[0] + 180) / 360 * KW, (90 - p[1]) / 180 * KH));
+      kx.stroke();
+    }
+    const [pc, px] = toile(KW, KH, 1);
+    px.globalCompositeOperation = "lighter"; px.globalAlpha = 1 / 25;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) px.drawImage(mc, dx * 1.6, dy * 1.6, KW, KH);
+    const kd = kx.getImageData(0, 0, KW, KH).data, pd = px.getImageData(0, 0, KW, KH).data;
+    yield;
+    const bil = (arr, ch, fx, fy) => {
+      fx = clamp(fx, 0, KW - 1.001); fy = clamp(fy, 0, KH - 1.001);
+      const x = floor(fx), y = floor(fy), u = fx - x, w = fy - y, k = (y * KW + x) * 4 + ch;
+      return (arr[k] * (1 - u) * (1 - w) + arr[k + 4] * u * (1 - w) + arr[k + KW * 4] * (1 - u) * w + arr[k + KW * 4 + 4] * u * w) / 255;
+    };
+    const n1 = bruit2(seed + 501), n2 = bruit2(seed + 502), n3 = bruit2(seed + 503);
+    for (let y = 0; y < TH; y++){
+      const la = 90 - (y + .5) / TH * 180, a = abs(la), fy = (y + .5) / TH * KH - .5;
+      for (let x = 0; x < TW; x++){
+        const lo = (x + .5) / TW * 360 - 180, k = y * TW + x, q = k * 3, fx = (x + .5) / TW * KW - .5;
+        const b1 = n1(lo / 7, la / 7), b2 = n2(lo / 2.2, la / 2.2), b3 = n3(lo / .8, la / .8);
+        let r, g, b;
+        if (md[k * 4 + 3] > 127){
+          // la terre : végétation selon la latitude, déserts, monts, glaces
+          let c0;
+          if (a < 12) c0 = [30, 62, 30];
+          else if (a < 24) c0 = mix([30, 62, 30], [104, 100, 58], (a - 12) / 12);
+          else if (a < 48) c0 = mix([82, 94, 54], [64, 84, 46], (a - 24) / 24);
+          else if (a < 62) c0 = mix([56, 72, 46], [92, 92, 74], (a - 48) / 14);
+          else c0 = [118, 112, 96];
+          const des = clamp(bil(kd, 0, fx, fy) * (.75 + .6 * b1) - .1);
+          c0 = mix(c0, mix([212, 178, 122], [178, 130, 84], b2), clamp(des * 1.35));
+          const mt = bil(kd, 1, fx, fy);
+          c0 = mix(c0, [122, 108, 94], clamp(mt * .8 * (.6 + .6 * b3)));
+          if (mt > .45 && a > 28) c0 = mix(c0, [232, 234, 238], clamp((mt - .45) * 2.4 * (b3 + .3)));
+          let glace = la < -60 ? 1 : 0;
+          if (lo > -62 && lo < -12 && la > 59.5 && !(lo > -26 && la < 67)) glace = 1;
+          if (a > 71) glace = max(glace, clamp((a - 71) / 5));
+          c0 = mix(c0, [234, 240, 245], glace * (.85 + .15 * b2));
+          const v = .86 + .26 * b1 + .1 * (b3 - .5);
+          r = c0[0] * v; g = c0[1] * v; b = c0[2] * v;
+        } else {
+          // la mer : profonde au large, claire sur le plateau, banquise aux pôles
+          const pr = bil(pd, 0, fx, fy), pl = pr * pr;
+          const c0 = mix(mix([6, 20, 56], [12, 42, 92], b1 * .6 + .2), [26, 92, 126], clamp(pl * 1.6));
+          const banq = a > 77 ? clamp((a - 77) / 6) * (.6 + .4 * b2) : 0;
+          r = c0[0] + (226 - c0[0]) * banq; g = c0[1] + (234 - c0[1]) * banq; b = c0[2] + (240 - c0[2]) * banq;
+          ocean[k] = banq > .5 ? 0 : 255;
+        }
+        couleur[q] = clamp(r, 0, 255); couleur[q + 1] = clamp(g, 0, 255); couleur[q + 2] = clamp(b, 0, 255);
+      }
+      if (y % 10 === 9) yield;
+    }
+    // les lumières de la nuit : villes et semis urbain
+    const R = graine(seed + 77);
+    for (const [lo, la, s] of LUMIERES){
+      const cx = TX(lo), cy = TY(la), rr = s * .9;
+      for (let j = 0; j < s * 16; j++){
+        const ang = R() * TAU, d = pow(R(), 1.8) * rr * 2.6, x = round(cx + cos(ang) * d), y = round(cy + sin(ang) * d);
+        if (x < 0 || y < 0 || x >= TW || y >= TH) continue;
+        const k = y * TW + x; if (md[k * 4 + 3] < 128) continue;
+        nuit[k] = min(255, nuit[k] + 60 + 120 * exp(-d / rr));
+      }
+    }
+    yield;
+    TERRE = { couleur, ocean, nuit };
+  }
+  // lire la carte composée (pour la peau du globe) en bandes
+  function* lireCarte(){
+    while (!carte || composition) yield;
+    const d = new Uint8ClampedArray(TW * TH * 4), pas = 64;
+    for (let y = 0; y < TH; y += pas){ d.set(cctx.getImageData(0, y, TW, pas).data, y * TW * 4); yield; }
+    PIX = d;
+  }
+  // le vrai soleil : déclinaison et longitude subsolaire pour la date et l'heure de l'appareil
+  function soleil(){
+    const d = D.date ? new Date(D.date) : new Date();
+    const N = (d - Date.UTC(d.getUTCFullYear(), 0, 0)) / 864e5;
+    const dec = -23.44 * cos(TAU * (N + 10) / 365);
+    const B = TAU * (N - 81) / 364, eot = 9.87 * sin(2 * B) - 7.53 * cos(B) - 1.5 * sin(B);
+    const h = d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+    let lon = -15 * (h - 12) - eot / 4; lon = ((lon + 540) % 360) - 180;
+    return { dec, lon, heure: h, date: d };
+  }
+  // les tables du globe : pour chaque pixel du disque, sa latitude, sa longitude relative, sa normale (une fois)
+  function* tablesGlobe(){
+    const rb = max(40, min(round(L.G.R * DPR), GL_MAX)), B = 2 * rb, ct = cos(TILT * RAD), st = sin(TILT * RAD);
+    const cap = B * B, idx = new Int32Array(cap), relU = new Float32Array(cap), vrow = new Int32Array(cap);
+    const sf = new Float32Array(cap), cf = new Float32Array(cap), nx = new Float32Array(cap), ny = new Float32Array(cap), nz = new Float32Array(cap), aa = new Uint8Array(cap);
+    let n = 0;
+    for (let py = 0; py < B; py++){
+      for (let pxl = 0; pxl < B; pxl++){
+        const x = (pxl + .5 - rb) / rb, y = -(py + .5 - rb) / rb, r2 = x * x + y * y;
+        if (r2 > 1 + 2 / rb) continue;
+        const r = sqrt(r2), z = sqrt(max(0, 1 - min(1, r2)));
+        const xs = r > 1 ? x / r : x, ys = r > 1 ? y / r : y;
+        const y0 = ys * ct + z * st, z0 = -ys * st + z * ct, f = asin(clamp(y0, -1, 1));
+        const lr = atan2(xs, z0);
+        idx[n] = py * B + pxl; relU[n] = lr / TAU * TW; vrow[n] = min(TH - 1, floor((90 - f / RAD) / 180 * TH)) * TW;
+        sf[n] = sin(f); cf[n] = cos(f); nx[n] = xs; ny[n] = ys; nz[n] = z; aa[n] = round(clamp((1 - r) * rb + .5) * 255);
+        n++;
+      }
+      if (py % 26 === 25) yield;
+    }
+    const [cv, cx] = toile(B, B, 1);
+    GL = { rb, B, n, idx, relU, vrow, sf, cf, nx, ny, nz, aa, cv, cx, im: cx.createImageData(B, B) };
+  }
+
+  /* ———————————————————— la mise en page ———————————————————— */
+  function mise(){
+    const ext = H > 560, top = ext ? 58 : 8, bot = H - (ext ? 80 : 8);
+    const m = max(10, W * .025), neat = clamp(W * .016, 5, 9), titreH = clamp(H * .055, 26, 40);
+    let mw = W - 2 * (m + neat);
+    mw = min(mw, (bot - top - titreH) * .58 * 2);
+    const carteR = { x: (W - mw) / 2, y: top + titreH + neat, w: mw, h: mw / 2 };
+    const zy = carteR.y + carteR.h + neat + 12, zone = { x: m, y: zy, w: W - 2 * m, h: bot - zy };
+    // les médaillons : quatre en ligne, ou deux sur deux (texte dessous ou à côté) ; on prend le plus grand
+    const opts = [];
+    { const cw = zone.w / 4, r = min(cw * .4, (zone.h - 78) / 2); opts.push({ r, mode: "ligne4", cw, ch: zone.h }); }
+    { const cw = zone.w / 2, ch = zone.h / 2, r = min(cw * .34, (ch - 78) / 2); opts.push({ r, mode: "dessous", cw, ch }); }
+    { const cw = zone.w / 2, ch = zone.h / 2, r = min(ch * .42, cw * .27); if (cw - 2 * r - 22 >= 72) opts.push({ r: r * .96, mode: "cote", cw, ch }); }
+    const o = opts.reduce((a, b) => b.r > a.r ? b : a);
+    const cells = [0, 1, 2, 3].map(i => {
+      const col = o.mode === "ligne4" ? i : i % 2, row = o.mode === "ligne4" ? 0 : i >> 1;
+      const x0 = zone.x + col * o.cw, y0 = zone.y + row * o.ch;
+      if (o.mode === "cote"){
+        const cx = x0 + o.r + 6, cy = y0 + o.ch / 2;
+        return { cx, cy, r: o.r, tx: cx + o.r + 12, ty: cy - o.r * .78, tw: o.cw - 2 * o.r - 22, centre: false };
+      }
+      const cy = y0 + 6 + o.r + (o.mode === "ligne4" ? max(0, (o.ch - 2 * o.r - 92) * .35) : max(0, (o.ch - 2 * o.r - 84) * .35));
+      return { cx: x0 + o.cw / 2, cy, r: o.r, tx: x0 + o.cw / 2, ty: cy + o.r + 16, tw: o.cw - 8, centre: true };
+    });
+    const fs = clamp(o.r * .2, 8, 12.5);
+    // le globe du seuil et sa banderole
+    const plaqueH = ext ? 72 : 62, gB = bot - plaqueH - 8, R = min(W * .49, (gB - top) / 2 * 1.02);
+    const G = { cx: W / 2, cy: (top + gB) / 2, R };
+    const plaque = { x: max(8, W / 2 - min(W * .46, 330)), w: min(W * .92, 660), y: gB + 8, h: plaqueH };
+    L = { ext, top, bot, m, neat, titreH, carte: carteR, zone, cells, fs, G, plaque };
+    // les carreaux du cadre (graduation de 10°) : leurs normales pour l'or
+    const Rn = graine(seed + 3), C = carteR, bt = neat * .5;
+    L.carreaux = [];
+    for (let k = 0; k < 36; k++){
+      L.carreaux.push({ x: C.x + k * C.w / 36, y: C.y - neat * .2 - bt, w: C.w / 36, h: bt, noir: k % 2 === 0 });
+      L.carreaux.push({ x: C.x + k * C.w / 36, y: C.y + C.h + neat * .2, w: C.w / 36, h: bt, noir: k % 2 === 1 });
+    }
+    for (let k = 0; k < 18; k++){
+      L.carreaux.push({ x: C.x - neat * .2 - bt, y: C.y + k * C.h / 18, w: bt, h: C.h / 18, noir: k % 2 === 1 });
+      L.carreaux.push({ x: C.x + C.w + neat * .2, y: C.y + k * C.h / 18, w: bt, h: C.h / 18, noir: k % 2 === 0 });
+    }
+    for (const q of L.carreaux){ q.nx = (Rn() - .5) * .9; q.ny = (Rn() - .5) * .9; }
+  }
+  const sx = lo => L.carte.x + (lo + 180) / 360 * L.carte.w, sy = la => L.carte.y + (90 - la) / 180 * L.carte.h;
+
+  /* ———————————————————— les médaillons ———————————————————— */
+  function projMed(i, cx, cy, r){ const v = VOY[i]; return prOrtho(v.centre[0], v.centre[1], r / sin(v.ouverture * RAD), cx, cy); }
+  // peindre le médaillon peint (état : mer, terre, route ∈ [0,1])
+  function medaillon(c, i, cx, cy, r, mer, terre, route, nefs){
+    const v = VOY[i], pr = projMed(i, cx, cy, r), Rg = r / sin(v.ouverture * RAD);
+    c.save();
+    c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.clip();
+    c.fillStyle = rgb([200, 192, 176]); c.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+    c.globalAlpha = .12; c.fillStyle = c.createPattern(GRAIN, "repeat"); c.fillRect(cx - r, cy - r, 2 * r, 2 * r); c.globalAlpha = 1;
+    // la mer de lapis, plus profonde au bord du globe
+    if (mer > 0){
+      const g = c.createRadialGradient(cx, cy, 0, cx, cy, min(Rg, r * 1.6));
+      g.addColorStop(0, rgb(mix(LAPIS, [90, 130, 200], .25), mer)); g.addColorStop(1, rgb(mix(LAPIS, ENCRE, .35), mer));
+      c.fillStyle = g; c.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+      // vaguelettes au trait blanc
+      c.strokeStyle = `rgba(230,236,250,${.35 * mer})`; c.lineWidth = .6; c.beginPath();
+      const Rr = graine(i * 13 + seed);
+      for (let k = 0; k < r * .5; k++){ const x = cx + (Rr() - .5) * 2 * r, y = cy + (Rr() - .5) * 2 * r, s = 2 + Rr() * 3;
+        c.moveTo(x - s, y); c.quadraticCurveTo(x, y - s * .6, x + s, y); }
+      c.stroke();
+    }
+    // le contour du globe et le graticule
+    c.strokeStyle = mer > 0 ? "rgba(230,236,250,.18)" : ink(.12); c.lineWidth = .5; c.beginPath();
+    for (let lo = -180; lo < 180; lo += 10){ const pts = []; for (let la = -80; la <= 80; la += 5) pts.push([lo, la]); encrer(c, pts, pr, false); }
+    for (let la = -60; la <= 60; la += 10){ const pts = []; for (let lo = -180; lo <= 180; lo += 5) pts.push([lo, la]); encrer(c, pts, pr, false); }
+    c.stroke();
+    if (Rg < r * 1.5){ c.beginPath(); c.arc(cx, cy, Rg, 0, TAU); c.strokeStyle = ink(.6); c.lineWidth = .8; c.stroke(); }
+    // les terres (vélin), la terre atteinte (pigment), les côtes
+    terres(c, pr); c.fillStyle = rgb([206, 196, 176]); c.fill("evenodd");
+    if (terre > 0){
+      c.globalAlpha = terre;
+      for (const nom of v.terres) region(c, nom, pr, cc => { cc.fillStyle = rgb(TONS[i]); cc.fill("evenodd"); });
+      c.globalAlpha = 1;
+    }
+    c.beginPath(); for (const nom of LISTE) encrer(c, POLY[nom], pr, true);
+    c.strokeStyle = ink(.92); c.lineWidth = .9; c.lineJoin = "round"; c.stroke();
+    // les routes
+    c.lineCap = "round";
+    for (const et of v.etapes){
+      const u = clamp((route - et.t0) / max(1e-6, et.t1 - et.t0));
+      if (u <= 0) continue;
+      const n = et.pts.length - 1, fin = u * n;
+      c.beginPath(); let k = 0;
+      for (; k <= fin; k++){ const q = pr(et.pts[k][0], et.pts[k][1]); k ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }
+      if (k <= n){ const a = et.pts[k - 1], b = et.pts[k], f = fin - (k - 1), q = pr(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f); c.lineTo(q[0], q[1]); }
+      c.strokeStyle = ink(.95); c.lineWidth = 3; c.stroke();
+      c.strokeStyle = rgb(i === 3 ? OR_P : mix(TONS[i], [255, 240, 220], .15)); c.lineWidth = 1.7; c.stroke();
+      if (nefs && u < 1){
+        const a = et.pts[min(n, floor(fin))], b = et.pts[min(n, floor(fin) + 1)], qa = pr(a[0], a[1]), qb = pr(b[0], b[1]), q = pr(a[0] + (b[0] - a[0]) * (fin % 1), a[1] + (b[1] - a[1]) * (fin % 1));
+        nef(c, q[0], q[1] - r * .03, max(4, r * .085), qb[0] < qa[0] ? -1 : 1);
+      }
+    }
+    // les villes
+    c.font = `italic ${max(7.5, r * .13)}px ${SERIF}`; c.textAlign = "center";
+    const vus = [[D.depart, 0]].concat(v.etapes.map(e => [e.vers, e.t1]));
+    for (const [nomV, t1] of vus){
+      if (route < t1 && nomV !== D.depart) continue;
+      const q = pr(D.villes[nomV][0], D.villes[nomV][1]); if (!q[2]) continue;
+      c.beginPath(); c.arc(q[0], q[1], max(1.6, r * .035), 0, TAU); c.fillStyle = rgb(OR_P); c.fill(); c.strokeStyle = ink(1); c.lineWidth = .7; c.stroke();
+      if (r > 40){ c.lineWidth = 2.6; c.strokeStyle = "rgba(220,212,196,.85)"; c.strokeText(nomV, q[0], q[1] - r * .07); c.fillStyle = ink(1); c.fillText(nomV, q[0], q[1] - r * .07); }
+    }
+    c.restore();
+    c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.strokeStyle = ink(.95); c.lineWidth = 1.2; c.stroke();
+  }
+  function medaillonCrayon(c, i, cx, cy, r){
+    const v = VOY[i], pr = projMed(i, cx, cy, r);
+    c.save(); c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.clip();
+    c.beginPath(); for (const nom of LISTE) encrer(c, POLY[nom], pr, true);
+    c.strokeStyle = mine(.38); c.lineWidth = .6; c.stroke();
+    c.setLineDash([2, 3]); c.strokeStyle = mine(.4);
+    for (const et of v.etapes){ c.beginPath(); et.pts.forEach((p, k) => { const q = pr(p[0], p[1]); k ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1]); }); c.stroke(); }
+    c.setLineDash([]); c.restore();
+    c.strokeStyle = mine(.6); c.lineWidth = .8; c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.stroke();
+    c.strokeStyle = mine(.25); c.beginPath(); c.arc(cx + .8, cy - .6, r + 3, 0, TAU); c.stroke();
+  }
+  function cacheMedaillon(i){
+    const C = L.cells[i], r = C.r, s = ceil(2 * r + 4), [cv, c] = toile(s, s, DPR);
+    medaillon(c, i, s / 2, s / 2, r, 1, 1, 1, false);
+    medCache[i] = cv;
+  }
+  // le texte d'une cellule : le nom, le mot (encre noire), la destination, le cap et la distance vrais
+  function texteCellule(c, i, ecr, alpha){
+    const C = L.cells[i], v = VOY[i], fs = L.fs, fait_ = fait[i];
+    c.save(); c.globalAlpha = alpha; c.textAlign = "left";
+    let y = C.ty;
+    const ligne = (txt, font, col, sp, h) => {
+      c.font = font; mes.font = font; c.fillStyle = col;
+      // coupure aux « · » si trop large
+      const morceaux = txt.split(" · "), lignes = []; let cur = "";
+      for (const m of morceaux){ const t = cur ? cur + " · " + m : m; if (cur && largeur(t, sp) > C.tw){ lignes.push(cur); cur = m; } else cur = t; }
+      lignes.push(cur);
+      for (const l of lignes){ espace(c, l, C.centre ? C.tx : C.tx, y, sp, C.centre); y += h; }
+    };
+    ligne(P[i].nom.toUpperCase(), `500 ${fs * 1.05}px ${SERIF}`, fait_ ? ink(.95) : mine(.6), fs * .28, fs * 1.55);
+    if (fait_ && ecr > 0){
+      c.save();
+      const w = C.tw + 20, x0 = C.centre ? C.tx - w / 2 : C.tx - 2;
+      c.beginPath(); c.rect(x0, y - fs * 4, w * ecr, fs * 12); c.clip();
+      ligne(v.mot, `italic ${fs * 1.85}px ${SERIF}`, ink(1), .5, fs * 1.6);
+      ligne(v.destination.toUpperCase(), `${fs * .72}px ${SERIF}`, ink(.9), fs * .14, fs * 1.05);
+      y += fs * .15;
+      ligne(`cap ${round(v.longue.cap)}° · ${Math.round(v.longue.km).toLocaleString("fr-FR")} km`, `${fs * .74}px ${MONO}`, ink(.75), 0, fs * 1.05);
+      ligne(v.glose, `italic ${fs * .74}px ${SERIF}`, ink(.7), 0, fs);
+      c.restore();
+    } else {
+      ligne("· · ·", `italic ${fs * 1.3}px ${SERIF}`, mine(.45), 1, fs * 1.6);
+      ligne(v.destination.toUpperCase(), `${fs * .7}px ${SERIF}`, mine(.45), fs * .14, fs * 1.05);
+    }
+    c.restore();
+  }
+
+  /* ———————————————————— la lumière (pour l'or) ———————————————————— */
+  function lumiere(t){
+    const x = lum.x + (lumMain ? 0 : W * .18 * sin(t / 2700)), y = lum.y + (lumMain ? 0 : H * .06 * cos(t / 3300));
+    return [x, y, H * .55];
+  }
+
+  /* ———————————————————— la carte plate, à l'écran ———————————————————— */
+  const T_VOY = 4700, T_MER = 3000;
+  const ecoule = i => tF[i] === null ? -1 : maintenant() - tF[i];
+  function carteEcran(ctx, t, Lp, alpha){
+    const C = L.carte, ne = L.neat;
+    ctx.save(); ctx.globalAlpha = alpha;
+    // l'ombre de la feuille, le cadre
+    ctx.fillStyle = "rgba(40,34,28,.18)"; ctx.fillRect(C.x - ne + 2, C.y - ne + 3, C.w + 2 * ne, C.h + 2 * ne);
+    ctx.fillStyle = rgb([200, 192, 176]); ctx.fillRect(C.x - ne, C.y - ne, C.w + 2 * ne, C.h + 2 * ne);
+    if (carte) ctx.drawImage(carte, C.x, C.y, C.w, C.h);
+    else if (base) ctx.drawImage(base, C.x, C.y, C.w, C.h);
+    else { ctx.fillStyle = rgb([192, 184, 168]); ctx.fillRect(C.x, C.y, C.w, C.h); }
+    // les voyages en cours (ou posés mais pas encore cuits)
+    for (let i = 0; i < 4; i++){
+      if (!fait[i] || cuit[i] || !calques[i]) continue;
+      const a = tF[i] < -1e8 ? 1e9 : t - tF[i];
+      ctx.save();
+      if (a < T_VOY + 2000){
+        ctx.beginPath();
+        for (const et of VOY[i].etapes){
+          const n = et.pts.length - 1;
+          for (let j = 0; j <= n; j++){
+            const tj = 300 + (et.t0 + (et.t1 - et.t0) * j / n) * T_MER; if (a < tj) break;
+            const r = 2 + C.w * .045 * doux((a - tj) / 1500), x = sx(et.pts[j][0]), y = sy(et.pts[j][1]);
+            ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, TAU);
+          }
+          const tj = 300 + et.t1 * T_MER;
+          if (a > tj){ const p = D.villes[et.vers], r = C.w * .5 * doux((a - tj) / 1800); ctx.moveTo(sx(p[0]) + r, sy(p[1])); ctx.arc(sx(p[0]), sy(p[1]), r, 0, TAU); }
+        }
+        ctx.clip();
+      }
+      ctx.globalCompositeOperation = "multiply"; ctx.drawImage(calques[i].lavis, C.x, C.y, C.w, C.h);
+      ctx.globalCompositeOperation = "source-over"; ctx.drawImage(calques[i].encre, C.x, C.y, C.w, C.h);
+      ctx.restore();
+      // les nefs en route, et la route qui se trace derrière elles
+      if (a < 300 + T_MER + 200){
+        for (const et of VOY[i].etapes){
+          const u = clamp((a - 300 - et.t0 * T_MER) / ((et.t1 - et.t0) * T_MER));
+          if (u <= 0 || u >= 1) continue;
+          const n = et.pts.length - 1, f = u * n, j = floor(f), A = et.pts[j], B = et.pts[min(n, j + 1)];
+          const x = sx(A[0] + (B[0] - A[0]) * (f - j)), y = sy(A[1] + (B[1] - A[1]) * (f - j));
+          ctx.strokeStyle = rgb(i === 3 ? OR_P : TONS[i]); ctx.lineWidth = 2.2; ctx.lineCap = "round"; ctx.beginPath();
+          for (let k = 0; k <= j; k++) k ? ctx.lineTo(sx(et.pts[k][0]), sy(et.pts[k][1])) : ctx.moveTo(sx(et.pts[k][0]), sy(et.pts[k][1]));
+          ctx.lineTo(x, y); ctx.stroke();
+          nef(ctx, x, y - 3, max(4.5, C.w * .014), sx(B[0]) < sx(A[0]) ? -1 : 1, mix(TONS[i], [236, 230, 214], .35));
+        }
+      }
+    }
+    // la rose d'or (calculée), Paris et les villes atteintes (pièces d'or)
+    rose(ctx, sx(decor.rose[0]), sy(decor.rose[1]), C.w * .0332, Lp);
+    const vus = new Map();
+    for (let i = 0; i < 4; i++){
+      if (!fait[i]) continue;
+      const a = tF[i] < -1e8 ? 1e9 : t - tF[i];
+      for (const et of VOY[i].etapes){
+        const ta = 300 + et.t1 * T_MER; if (a < ta) continue;
+        const e = exp(-max(0, a - ta) / 700) + exp(-(t - flash[i]) / 800);
+        vus.set(et.vers, max(vus.get(et.vers) || 0, e + (i === 3 ? 1e-3 : 0)));
+      }
+    }
+    const rP = max(2.2, C.w * .0085), dep = D.villes[D.depart];
+    const eP = max(0, ...[0, 1, 2, 3].map(i => fait[i] && tF[i] > -1e8 ? exp(-max(0, t - tF[i]) / 600) : 0));
+    piece(ctx, sx(dep[0]), sy(dep[1]), rP * 1.15, Lp, eP);
+    for (const [nomV, e] of vus){ const p = D.villes[nomV]; piece(ctx, sx(p[0]), sy(p[1]), rP * (fait[3] && ["Londres", "New York", "Hong Kong"].includes(nomV) ? 1.25 : .95), Lp, min(1.5, e)); }
+    // le cadre gradué : noir et vélin ; doré quand LE CLOSING est fait
+    const ao = fait[3] ? (tF[3] < -1e8 ? 1 : lisse((t - tF[3] - 2600) / 1600)) : 0;
+    for (const q of L.carreaux){
+      if (q.noir){ ctx.fillStyle = ink(.92); ctx.fillRect(q.x, q.y, q.w, q.h); }
+      else {
+        ctx.fillStyle = rgb([214, 206, 190]); ctx.fillRect(q.x, q.y, q.w, q.h);
+        if (ao > 0){ ctx.globalAlpha = alpha * ao; ctx.fillStyle = orFacette(Lp, q.x, q.y, q.nx, q.ny, 1); ctx.fillRect(q.x, q.y, q.w, q.h); ctx.globalAlpha = alpha; }
+      }
+    }
+    ctx.strokeStyle = ink(.95); ctx.lineWidth = 1.1; ctx.strokeRect(C.x - ne, C.y - ne, C.w + 2 * ne, C.h + 2 * ne);
+    ctx.lineWidth = .7; ctx.strokeRect(C.x - .5, C.y - .5, C.w + 1, C.h + 1);
+    ctx.restore();
+  }
+
+  /* ———————————————————— le globe : maillage (dessin) puis rendu au pixel (réel) ———————————————————— */
+  const NI = 24, NJ = 12;
+  const NOEUDS = new Float32Array((NI + 1) * (NJ + 1) * 3);
+  function projMonde(lo, la, kap, lc, ct, st){
+    const a = lo * RAD * kap - lc * RAD, b = la * RAD * kap, cb = cos(b);
+    const x0 = cb * sin(a), y0 = sin(b), z0 = cb * cos(a);
+    return [x0 / kap, (y0 * ct - z0 * st) / kap, y0 * st + z0 * ct];
+  }
+  function maillage(ctx, img, kap, Rs, gx, gy, lc, tilt, bord){
+    kap = max(1e-4, kap);
+    const ct = cos(tilt * RAD), st = sin(tilt * RAD);
+    for (let j = 0; j <= NJ; j++) for (let i = 0; i <= NI; i++){
+      const p = projMonde(-180 + i * 360 / NI, 90 - j * 180 / NJ, kap, lc, ct, st), k = (j * (NI + 1) + i) * 3;
+      NOEUDS[k] = gx + Rs * p[0]; NOEUDS[k + 1] = gy - Rs * p[1]; NOEUDS[k + 2] = p[2];
+    }
+    const tri = [], dos = [];
+    const id = (i, j) => (j * (NI + 1) + i) * 3;
+    for (let j = 0; j < NJ; j++) for (let i = 0; i < NI; i++){
+      for (const T of [[id(i, j), id(i + 1, j), id(i, j + 1), i, j, i + 1, j, i, j + 1], [id(i + 1, j), id(i + 1, j + 1), id(i, j + 1), i + 1, j, i + 1, j + 1, i, j + 1]]){
+        const [a, b, c] = T, cr = (NOEUDS[b] - NOEUDS[a]) * (NOEUDS[c + 1] - NOEUDS[a + 1]) - (NOEUDS[b + 1] - NOEUDS[a + 1]) * (NOEUDS[c] - NOEUDS[a]);
+        if (abs(cr) < .3) continue;
+        (cr > 0 ? tri : dos).push(T);
+      }
+    }
+    const uS = TW / NI, vS = TH / NJ;
+    // le verso du vélin, derrière
+    for (const T of dos){
+      const [a, b, c] = T, z = (NOEUDS[a + 2] + NOEUDS[b + 2] + NOEUDS[c + 2]) / 3;
+      ctx.beginPath(); ctx.moveTo(NOEUDS[a], NOEUDS[a + 1]); ctx.lineTo(NOEUDS[b], NOEUDS[b + 1]); ctx.lineTo(NOEUDS[c], NOEUDS[c + 1]); ctx.closePath();
+      ctx.fillStyle = rgb(mix(VERSO, [70, 64, 56], clamp(.35 + z * .5))); ctx.fill(); ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .8; ctx.stroke();
+    }
+    // le recto : la carte elle-même, triangle par triangle, ombrée par la lumière
+    const Lx = -.45, Ly = .55, Lz = .7;
+    for (const T of tri){
+      const [a, b, c, ia, ja, ib, jb, ic, jc] = T;
+      const x0 = NOEUDS[a], y0 = NOEUDS[a + 1], x1 = NOEUDS[b], y1 = NOEUDS[b + 1], x2 = NOEUDS[c], y2 = NOEUDS[c + 1];
+      const u0 = ia * uS, v0 = ja * vS, u1 = ib * uS, v1 = jb * vS, u2 = ic * uS, v2 = jc * vS;
+      const mx = (x0 + x1 + x2) / 3, my = (y0 + y1 + y2) / 3, gr = .9;
+      const e = (x, y) => { const dx = x - mx, dy = y - my, l = hypot(dx, dy) || 1; return [x + dx / l * gr, y + dy / l * gr]; };
+      const A = e(x0, y0), B = e(x1, y1), Cc = e(x2, y2);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(A[0], A[1]); ctx.lineTo(B[0], B[1]); ctx.lineTo(Cc[0], Cc[1]); ctx.closePath(); ctx.clip();
+      const du1 = u1 - u0, dv1 = v1 - v0, du2 = u2 - u0, dv2 = v2 - v0, det = du1 * dv2 - du2 * dv1;
+      const ma = ((x1 - x0) * dv2 - (x2 - x0) * dv1) / det, mb = ((y1 - y0) * dv2 - (y2 - y0) * dv1) / det;
+      const mc = ((x2 - x0) * du1 - (x1 - x0) * du2) / det, md = ((y2 - y0) * du1 - (y1 - y0) * du2) / det;
+      ctx.transform(ma, mb, mc, md, x0 - ma * u0 - mc * v0, y0 - mb * u0 - md * v0);
+      const su = max(0, min(u0, u1, u2) - 2), sv = max(0, min(v0, v1, v2) - 2), eu = min(TW, max(u0, u1, u2) + 2), ev = min(TH, max(v0, v1, v2) + 2);
+      ctx.drawImage(img, su, sv, eu - su, ev - sv, su, sv, eu - su, ev - sv);
+      // l'ombre propre : la normale de la sphère au centre du triangle
+      const k = ((ja + jb + jc) / 3), l_ = ((ia + ib + ic) / 3), p = projMonde(-180 + l_ * 360 / NI, 90 - k * 180 / NJ, kap, lc, ct, st);
+      const nl = p[0] * kap * Lx + p[1] * kap * Ly + p[2] * Lz, sh = clamp(1 - (nl + .25) / .95) * .78;
+      if (sh > .01){ ctx.fillStyle = `rgba(14,12,20,${sh})`; ctx.fillRect(su, sv, eu - su, ev - sv); }
+      ctx.restore();
+    }
+    // le bord de la feuille
+    if (bord > 0){
+      ctx.strokeStyle = ink(.7 * bord); ctx.lineWidth = 1; ctx.beginPath();
+      const tour = [];
+      for (let i = 0; i <= NI; i++) tour.push(id(i, 0));
+      for (let j = 1; j <= NJ; j++) tour.push(id(NI, j));
+      for (let i = NI - 1; i >= 0; i--) tour.push(id(i, NJ));
+      for (let j = NJ - 1; j >= 0; j--) tour.push(id(0, j));
+      for (let k = 1; k < tour.length; k++){
+        const a = tour[k - 1], b = tour[k];
+        if (NOEUDS[a + 2] > 0 && NOEUDS[b + 2] > 0){ ctx.moveTo(NOEUDS[a], NOEUDS[a + 1]); ctx.lineTo(NOEUDS[b], NOEUDS[b + 1]); }
+      }
+      ctx.stroke();
+    }
+  }
+  // le rendu au pixel : la peau (carte → Terre réelle), le vrai soleil, la nuit et ses villes, le reflet sur la mer
+  function vue(lo, la, lc, ct, st){
+    const l = (lo - lc) * RAD, f = la * RAD, cf = cos(f), x0 = cf * sin(l), y0 = sin(f), z0 = cf * cos(l);
+    return [x0, y0 * ct - z0 * st, y0 * st + z0 * ct];
+  }
+  function rendreGlobe(lc, kl, m){
+    const g = GL, d = g.im.data, cart = PIX, coul = TERRE.couleur, oc = TERRE.ocean, nu = TERRE.nuit;
+    const ct = cos(TILT * RAD), st = sin(TILT * RAD);
+    if (!cosT || solAuPixel !== SOL.lon){
+      cosT = new Float32Array(TW);
+      for (let u = 0; u < TW; u++) cosT[u] = cos(((u + .5) / TW * 360 - 180 - SOL.lon) * RAD);
+      solAuPixel = SOL.lon;
+    }
+    const sd = sin(SOL.dec * RAD), cd = cos(SOL.dec * RAD);
+    const S = vue(SOL.lon, SOL.dec, lc, ct, st);
+    let hx = S[0], hy = S[1], hz = S[2] + 1; const hn = hypot(hx, hy, hz); hx /= hn; hy /= hn; hz /= hn;
+    let off = ((lc + 180) / 360 * TW) % TW; if (off < 0) off += TW;
+    const m1 = 1 - m, k1 = 1 - kl;
+    for (let k = 0; k < g.n; k++){
+      let u = (g.relU[k] + off) | 0;
+      if (u >= TW) u -= TW; else if (u < 0) u += TW;
+      if (u >= TW) u -= TW;
+      const t = g.vrow[k] + u, q = t * 4, e = t * 3;
+      const ar = cart[q] * m1 + coul[e] * m, ag = cart[q + 1] * m1 + coul[e + 1] * m, ab = cart[q + 2] * m1 + coul[e + 2] * m;
+      const cz = g.sf[k] * sd + g.cf[k] * cd * cosT[u];
+      let dd = (cz + .09) * 5.6; dd = dd <= 0 ? 0 : dd >= 1 ? 1 : dd * dd * (3 - 2 * dd);
+      const lb = cz > 0 ? cz : 0, dl = (.1 + 1.0 * lb * (2 - lb)) * dd + .045 * (1 - dd);
+      let r = ar * dl, gg = ag * dl, b = ab * dl;
+      // le crépuscule
+      const tw = 1 - abs(cz) * 7;
+      if (tw > 0){ r += 70 * tw; gg += 26 * tw; }
+      // le reflet du soleil sur l'océan
+      if (dd > 0 && oc[t]){
+        let s = g.nx[k] * hx + g.ny[k] * hy + g.nz[k] * hz;
+        if (s > 0){ s *= s; s *= s; s *= s; s *= s; s *= s; s *= s; const sp = s * dd * .9 * m; r += 255 * sp; gg += 244 * sp; b += 222 * sp; }
+      }
+      // les villes dans la nuit
+      const nl = nu[t];
+      if (nl && dd < 1){ const w = nl / 255 * (1 - dd) * 1.25 * m; r += 255 * w; gg += 184 * w; b += 96 * w; }
+      // l'air : bleu au limbe, côté jour
+      const lz = 1 - g.nz[k], hzA = lz * lz * lz * (.25 + .75 * dd) * .75;
+      r += (120 - r) * hzA; gg += (170 - gg) * hzA; b += (255 - b) * hzA;
+      const o = g.idx[k] * 4;
+      d[o] = r * kl + ar * k1; d[o + 1] = gg * kl + ag * k1; d[o + 2] = b * kl + ab * k1; d[o + 3] = g.aa[k];
+    }
+    g.cx.putImageData(g.im, 0, 0);
+  }
+  function arcs(ctx, t, lc, monte, R, gx, gy){
+    const ct = cos(TILT * RAD), st = sin(TILT * RAD);
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (let i = 0; i < 4; i++){
+      if (!fait[i]) continue;
+      const col = mix(TONS[i], [255, 232, 176], .45);
+      VOY[i].etapes.forEach((et, ie) => {
+        const n = et.pts.length - 1, h0 = monte * (.03 + .2 * et.km / 20000);
+        const pts = et.pts.map((p, k) => {
+          const s = k / n, v = vue(p[0], p[1], lc, ct, st), h = 1 + h0 * sin(PI * s);
+          const x = v[0] * h, y = v[1] * h, vis = v[2] > 0 || hypot(x, y) > 1;
+          return [gx + R * x, gy - R * y, vis];
+        });
+        for (const [w, a] of [[5, .16], [1.6, .85]]){
+          ctx.strokeStyle = rgb(col, a); ctx.lineWidth = w; ctx.beginPath(); let lev = true;
+          for (const q of pts){ if (!q[2]){ lev = true; continue; } if (lev){ ctx.moveTo(q[0], q[1]); lev = false; } else ctx.lineTo(q[0], q[1]); }
+          ctx.stroke();
+        }
+        // une lueur qui court le long de l'arc
+        const u = ((t / 2600 + ie * .37 + i * .21) % 1) * n, k = floor(u), q = pts[min(n, k)];
+        if (q && q[2]){
+          const gr = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], 7);
+          gr.addColorStop(0, rgb([255, 246, 220], .9)); gr.addColorStop(1, rgb(col, 0));
+          ctx.fillStyle = gr; ctx.fillRect(q[0] - 7, q[1] - 7, 14, 14);
+        }
+      });
+    }
+    ctx.restore();
+  }
+  function villesGlobe(ctx, t, lc, a, R, gx, gy){
+    const ct = cos(TILT * RAD), st = sin(TILT * RAD), sd = sin(SOL.dec * RAD), cd = cos(SOL.dec * RAD);
+    const noms = new Set([D.depart]); for (let i = 0; i < 4; i++) if (fait[i]) VOY[i].villes.forEach(v => noms.add(v));
+    ctx.save(); ctx.font = `italic ${clamp(R * .052, 9, 13)}px ${SERIF}`; ctx.textAlign = "left";
+    for (const nomV of noms){
+      const p = D.villes[nomV], v = vue(p[0], p[1], lc, ct, st); if (v[2] <= .05) continue;
+      const cz = sin(p[1] * RAD) * sd + cos(p[1] * RAD) * cd * cos((p[0] - SOL.lon) * RAD), nuit = clamp((.08 - cz) * 6), x = gx + R * v[0], y = gy - R * v[1];
+      const r = 3 + 10 * nuit * (1 + .12 * sin(t / 300 + p[0]));
+      ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = a * clamp(v[2] * 4);
+      const gr = ctx.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, rgb([255, 236, 190], .95)); gr.addColorStop(.35, rgb(OR_P, .55 * (.4 + .6 * nuit))); gr.addColorStop(1, rgb(OR_P, 0));
+      ctx.fillStyle = gr; ctx.fillRect(x - r, y - r, 2 * r, 2 * r);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.lineWidth = 2.5; ctx.strokeStyle = "rgba(10,10,16,.55)"; ctx.strokeText(nomV, x + 5, y - 4);
+      ctx.fillStyle = "rgba(255,240,214,.92)"; ctx.fillText(nomV, x + 5, y - 4);
+    }
+    ctx.restore();
+  }
+  // la banderole finale : vélin, encre noire, un sceau vermillon
+  function banderole(ctx, a, ecr){
+    const B = L.plaque, x = B.x, y = B.y, w = B.w, h = B.h, q = h * .32;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w - q, y + h / 2); ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x + q, y + h / 2); ctx.closePath();
+    ctx.fillStyle = rgb([204, 196, 178]); ctx.fill();
+    ctx.save(); ctx.clip(); ctx.globalAlpha = a * .18; ctx.fillStyle = ctx.createPattern(GRAIN, "repeat"); ctx.fillRect(x, y, w, h); ctx.restore();
+    ctx.strokeStyle = ink(.95); ctx.lineWidth = 1.2; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + q * 1.4, y + 4); ctx.lineTo(x + w - q * 1.4, y + 4); ctx.moveTo(x + q * 1.4, y + h - 4); ctx.lineTo(x + w - q * 1.4, y + h - 4); ctx.lineWidth = .5; ctx.stroke();
+    ctx.beginPath(); ctx.rect(x, y - 4, w * ecr, h + 8); ctx.clip();
+    const f1 = clamp(h * .27, 12, 22), cx = x + w / 2;
+    ctx.fillStyle = ink(1); ctx.font = `500 ${f1}px ${SERIF}`; mes.font = ctx.font; ctx.textAlign = "left";
+    let sp = f1 * .32; while (sp > 0 && largeur(D.merci, sp) > w - 2 * q - 30) sp -= .5;
+    espace(ctx, D.merci, cx, y + h * .46, sp, true);
+    ctx.font = `italic ${f1 * .66}px ${SERIF}`; mes.font = ctx.font; ctx.fillStyle = ink(.85);
+    espace(ctx, VOY.map(v => v.mot).join("  ·  "), cx, y + h * .78, .4, true);
+    ctx.restore();
+    // le sceau
+    const s = h * .44, sxx = x + w - q - s * .2, syy = y - s * .35;
+    ctx.save(); ctx.globalAlpha = a * clamp(ecr * 2 - 1); ctx.translate(sxx, syy); ctx.rotate(-.06);
+    ctx.fillStyle = rgb(VERMIL); ctx.fillRect(-s / 2, -s / 2, s, s);
+    ctx.strokeStyle = "rgba(255,240,226,.9)"; ctx.lineWidth = 1; ctx.strokeRect(-s / 2 + 2, -s / 2 + 2, s - 4, s - 4);
+    ctx.fillStyle = "rgba(255,242,230,.95)"; ctx.font = `${s * .36}px serif`; ctx.textAlign = "center";
+    ctx.fillText("世", 0, -s * .04); ctx.fillText("界", 0, s * .34);
+    ctx.restore();
+    ctx.restore();
+  }
+
+  /* ———————————————————— l'image ———————————————————— */
+  function travailler(){
+    const h0 = performance.now();
+    while (performance.now() - h0 < 5 && fileGen.length){
+      const g = fileGen[0];
+      if (g.next().done) fileGen.shift();
+    }
+  }
+  function lancer(gen){ fileGen.push(gen); }
+
+  function frame(ctx, t){
+    travailler();
+    const Lp = lumiere(t), C = L.carte;
+    const aS = tS === null ? -1 : t - tS;
+    // la page
+    if (page) ctx.drawImage(page, 0, 0, W, H); else { ctx.fillStyle = rgb([164, 159, 149]); ctx.fillRect(0, 0, W, H); }
+    const nuitP = aS < 0 ? 0 : lisse((aS - 300) / 2700);
+    if (nuitP > 0){
+      ctx.fillStyle = rgb([12, 13, 17], nuitP * .97); ctx.fillRect(0, 0, W, H);
+      const g = ctx.createRadialGradient(L.G.cx, L.G.cy, L.G.R * .6, L.G.cx, L.G.cy, max(W, H) * .8);
+      g.addColorStop(0, rgb([40, 44, 58], nuitP * .35)); g.addColorStop(1, rgb([12, 13, 17], 0));
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    }
+    // le haut de page
+    const aT = aS < 0 ? 1 : 1 - lisse((aS - 400) / 1100);
+    if (aT > 0){
+      ctx.save(); ctx.globalAlpha = aT; ctx.textAlign = "left";
+      const fT = clamp(L.titreH * .5, 13, 20); ctx.font = `500 ${fT}px ${SERIF}`; mes.font = ctx.font; ctx.fillStyle = ink(.95);
+      espace(ctx, D.titre, W / 2, L.top + fT * .95, fT * .42, true);
+      ctx.font = `${clamp(fT * .52, 8, 10.5)}px ${MONO}`; mes.font = ctx.font; ctx.fillStyle = ink(.6);
+      const n = fait.filter(Boolean).length;
+      espace(ctx, `${D.jour || jourTexte()} · ${n} voyage${n > 1 ? "s" : ""} sur 4 · départ Paris 48°51′ N`, W / 2, L.top + fT * 1.95, .3, true);
+      ctx.restore();
+    }
+    // la carte plate (jusqu'au soulèvement)
+    if (aS < 1100) carteEcran(ctx, t, Lp, 1);
+    if (aS >= 0 && aS < 1600) flambee(ctx, aS);
+    // les médaillons et leurs textes
+    const aM = aS < 0 ? 1 : 1 - lisse((aS - 400) / 1200);
+    if (aM > 0){
+      for (let i = 0; i < 4; i++){
+        const c = L.cells[i], a = fait[i] ? (tF[i] < -1e8 ? 1e9 : t - tF[i]) : -1;
+        ctx.save(); ctx.globalAlpha = aM;
+        if (!fait[i]) medaillonCrayon(ctx, i, c.cx, c.cy, c.r);
+        else if (a < T_VOY || !medCache[i]){
+          if (a >= T_VOY && !medCache[i]) cacheMedaillon(i);
+          if (medCache[i] && a >= T_VOY) ctx.drawImage(medCache[i], c.cx - c.r - 2, c.cy - c.r - 2, 2 * c.r + 4, 2 * c.r + 4);
+          else medaillon(ctx, i, c.cx, c.cy, c.r, lisse((a - 500) / 2200), lisse((a - 2000) / 1400), clamp((a - 300) / T_MER), true);
+        } else ctx.drawImage(medCache[i], c.cx - c.r - 2, c.cy - c.r - 2, 2 * c.r + 4, 2 * c.r + 4);
+        // l'anneau d'or (calculé), une fois le médaillon peint
+        if (fait[i]){
+          const ao = lisse((a - 2900) / 900), fl = exp(-(t - flash[i]) / 800) + (a < 4200 ? exp(-max(0, a - 3200) / 500) * (a > 2900 ? 1 : 0) : 0);
+          if (ao > 0){
+            const n = max(24, round(TAU * c.r / 3)), rr = c.r + 2.6, s = 2.9;
+            ctx.globalAlpha = aM * ao;
+            for (let k = 0; k < n; k++){
+              const an = k * TAU / n, x = c.cx + cos(an) * rr, y = c.cy + sin(an) * rr;
+              ctx.fillStyle = orFacette(Lp, x, y, cos(an) * .7 + sin(k * 2.3) * .3, sin(an) * .7 + cos(k * 1.7) * .3, 1, 1 + fl * 2);
+              ctx.fillRect(x - s / 2, y - s / 2, s - .3, s - .3);
+            }
+            ctx.globalAlpha = aM; ctx.strokeStyle = ink(.9); ctx.lineWidth = .7;
+            ctx.beginPath(); ctx.arc(c.cx, c.cy, c.r + 4.4, 0, TAU); ctx.stroke();
+          }
+        }
+        ctx.restore();
+        texteCellule(ctx, i, fait[i] ? lisse((a - 2300) / 1500) : 0, aM);
+      }
+    }
+    // le seuil : la carte s'enroule en globe, puis devient la Terre
+    if (aS >= 1100) globe(ctx, t, aS);
+    passeGrain(ctx, W, H, t, .03);
+  }
+  function flambee(ctx, aS){
+    const u = aS / 1600;
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineCap = "round";
+    for (let i = 0; i < 4; i++){
+      if (!fait[i]) continue;
+      for (const et of VOY[i].etapes){
+        const n = et.pts.length - 1, f = clamp(u * 1.6) * n;
+        ctx.strokeStyle = rgb([255, 220, 150], .55 * sin(PI * clamp(u))); ctx.lineWidth = 4; ctx.beginPath();
+        for (let k = 0; k <= f; k++) k ? ctx.lineTo(sx(et.pts[k][0]), sy(et.pts[k][1])) : ctx.moveTo(sx(et.pts[k][0]), sy(et.pts[k][1]));
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+  function spin(t, aS){ return ((-18 * lisse((aS - 4700) / 1500) - (aS > 5600 ? (aS - 5600) / 1000 * 4.2 : 0) + tourneMain) % 360 + 540) % 360 - 180; }
+  function globe(ctx, t, aS){
+    const C = L.carte, G = L.G;
+    const u = lisse((aS - 1100) / 3800), kap = lisse5((aS - 1500) / 3400);
+    const tilt = TILT * lisse((aS - 4700) / 1500), lc = spin(t, aS);
+    const f = 2 * sin(min(PI * max(kap, 1e-4), PI / 2)) / max(kap, 1e-4);
+    const tw = C.w + (2 * G.R - C.w) * u, Rs = tw / f;
+    const gx = C.x + C.w / 2 + (G.cx - C.x - C.w / 2) * u, gy = C.y + C.h / 2 + (G.cy - C.y - C.h / 2) * u;
+    const img = carte || base;
+    // la Terre au pixel est-elle prête ?
+    if (!SOL) SOL = soleil();
+    const pret = GL && TERRE && PIX;
+    if (pret && tGlobePret === null) tGlobePret = t;
+    const aG = pret ? min(lisse((aS - 6000) / 900), lisse((t - tGlobePret) / 500)) : 0;
+    // l'ombre portée de la feuille puis de la boule, sur la page qui s'éteint
+    const rayon = Rs / max(kap, .5);
+    const og = ctx.createRadialGradient(gx + rayon * .12, gy + rayon * .18, rayon * .2, gx + rayon * .12, gy + rayon * .18, rayon * 1.25);
+    og.addColorStop(0, "rgba(0,0,0,.45)"); og.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = og; ctx.fillRect(0, 0, W, H);
+    if (aG < 1 && img) maillage(ctx, img, kap, Rs, gx, gy, lc, tilt, 1 - kap);
+    if (aG > 0){
+      const kl = lisse((aS - 6200) / 1300), m = .84 * lisse((aS - 7000) / 2000);
+      rendreGlobe(lc, kl, m);
+      ctx.save(); ctx.globalAlpha = aG; ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(GL.cv, G.cx - G.R, G.cy - G.R, 2 * G.R, 2 * G.R); ctx.restore();
+      // l'atmosphère
+      const at = lisse((aS - 6400) / 1400);
+      if (at > 0){
+        const g = ctx.createRadialGradient(G.cx, G.cy, G.R * .985, G.cx, G.cy, G.R * 1.11);
+        g.addColorStop(0, `rgba(130,180,255,${.55 * at})`); g.addColorStop(.35, `rgba(80,130,230,${.2 * at})`); g.addColorStop(1, "rgba(60,100,200,0)");
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(G.cx, G.cy, G.R * 1.12, 0, TAU); ctx.arc(G.cx, G.cy, G.R * .985, 0, TAU, true); ctx.fill();
+      }
+      const ar = lisse((aS - 7200) / 1600);
+      if (ar > 0) arcs(ctx, t, lc, ar, G.R, G.cx, G.cy);
+      const av = lisse((aS - 7000) / 1500);
+      if (av > 0) villesGlobe(ctx, t, lc, av, G.R, G.cx, G.cy);
+    }
+    const ab = lisse((aS - 8000) / 600);
+    if (ab > 0) banderole(ctx, ab, lisse((aS - 8100) / 1400));
+  }
+  function jourTexte(){
+    try { return (D.date ? new Date(D.date) : new Date()).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }); }
+    catch (e) { return "aujourd'hui"; }
+  }
+
+  /* ———————————————————— construire, l'état, l'API de l'app ———————————————————— */
+  function batirTout(){
+    batirDecor(); mise();
+    base = null; carte = null; calques = [null, null, null, null]; TERRE = null; PIX = null; GL = null; tGlobePret = null;
+    medCache = [null, null, null, null]; fileGen = [];
+    lum = { x: W * .25, y: -H * .1 };
+    lancer(peindrePage()); lancer(peindreCarte()); lancer(peindreMer());
+    for (let i = 0; i < 4; i++) lancer(peindreCalque(i));
+    lancer((function*(){ composition = 1; yield* composer(); })());
+    lancer(peindreTerre());
+    lancer(tablesGlobe());
+  }
+  function textes(){
+    const n = fait.filter(Boolean).length;
+    M.bouton = tS !== null ? "Encore" : n < 4 ? P[fait.findIndex(f => !f)].nom : "Boucler";
+    if (tS !== null) M.ligne = `journée bouclée · ${D.chaine + 1} jours · le monde tourne`;
+    else if (!n) M.ligne = ligneGeste(0);
+    else { const der = [0, 1, 2, 3].filter(i => fait[i]).sort((a, b) => (tF[b] || 0) - (tF[a] || 0))[0], v = VOY[der];
+      M.ligne = `${P[der].nom} · ${v.mot} · cap ${round(v.longue.cap)}° · ${n} sur 4`; }
+  }
+  function etat(liste, boucle){
+    const Ls = (liste || []).filter(i => i >= 0 && i < 4);
+    fait = [0, 1, 2, 3].map(i => Ls.includes(i)); tF = fait.map(f => f ? -1e9 : null);
+    cuit = [false, false, false, false]; medCache = [null, null, null, null];
+    tS = boucle && Ls.length === 4 ? maintenant() - 12000 : null; tGlobePret = null;
+    composition = 1; PIX = null;
+    fileGen = fileGen.filter(g => !g.__composer && !g.__lire);
+    const gc = composer(); gc.__composer = true; fileGen.unshift(gc);
+    if (tS !== null){ const gl = lireCarte(); gl.__lire = true; fileGen.splice(1, 0, gl); SOL = soleil(); }
+    textes();
+  }
+  function faire(i){
+    if (i < 0 || i > 3 || fait[i]) return;
+    fait[i] = true; tF[i] = maintenant(); flash[i] = -1e9; textes();
+  }
+  function boucler(){
+    if (tS !== null || !fait.every(Boolean)) return;
+    tS = maintenant(); SOL = soleil(); tGlobePret = null;
+    const gl = lireCarte(); gl.__lire = true; fileGen.unshift(gl);
+    textes();
+  }
+  M.etat = etat;
+  M.faire = faire;
+  M.retirer = i => { if (!fait[i]) return; etat([0, 1, 2, 3].filter(k => k !== i && fait[k]), false); };
+  M.boucler = boucler;
+  M.faits = () => [0, 1, 2, 3].filter(i => fait[i]);
+  M.boucle = () => tS !== null;
+  M.aller = n => { n = clamp(n | 0, 0, 5); etat([0, 1, 2, 3].slice(0, min(n, 4)), n >= 5); };
+  M.taille = (w, h, dpr) => {
+    W = w; H = h; DPR = dpr || 1;
+    const premier = !base && !fileGen.length;
+    if (premier) batirTout();
+    else {
+      mise(); page = null; GL = null; tGlobePret = null; medCache = [null, null, null, null];
+      fileGen = fileGen.filter(g => !g.__page && !g.__tables);
+      const gp = peindrePage(); gp.__page = true; fileGen.unshift(gp);
+      const gt = tablesGlobe(); gt.__tables = true; fileGen.push(gt);
+    }
+  };
+  M.frame = frame;
+  M.geste = i => {
+    if (i !== undefined) return faire(i);
+    const t = maintenant(); if (t - dernierGeste < 900) return; dernierGeste = t;
+    if (tS !== null){ seed += 7; tourneMain = 0; batirTout(); etat([], false); return; }
+    const n = fait.findIndex(f => !f);
+    if (n >= 0){
+      // une nouvelle priorité n'attend pas la fin de la précédente, mais la carte doit avoir cuit celle d'avant
+      faire(n);
+    } else boucler();
+  };
+  M.tap = (x, y) => {
+    const t = maintenant();
+    if (tS !== null && t - tS > 6500){
+      const G = L.G, X = (x - G.cx) / G.R, Y = -(y - G.cy) / G.R, r2 = X * X + Y * Y;
+      if (r2 < 1){
+        const z = sqrt(1 - r2), ct = cos(TILT * RAD), st = sin(TILT * RAD), y0 = Y * ct + z * st, z0 = -Y * st + z * ct;
+        const la = asin(y0) / RAD, lo = ((atan2(X, z0) / RAD + spin(t, t - tS) + 540) % 360) - 180;
+        const S = SOL || soleil(), hs = ((S.heure + lo / 15) % 24 + 24) % 24;
+        const cz = sin(la * RAD) * sin(S.dec * RAD) + cos(la * RAD) * cos(S.dec * RAD) * cos((lo - S.lon) * RAD);
+        M.ligne = `${abs(la).toFixed(0)}° ${la >= 0 ? "N" : "S"} · ${abs(lo).toFixed(0)}° ${lo >= 0 ? "E" : "O"} · ${floor(hs)} h ${String(floor(hs % 1 * 60)).padStart(2, "0")} solaire · ${cz > .0 ? "jour" : cz > -.1 ? "crépuscule" : "nuit"}`;
+        return;
+      }
+    }
+    for (let i = 0; i < 4; i++){
+      const c = L.cells[i];
+      if (hypot(x - c.cx, y - c.cy) < c.r + 6){
+        flash[i] = t; const v = VOY[i], p = P[i];
+        M.ligne = fait[i] ? `${p.nom} · ${v.longue.de} → ${v.longue.vers} · cap ${round(v.longue.cap)}° · ${Math.round(v.longue.km).toLocaleString("fr-FR")} km` : `${p.nom} · ${v.destination.toLowerCase()} · pas encore parti`;
+        return;
+      }
+    }
+    let best = null, bd = 14;
+    for (const nomV in D.villes){ const p = D.villes[nomV], d = hypot(x - sx(p[0]), y - sy(p[1])); if (d < bd){ bd = d; best = nomV; } }
+    if (best){ const p = D.villes[best]; M.ligne = `${best} · ${abs(p[1]).toFixed(1)}° ${p[1] >= 0 ? "N" : "S"} · ${abs(p[0]).toFixed(1)}° ${p[0] >= 0 ? "E" : "O"}`; }
+  };
+  M.glisse = (dx, dy) => {
+    if (tS !== null){ tourneMain -= dx * .45; return; }
+    lumMain = true; lum.x = clamp(lum.x + dx * 1.8, -W * .6, W * 1.6); lum.y = clamp(lum.y + dy * 1.8, -H * .5, H * 1.5);
+  };
+
+  // la cuisson d'un voyage fini : une fois, dans la carte composée
+  const frameBase = frame;
+  M.frame = (ctx, t) => {
+    if (carte && !composition) for (let i = 0; i < 4; i++){
+      if (fait[i] && !cuit[i] && calques[i] && tF[i] > -1e8 && t - tF[i] > T_VOY + 2000){ cuireDans(cctx, i); cuit[i] = true; break; }
+    }
+    frameBase(ctx, t);
+  };
+  M.taille(W, H, 1);
+  return M;
+}
+window.ETUDE = etude_mappemonde;
