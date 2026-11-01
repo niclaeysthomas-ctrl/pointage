@@ -992,6 +992,13 @@
 
   /* la barre de la journée */
   .dbar{margin:14px 0 0;padding:14px 16px 12px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .kapps{margin:14px 0 0;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
+  .kapps-l{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+  .kapp{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--ink);font:500 13px/1.1 Georgia,'Times New Roman',serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+  .kapp span{font-size:17px;letter-spacing:0}
+  .kapp.on{color:var(--muted)}
+  .kapp.on::after{content:"✓";font:600 12px var(--mono);letter-spacing:0}
+  .kapp:active{background:rgba(242,240,234,.1)}
   .dbar-h{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
   .dbar-h a{text-transform:none;letter-spacing:0;color:var(--faint);text-decoration:none;font-weight:600}
   .dbar.tout .dbar-h span{color:var(--accent)}
@@ -1566,6 +1573,7 @@ function render(){
         ${isStandalone()?modeHtml():""}
         ${mondeSlotHtml()}
         ${dayBarHtml()}
+        ${appsDispoHtml()}
         ${coachHtml()}
         ${echHtml()}
         ${ritHtml()}
@@ -1802,6 +1810,17 @@ function menuPoser(cle, slotId, els){
 }
 function menusPoser(){ if(typeof emakiMonter!=="function") return; menuPoser("J","menuJSlot",menuJour()); menuPoser("D","menuDSlot",menuTout()); }
 /* sous la pièce : tes priorités, à cocher pour de vrai (le geste qui fait avancer le monde) */
+/* Tes apps, à portée de doigt (01/11) : toutes les apps vivantes qui ne sont
+   pas déjà dans le rouleau du jour (MANDARIN, FORGE…), rangées par domaine.
+   Un toucher ouvre l'app ; un ✓ dit qu'elle est faite aujourd'hui. */
+function appsDispoHtml(){
+  const jour=new Set(unitsOn(today()).map(c=>(appsOfCat(c.id)[0]||{}).id)), ord={}; doms().forEach((d,i)=>ord[d.id]=i);
+  const L=S.apps.map((a,i)=>[a,i]).filter(([a])=>vivante(a)&&!jour.has(a.id)&&(a.url||a.spec==="lecture"))
+    .sort((x,y)=>((ord[domOf(x[0])]??99)-(ord[domOf(y[0])]??99))||(x[1]-y[1])).map(([a])=>a);
+  if(!L.length) return "";
+  return `<div class="kapps"><div class="dbar-h"><span>Tes apps</span><a href="#" onclick="event.preventDefault();goTab('domaines')">ranger ›</a></div>
+    <div class="kapps-l">${L.map(a=>`<button class="kapp ${doneToday(a.id)?"on":""}" onclick="openById('${a.id}')"><span>${a.emoji||"•"}</span>${esc(a.name)}</button>`).join("")}</div></div>`;
+}
 function dayBarHtml(){
   const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
   const fait=AC.filter(c=>catDone(c.id)).length, tout=fait===AC.length;
@@ -3821,7 +3840,7 @@ function cad(){
 }
 function cadTouch(){ cad().mod=Date.now(); }
 function cadPrune(){ const C=cad(), lim=dayShift(today(),-60);
-  ["log","minDay","ren","focus","demain","rit","fs","auto","jp"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
+  ["log","minDay","ren","focus","demain","rit","fs","auto","jp","jpx"].forEach(k=>Object.keys(C[k]||{}).forEach(d=>{ if(d<lim) delete C[k][d]; }));
   Object.keys(C.bilans||{}).forEach(w=>{ if(w<dayShift(today(),-200)) delete C.bilans[w]; });
   C.passe=C.passe.filter(t=>t>Date.now()-60*864e5); }
 
@@ -4326,7 +4345,7 @@ let sChk={tel:0,rev:0};
 function openSoir(){
   const C=acc(), t=today(), ch=chaine(), AC=catsActives(), L=C.log[t]||[], tk=L.filter(x=>!x.passe).length, ren=C.ren[t]||0;
   const ok=dayOk(t), j=jGet(t);
-  sChk={tel:0,rev:0};
+  sChk={tel:jpOn(t,"tel")?1:0,rev:0};
   sheet(`<h3>🌙 Fermer la journée</h3>
     <div class="kstat"><div><b>${AC.filter(c=>catDone(c.id)).length}/${AC.length}</b><small>priorités</small></div>
       <div><b>${cToday()}/${C_OBJ}</b><small>candidatures</small></div>
@@ -4338,7 +4357,7 @@ function openSoir(){
     <div class="ksec"><h4>📝 Demain, la première chose</h4><p>Celle par laquelle tu commences en te levant. Tu la retrouveras demain matin.</p>
       <textarea id="sDemain" style="min-height:56px" placeholder="Ex : 30 min de 990 avant le petit-déj">${esc(C.demain[dayShift(t,1)]||"")}</textarea></div>
     <div class="ksec"><h4>Avant de dormir</h4>
-      <div class="kcheck" id="sTel" onclick="sTog('tel')"><span class="kb">✓</span>📵 Téléphone en charge hors de la chambre</div>
+      <div class="kcheck ${sChk.tel?"on":""}" id="sTel" onclick="sTog('tel')"><span class="kb">✓</span>📵 Téléphone en charge hors de la chambre</div>
       <div class="kcheck" id="sRev" onclick="sTog('rev')"><span class="kb">✓</span>⏰ Réveil réglé</div></div>
     ${(()=>{ let moi=""; try{ moi=localStorage.getItem(MOIKEY)||""; }catch(e){}
       return `<div class="ksec"><h4>🔥 Ton coach</h4><p>Ta journée part par mail ; ton coach te répond vers 22 h 15. Envoie-la avant 22 h.</p>
@@ -4356,7 +4375,7 @@ function soirGo(){
   if(coach&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(moi)) return toast("Entre ton adresse pour le coach, ou décoche l'envoi.");
   if(l){ const j=jGet(t), old=(j.txt||"").trim(); jSet(t, old?old+"\n"+l:l, null); }
   if(dm) C.demain[dayShift(t,1)]=dm;
-  const r=C.rit[t]=C.rit[t]||{}; r.s=1; r.tel=sChk.tel; save(); closeOv(); render();
+  const r=C.rit[t]=C.rit[t]||{}; r.s=1; r.tel=sChk.tel; jpPose(t,"tel",!!sChk.tel); save(); closeOv(); render();
   if(coach){
     try{ localStorage.setItem(MOIKEY,moi); }catch(e){}
     let body="## Ma question\nCoach, voici ma journée.\n\n"+claudeSnap(1); if(body.length>7000) body=body.slice(0,7000);
@@ -4453,7 +4472,9 @@ function accMerge(Rc){
   Object.keys(Rc.rit||{}).forEach(d=>{ const a=C.rit[d]=C.rit[d]||{}, b=Rc.rit[d]||{};
     ["m","s","tel"].forEach(x=>{ if(b[x]&&!a[x]){ a[x]=b[x]; ch=true; } }); });
   Object.keys(Rc.bilans||{}).forEach(w=>{ const b=Rc.bilans[w]; if(b&&(!C.bilans[w]||(b.t||0)>(C.bilans[w].t||0))){ C.bilans[w]=b; ch=true; } });
-  Object.keys(Rc.jp||{}).forEach(d=>{ const a=(acc().jp=acc().jp||{})[d]=(acc().jp[d]||{}); Object.keys(Rc.jp[d]||{}).forEach(k=>{ if(!a[k]){ a[k]=Rc.jp[d][k]; ch=true; } }); });
+  /* la proposition : l'heure de la coche (jp) et l'heure du décochage (jpx) ; on garde la plus récente de chaque */
+  ["jp","jpx"].forEach(K=>Object.keys(Rc[K]||{}).forEach(d=>{ const A=acc(); if(!A[K]) A[K]={}; const a=A[K][d]=A[K][d]||{};
+    Object.keys(Rc[K][d]||{}).forEach(k=>{ const v=+Rc[K][d][k]||0; if(v>(+a[k]||0)){ a[k]=v; ch=true; } }); }));
   Object.keys(Rc.sos||{}).forEach(d=>{ const A=acc(); if(!A.sos) A.sos={}; const L=A.sos[d]=A.sos[d]||[], seen=new Set(L.map(x=>x.at)); (Rc.sos[d]||[]).forEach(x=>{ if(!seen.has(x.at)){ L.push(x); ch=true; } }); });
   if(Array.isArray(Rc.work)){ const W=wAll(), ids=new Set(W.map(x=>x.id)); Rc.work.forEach(x=>{ if(x&&!ids.has(x.id)){ W.push(x); ch=true; } }); }
   Object.keys(Rc.fs||{}).forEach(d=>{ const v=Math.max(C.fs[d]||0,Rc.fs[d]||0); if(v!==(C.fs[d]||0)){ C.fs[d]=v; ch=true; } });
@@ -4847,6 +4868,34 @@ function jpMsOf(ds,min){ const d=new Date(ds+"T00:00:00"); d.setMinutes(min); re
 function jpMinOf(ms){ const d=new Date(ms); return d.getHours()*60+d.getMinutes(); }
 function jpHM(min){ return pad2(Math.floor(min/60))+":"+pad2(min%60); }
 function jpDone(ds){ const C=acc(); if(!C.jp) C.jp={}; return C.jp[ds]||{}; }
+/* Une coche, un seul endroit (01/11). Une chose qui se coche ailleurs dans
+   l'app n'a pas de copie ici : la proposition LIT cette coche-là.
+   · une priorité : ses coches à elle (Ta journée, le rouleau, Domaines) ;
+   · « Téléphone hors de la chambre » et « Rituel du soir » : le rituel du soir ;
+   · « 5 candidatures » : le compte des candidatures ; « sport » : FORGE.
+   Les autres (l'eau, le lit…) ne vivent qu'ici. Pour qu'un décochage passe
+   d'un appareil à l'autre, on note aussi l'heure où on décoche (jpx) : la
+   coche la plus récente gagne, comme pour les apps. */
+function jpX(ds){ const C=acc(); if(!C.jpx) C.jpx={}; return C.jpx[ds]||{}; }
+function jpLie(ds,id,cat){
+  const r=acc().rit[ds]||{};
+  if(cat) return catDoneDay(cat,ds);
+  if(id==="soir") return !!r.s;
+  if(id==="tel") return !!r.tel&&jpDone(ds).tel==null&&jpX(ds).tel==null;   // le rituel, tant que la proposition n'a rien dit
+  if(id==="cands") return cOn(ds)>=C_OBJ;
+  if(id==="sport"&&ds===today()){ const f=forgePlan(); return !!(f&&f.done); }
+  return false;
+}
+function jpOn(ds,id,cat){ if(cat) return jpLie(ds,id,cat); return (jpDone(ds)[id]||0)>(jpX(ds)[id]||0)||jpLie(ds,id,cat); }
+function jpPose(ds,id,on){ const C=acc(); if(!C.jp) C.jp={}; if(!C.jpx) C.jpx={};
+  const D=C.jp[ds]=C.jp[ds]||{}, X=C.jpx[ds]=C.jpx[ds]||{};
+  if(on) D[id]=Date.now(); else { delete D[id]; X[id]=Date.now(); } }
+/* une priorité cochée dans la proposition avant le 01/11 : sa coche passe dans la priorité */
+function jpMigre(){ try{ const t=today(), D=jpDone(t), X=jpX(t); let ch=false;
+  jpItems(t).forEach(it=>{ if(!it.cat||!((D[it.id]||0)>(X[it.id]||0))) return;
+    if(!catDoneDay(it.cat,t)){ const st=stOf(it.app); st.days.push(t); st.days.sort(); setCheck(it.app,t,1); }
+    jpPose(t,it.id,false); ch=true; });
+  if(ch) save0(); }catch(e){ console.error(e); } }
 /* FORGE : la séance de ce jour-là (un jour sur deux) */
 function forgeFor(ds){
   const fp=forgePlan(); if(!fp) return {k:"cali",t:"A",guess:1};
@@ -4871,7 +4920,7 @@ function jpItems(ds){
   catsActives().forEach(c=>{ const a=appsOfCat(c.id)[0]; if(!a) return; if(E&&normName(a.name)==="990") return;
     const lec=a.spec==="lecture", dm=domDef(domOf(a));
     out.push({id:"prio-"+c.id,e:c.e,nom:a.name,sub:lec?"Le texte du jour, puis une ligne au cahier":(dm?dm.nom:c.nom)+" · version courte si la journée est chargée",
-      dur:lec?12:normName(a.name)==="leclosing"?30:20,go:"openById('"+a.id+"')",work:a.name}); });
+      dur:lec?12:normName(a.name)==="leclosing"?30:20,go:"openById('"+a.id+"')",work:a.name,app:a.id,cat:c.id}); });
   const big=x=>x.id.startsWith("ielts")&&x.dur>=30, small=x=>x.id.startsWith("ielts")&&x.dur<30;
   const sp=out.find(x=>x.id==="sport"); out.splice(out.indexOf(sp)+1,0,{id:"ptidej",e:"🍳",nom:"Douche + petit-déjeuner",sub:"Protéines après le sport, pas d'écran à table",dur:25});
   return out.filter(x=>!x.id.startsWith("ielts")&&x.id!=="cands"&&!x.id.startsWith("prio-"))
@@ -4893,7 +4942,7 @@ function jpBuild(ds){
   const gapsFrom=start=>{ const g=[]; let cur=start; busy.forEach(b=>{ if(b.f>cur&&b.s>cur&&cur<JP_FIN) g.push([cur,Math.min(b.s,JP_FIN)]); if(b.f>cur) cur=Math.max(cur,b.f); }); if(cur<JP_FIN) g.push([cur,JP_FIN]); return g; };
   const place=(g,it)=>{ for(const x of g){ if(x[1]-x[0]>=it.dur){ const s0=x[0]; x[0]+=it.dur+(it.dur<15?0:JP_PAUSE); return s0; } } return null; };
   const done=jpDone(ds), items=jpItems(ds), echD=isT?echDoneList():[];
-  const isDone=it=>!!done[it.id]||(it.chk!=null&&!!echD[it.chk]);
+  const isDone=it=>jpOn(ds,it.id,it.cat)||(it.chk!=null&&!!echD[it.chk]);
   const nominal={}; { const g=gapsFrom(st); items.forEach(it=>{ const s0=place(g,it); if(s0!=null) nominal[it.id]=s0; }); }
   const placed=[], rest=[];
   if(isT){
@@ -4905,7 +4954,7 @@ function jpBuild(ds){
   } else items.forEach(it=>{ if(nominal[it.id]!=null) placed.push({kind:"prop",...it,s:nominal[it.id],f:nominal[it.id]+it.dur}); else rest.push(it); });
   const key=b=>b.at!=null?b.at-1:b.s;
   const all=busy.concat(placed).sort((a,b)=>key(a)-key(b)||(a.kind==="cours"?-1:1));
-  all.forEach(b=>{ b.done=b.kind==="prop"?isDone(b):!!done[b.id]; b.passe=isT&&b.kind!=="prop"&&b.f<now; b.now=isT&&b.s<=now&&b.f>now;
+  all.forEach(b=>{ b.done=b.kind==="prop"?isDone(b):jpOn(ds,b.id); b.passe=isT&&b.kind!=="prop"&&b.f<now; b.now=isT&&b.s<=now&&b.f>now;
     b.late=b.kind==="prop"&&!b.done&&nominal[b.id]!=null&&nominal[b.id]+b.dur<now;
     b.kept=b.kind==="prop"&&b.at!=null&&nominal[b.id]!=null&&b.at>=nominal[b.id]-90&&b.at<=nominal[b.id]+b.dur+60; });
   return {all,rest,nominal};
@@ -4924,9 +4973,19 @@ function jpHtml(){
     ${rest.length?`<details class="kjp-x"><summary>➕ Si tu as encore du temps · ${rest.length} de plus</summary><div class="kjp-xl">${rest.map(x=>`<span>${x.e} ${esc(x.nom)}</span>`).join("")}</div></details>`:""}</div>`;
 }
 function jpTog(ds,id,chk,work,min,nom){
-  const C=acc(); if(!C.jp) C.jp={}; const D=C.jp[ds]=C.jp[ds]||{};
+  const C=acc(), it=(()=>{ try{ return jpBuild(ds).all.find(x=>x.id===id); }catch(e){ return null; } })(), cat=it&&it.cat;
+  const on=!jpOn(ds,id,cat);
   if(chk!=null&&ds===today()){ echTog(chk); }
-  const on=!D[id]; if(on) D[id]=Date.now(); else delete D[id]; save(); render();
+  if(cat){   // une priorité : on coche (ou décoche) la priorité elle-même, partout
+    const ok=catDoneDay(cat,ds);
+    if(on&&!ok){ const st=stOf(it.app); st.days.push(ds); st.days.sort(); setCheck(it.app,ds,1); }
+    if(!on&&ok) appsOfCat(cat).forEach(a=>{ const st=stOf(a.id); if(st.days.includes(ds)){ st.days=st.days.filter(x=>x!==ds); setCheck(a.id,ds,0); } });
+  } else {
+    jpPose(ds,id,on);
+    if(id==="tel"){ (C.rit[ds]=C.rit[ds]||{}).tel=on?1:0; }
+  }
+  save(); render();
+  if(!on&&jpOn(ds,id,cat)){ toast(id==="soir"?"Coché par ton rituel du soir.":id==="cands"?"Coché par tes candidatures du jour.":id==="sport"?"Coché par ta séance dans FORGE.":"Coché ailleurs dans l'app."); return; }
   if(on){ const b=(()=>{ try{ return jpBuild(ds).all.find(x=>x.id===id); }catch(e){ return null; } })();
     let n=PTS_ITEM[id]; if(n==null) n=id.startsWith("ielts")&&b?Math.max(5,Math.round((b.f-b.s)/2)):10;
     toast(coachReact(id)+(n?"  ⚡ +"+n+(b&&b.kept?" (+5 à l'heure)":""):"")); }
@@ -5659,7 +5718,7 @@ applyTheme();
 rollDay();
 chkPrune();
 cad(); acc(); cadPrune(); cfApply(); focusResume();
-domMigrate(); mandarinMigrate(); rebuildCats();
+domMigrate(); mandarinMigrate(); rebuildCats(); jpMigre();
 render();
 syncSoon(900);
 /* lien direct : …/pointage/#candidatures ouvre le suivi */

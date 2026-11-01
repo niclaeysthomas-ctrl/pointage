@@ -120,3 +120,15 @@ Le lendemain matin (27/10, 08:48), sur l'app en ligne : « j'aime beaucoup le fa
 | B9 | Les scènes peintes d'un rouleau, une par activité | Le Rouleau | « J ADORE LES DIFFÉRENTES PARTIES » |
 | B10 | Le déroulé (le rouleau qui se déroule) | Le Rouleau | « j'aime beaucoup le déroulé vraiment » |
 | B11 | L'explosion de la matière | La Pierre | « Mieux avec l'explosion » |
+
+## Strate du tour 4 · 27/10 (verdicts reçus le 01/11) · cinq pièces
+
+Ses mots, tels quels :
+
+1. **LA PIERRE DES LANGUES · 4/5** — « Super »
+2. **LA ROSACE · 5/5** — « Super aussi »
+3. **L'ESTAMPE · 1/5** — « Non, la manière de lever les pages pour les tourner n'est pas bonne, la vague qui sort du cadre est trop pixélisée et mal faite, arrêtons celui-ci ici. »
+4. **LE ROULEAU · 5/5** — « La meilleure de toute ! à implementer, génial ! »
+5. **LA MAPPEMONDE · 3/5** — « Des points à améliorer mais laissons là pour l'instant. »
+
+Décisions qui en découlent (à son mot) : l'Estampe est abandonnée ; le Rouleau est à implémenter dans l'app (nouvelle conclusion) ; la Mappemonde est laissée de côté pour l'instant ; la Pierre et la Rosace sont validées.
