@@ -175,19 +175,79 @@ function bibTrouve(id){ for(const r of BIBLIO){ const c=bibTous(r).find(x=>x.id=
 /* le concept du jour : le premier pas encore compris, dans l'ordre du rayon */
 function bibDuJour(r){ const L=bibLus(); return bibTous(r).find(c=>!L[c.id])||null; }
 
+/* les noms courts des chapitres : ce que la Rosace couche au sol (un quartier par chapitre) */
+const BIB_ONGLET={quantique:"Quantique", informatique:"Informatique & IA"};
+const BIB_COURT={quantique:["ORIGINES","PRINCIPES","APPLICATIONS","EINSTEIN"], informatique:["LA MACHINE","LES RÉSEAUX","LA SÉCURITÉ","L'IA"]};
+function bibRayon(){ return BIBLIO.find(r=>r.id===S.bibR)||BIBLIO[0]; }
+function bibR(id){ S.bibR=id; save0(); render(); }
+/* ---- les questions de Thomas, par rayon (synchronisées) ; les réponses de Claude vivent dans r.rep ---- */
+function bibQs(rid){ const C=acc(); if(!C.bibQ) C.bibQ={}; return (C.bibQ[rid]=C.bibQ[rid]||[]); }
+function bibQAjout(rid){ const el=document.getElementById("bibQIn"), q=(el&&el.value||"").trim(); if(!q) return;
+  bibQs(rid).push({id:"q"+Date.now().toString(36), t:Date.now(), q}); save(); render(); toast("Question notée. Copie-la pour Claude quand tu veux."); }
+function bibQSuppr(rid,id){ const x=bibQs(rid).find(x=>x.id===id); if(x){ x.del=Date.now(); save(); render(); } }
+function bibQCopier(rid){ const r=BIBLIO.find(x=>x.id===rid), L=bibQs(rid).filter(x=>!x.del);
+  const txt="Mes questions · "+r.titre+"\n\n"+L.map((x,i)=>(i+1)+". "+x.q).join("\n");
+  const ok=()=>toast("Copié. Colle-le dans la conversation avec Claude.");
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok).catch(()=>prompt("Copie ce texte :",txt)); else prompt("Copie ce texte :",txt); }
+function bibRepOuvrir(rid,k){ const r=BIBLIO.find(x=>x.id===rid), x=r&&r.rep&&r.rep[k]; if(!x) return;
+  sheet(`<div class="bib-f"><div class="bib-f-sur">${r.e} ${esc(r.titre)} · ta question</div>
+    <h3>${esc(x.q)}</h3>${x.r.split("\n\n").map(p=>`<p>${esc(p)}</p>`).join("")}
+    ${x.ret?`<div class="bib-ret"><small>À retenir</small>${esc(x.ret)}</div>`:""}
+    <button class="btn ghost" onclick="closeOv();render()">Fermer</button></div>`); }
+
 function biblioHtml(){
-  const L=bibLus();
-  return BIBLIO.map(r=>{
-    const T=bibTous(r), n=T.filter(c=>L[c.id]).length, j=bibDuJour(r);
-    return `<div class="cahbloc bib">
+  const L=bibLus(), r=bibRayon(), T=bibTous(r), n=T.filter(c=>L[c.id]).length, j=bibDuJour(r);
+  const Q=bibQs(r.id).filter(x=>!x.del), R=r.rep||[];
+  return `${BIBLIO.length>1?`<div class="bib-rayons">${BIBLIO.map(x=>`<button class="${x===r?"on":""}" onclick="bibR('${x.id}')">${x.e} ${esc(BIB_ONGLET[x.id]||x.titre)}</button>`).join("")}</div>`:""}
+    ${typeof etude_rosace4==="function"?`<div id="rosSlot"></div>`:""}
+    <div class="cahbloc bib">
       <div class="cahbloc-h"><b>${r.e} ${esc(r.titre)}</b><span>${n} sur ${T.length} compris</span></div>
       <div class="bib-jauge"><i style="width:${Math.round(100*n/T.length)}%"></i></div>
       ${j?`<button class="bib-jour" onclick="bibOuvrir('${j.id}')"><small>Le concept du jour · ${esc(j.ch)}</small><b>${esc(j.t)}</b><span>${esc(j.r)}</span></button>`
         :`<div class="cvide">Tout le rayon est compris.</div>`}
       ${r.chap.map((ch,i)=>{ const C=T.filter(c=>c.ci===i), k=C.filter(c=>L[c.id]).length;
-        return `<details class="bib-ch"><summary>${esc(ch.t)}<em>${k}/${C.length}</em></summary>
+        return `<details class="bib-ch"><summary>${esc(ch.t)}<em>${k}/${C.length}${k===C.length?" · verre allumé":""}</em></summary>
           ${C.map(c=>`<button class="bib-l ${L[c.id]?"lu":""}" onclick="bibOuvrir('${c.id}')"><i>${L[c.id]?"✓":"·"}</i>${esc(c.t)}</button>`).join("")}</details>`; }).join("")}
-    </div>`; }).join("")+`<p class="bib-pied">D'autres rayons viendront : dis à Claude ce que tu veux comprendre.</p>`;
+    </div>
+    <div class="cahbloc bib">
+      <div class="cahbloc-h"><b>❓ Questions</b><span>${R.length} répondue${R.length>1?"s":""}${Q.length?" · "+Q.length+" en attente":""}</span></div>
+      <textarea id="bibQIn" class="bib-q-in" placeholder="Une question sur ce rayon, même naïve…"></textarea>
+      <button class="btn ghost" style="margin-top:8px" onclick="bibQAjout('${r.id}')">＋ Noter ma question</button>
+      ${Q.length?`<div class="bib-q-att">${Q.map(x=>`<div class="bib-q"><span>${esc(x.q)}</span><button onclick="bibQSuppr('${r.id}','${x.id}')" aria-label="Retirer">✕</button></div>`).join("")}
+        <button class="btn" onclick="bibQCopier('${r.id}')">Copier mes questions pour Claude</button></div>`:""}
+      ${R.length?`<div class="bib-q-rep">${R.map((x,k)=>`<button class="bib-l" onclick="bibRepOuvrir('${r.id}',${k})"><i>✓</i>${esc(x.q)}</button>`).join("")}</div>`:""}
+    </div>
+    <p class="bib-pied">D'autres rayons viendront : dis à Claude ce que tu veux comprendre.</p>`;
+}
+
+/* ---- LA ROSACE de la bibliothèque (02/11) : la pièce du tour 4 (5/5), un quartier par chapitre.
+   Un chapitre entièrement compris allume son quartier (animé au moment où il se complète) ;
+   le rayon entier compris : le seuil (le cristal, le spectre, la roue de lumière).
+   Les 28 médaillons : les 28 derniers jours, allumés par les chapitres travaillés ce jour-là. ---- */
+const ROS={};
+function bibRosEtat(r){ const L=bibLus(), T=bibTous(r);
+  const ok=r.chap.map((ch,i)=>T.filter(c=>c.ci===i).every(c=>L[c.id]));
+  return {liste:ok.map((v,i)=>v?i:-1).filter(i=>i>=0), boucle:ok.every(Boolean)}; }
+function bibRosDonnees(r){ const L=bibLus(), T=bibTous(r), t=today(), noms=BIB_COURT[r.id]||r.chap.map(c=>c.t.toUpperCase());
+  const jours=[]; for(let k=27;k>=0;k--){ const d=dayShift(t,-k);
+    jours.push([...new Set(T.filter(c=>L[c.id]&&new Date(L[c.id]).toISOString().slice(0,10)===d).map(c=>c.ci))]); }
+  const nb=i=>T.filter(c=>c.ci===i), sous=i=>nb(i).filter(c=>L[c.id]).length+" sur "+nb(i).length+" compris";
+  return {priorites:noms.slice(0,4).map((nom,i)=>({nom, min:20, sous:sous(i), serie:0, domaine:r.titre})), jours, mot:"LE RAYON EST COMPRIS"}; }
+function bibRosPoser(){
+  const slot=document.getElementById("rosSlot"); if(!slot||typeof monterPiece!=="function") return;
+  const r=bibRayon(), e=bibRosEtat(r);
+  Object.keys(ROS).forEach(k=>{ if(k!==r.id){ try{ ROS[k].m.arreter(); }catch(e){} delete ROS[k]; } });   // une seule rosace vivante
+  try{
+    let x=ROS[r.id];
+    if(!x){ const bloc=document.createElement("div"); bloc.className="bib-rosace"; slot.replaceWith(bloc);
+      const m=monterPiece(bloc, etude_rosace4, {donnees:etude_rosace4_DONNEES, avec:bibRosDonnees(r)});
+      m.piece.etat(e.liste, e.boucle); ROS[r.id]={bloc, m, liste:e.liste.slice(), boucle:e.boucle}; return; }
+    slot.replaceWith(x.bloc);
+    const P=x.m.piece, neufs=e.liste.filter(i=>!x.liste.includes(i)), partis=x.liste.filter(i=>!e.liste.includes(i));
+    if(partis.length||(x.boucle&&!e.boucle)) P.etat(e.liste, e.boucle);
+    else { neufs.forEach((i,k)=>setTimeout(()=>P.faire(i), 400+k*2500)); if(e.boucle&&!x.boucle) setTimeout(()=>P.boucler(), 400+neufs.length*3500); }
+    x.liste=e.liste.slice(); x.boucle=e.boucle;
+  }catch(err){ console.error(err); slot.remove(); }
 }
 function bibOuvrir(id){
   const f=bibTrouve(id); if(!f) return; const {r,c}=f, T=bibTous(r), i=T.findIndex(x=>x.id===id), lu=!!bibLus()[id];

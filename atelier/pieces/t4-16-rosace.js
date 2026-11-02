@@ -1457,7 +1457,7 @@ function etude_rosace4(){
         ctx.fillStyle = rgb(mix(TONS[q], BLANC_PUR, .7), lit);
         espace(ctx, nom, 0, 0, sp, "center");
         ctx.font = `${fm}px ui-monospace, Consolas, monospace`;
-        const sous = (p.min + " min").toUpperCase();
+        const sous = (p.sous || (p.min + " min")).toUpperCase();   // p.sous : une légende libre (la bibliothèque)
         ctx.lineWidth = 2.4;
         espace(ctx, sous, 0, fsz*.95, 1.2, "center", true);
         ctx.fillStyle = rgb(mix(TONS[q], BLANC_PUR, .75), .9*lit);
