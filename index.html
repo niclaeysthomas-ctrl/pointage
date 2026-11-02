@@ -999,6 +999,24 @@
   .dbar-h a.rouleau-revoir{text-transform:none;letter-spacing:.02em;color:var(--muted);text-decoration:underline;font-weight:500}
   .kapps{margin:14px 0 0;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--line)}
   .kapps-l{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+  .kapps-c{display:grid;gap:8px;margin-top:11px}
+  .kac{display:flex;align-items:center;gap:10px;border:1px solid var(--line2);border-radius:12px;padding:5px 6px 5px 8px;min-height:52px}
+  .kac-b{width:32px;height:32px;flex:none;border:1.5px solid var(--line2);border-radius:8px;background:transparent;cursor:pointer;position:relative}
+  .kac-b.live{border-color:var(--accent)}
+  .kac.on .kac-b{background:var(--accent);border-color:var(--accent)}
+  .kac.on .kac-b i{position:absolute;left:11px;top:6px;width:6px;height:12px;border:solid var(--bg);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+  .kac-n{flex:1;min-width:0;display:flex;align-items:center;gap:9px;border:none;background:none;color:var(--ink);text-align:left;cursor:pointer;padding:8px 0}
+  .kac-n span{font-size:19px}
+  .kac-n b{font:500 13.5px/1.1 Georgia,'Times New Roman',serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kac-n small{margin-left:auto;font:600 11.5px var(--mono);color:var(--faint);white-space:nowrap}
+  .kac.on .kac-n b{color:var(--muted)}
+  .kac.on .kac-n small{color:var(--accent)}
+  .kac-t{width:38px;height:38px;flex:none;border:none;border-radius:10px;background:var(--card2);color:var(--muted);cursor:pointer;font-size:12px}
+  .dpts{display:block;width:100%;margin-top:12px;padding:10px 0 2px;border:none;border-top:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);text-align:left;font:600 12px var(--mono);letter-spacing:.04em}
+  .dpts-n b{color:var(--ink);font-size:16px}
+  .dpts-g{float:right}
+  .dpts i{display:block;clear:both;height:5px;border-radius:3px;background:var(--card2);margin-top:8px;overflow:hidden}
+  .dpts em{display:block;height:100%;background:var(--accent)}
   .kapp{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--ink);font:500 13px/1.1 Georgia,'Times New Roman',serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
   .kapp span{font-size:17px;letter-spacing:0}
   .kapp.on{color:var(--muted)}
@@ -1568,7 +1586,11 @@ function stopTimer(silent){
   if(!silent) toast("⏱️ Séance de "+fmtMin(Math.max(1,Math.round(mins)))+" enregistrée");
 }
 /* la case à cocher : si le chrono tourne pour cette app, cocher = terminer (arrête + enregistre) */
-function onCheck(id){ if(S.run && S.run.id===id){ stopTimer(); } else { toggle(id); } }
+function onCheck(id){
+  let b=null; try{ b=ptsDay(today()).tot; }catch(e){}
+  if(S.run && S.run.id===id){ stopTimer(); } else { toggle(id); }
+  try{ const n=ptsDay(today()).tot-b; if(b!=null&&n) setTimeout(()=>toast((n>0?"+":"")+n+" ⚡ · "+ptsDay(today()).tot+" aujourd'hui"),50); }catch(e){}
+}
 function openById(id){
   const a=S.apps.find(x=>x.id===id);
   if(a&&a.spec==="lecture"){ const nx=lecNext(); nx?lireOpen(nx.id):lireSheet(); return; }
@@ -1623,7 +1645,7 @@ function render(){
   else if(T==="domaines") corps=`<div class="cols"><div class="col-l">
         ${typeof emakiMonter==="function"?`<div class="dom-rouleau"><div class="dbar-h"><span>Le rouleau des apps</span></div><div id="menuDSlot"></div>
           <div class="menu-aide">glisse · touche une scène pour ouvrir l'app · touche le sceau pour cocher</div></div>
-          <details class="dom-ranger" ${S.domOuvert?"open":""} ontoggle="S.domOuvert=this.open;save0()"><summary>Ranger mes domaines et mes apps</summary>${domainesHtml()}</details>`:domainesHtml()}
+          <details class="dom-ranger" ${S.domOuvert!==false?"open":""} ontoggle="S.domOuvert=this.open;save0()"><summary>Toutes mes apps · cocher et ranger</summary>${domainesHtml()}</details>`:domainesHtml()}
       </div><div class="col-r">
         ${candCardHtml()}
         ${workCardHtml()}
@@ -1855,8 +1877,15 @@ function appsDispoHtml(){
   const L=S.apps.map((a,i)=>[a,i]).filter(([a])=>vivante(a)&&!jour.has(a.id)&&(a.url||a.spec==="lecture"))
     .sort((x,y)=>((ord[domOf(x[0])]??99)-(ord[domOf(y[0])]??99))||(x[1]-y[1])).map(([a])=>a);
   if(!L.length) return "";
-  return `<div class="kapps"><div class="dbar-h"><span>Tes apps</span><a href="#" onclick="event.preventDefault();goTab('domaines')">ranger ›</a></div>
-    <div class="kapps-l">${L.map(a=>`<button class="kapp ${doneToday(a.id)?"on":""}" onclick="openById('${a.id}')"><span>${a.emoji||"•"}</span>${esc(a.name)}</button>`).join("")}</div></div>`;
+  /* 02/11 : chaque app se coche ici, d'un toucher sur la case ; le nom ouvre l'app.
+     Hors priorités, une app faite vaut +10 points. */
+  const nf=L.filter(a=>doneToday(a.id)).length;
+  return `<div class="kapps"><div class="dbar-h"><span>Tes apps · ${nf} sur ${L.length} aujourd'hui</span><a href="#" onclick="event.preventDefault();goTab('domaines')">ranger ›</a></div>
+    <div class="kapps-c">${L.map(a=>{ const on=doneToday(a.id), run=S.run&&S.run.id===a.id, m=todayMin(a.id);
+      return `<div class="kac ${on?"on":""}">
+        <button class="kac-b ${run?"live":""}" onclick="onCheck('${a.id}')" role="checkbox" aria-checked="${on}" aria-label="${esc(a.name)} : fait aujourd'hui"><i></i></button>
+        <button class="kac-n" onclick="openById('${a.id}')"><span>${a.emoji||"•"}</span><b>${esc(a.name)}</b><small>${on?"fait"+(m?" · "+fmtMin(m):""):run?"chrono en cours":isForgeApp(a)?"":"+10 ⚡"}</small></button>
+        <button class="kac-t" onclick="${run?"stopTimer()":`startTimer('${a.id}')`}" aria-label="${run?"Terminer":"Lancer le chrono"}">${run?"■":"▶"}</button></div>`; }).join("")}</div></div>`;
 }
 /* LE ROULEAU DU JOUR (01/11) : la pièce que Thomas a jugée « la meilleure de toutes ».
    Quand les quatre priorités du jour sont cochées, le rouleau se déroule en plein
@@ -1896,11 +1925,12 @@ function dayBarHtml(){
     :(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
   return `<div class="dbar ${tout?"tout":""}">
     <div class="dbar-h"><span>${tout?"Journée bouclée"+(rouleauPossible()?` · <a href="#" class="rouleau-revoir" onclick="event.preventDefault();rouleauOuvrir()">revoir le rouleau</a>`:""):"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
-    ${typeof emakiMonter==="function"?`<div id="menuJSlot"></div><div class="menu-aide">glisse le rouleau · touche une scène pour l'ouvrir · touche le sceau pour cocher</div>`
-    :`<div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
+    ${typeof emakiMonter==="function"?`<div id="menuJSlot"></div><div class="menu-aide">glisse le rouleau · touche une scène pour l'ouvrir · touche le sceau pour cocher</div>`:""}
+    ${`<div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
       return `<div class="dcoche ${ok?"on":""}" style="--c:${col}">
         <button class="dcoche-b" onclick="onCheck('${a?a.id:""}')" role="checkbox" aria-checked="${ok}" aria-label="${esc(c.nom)} : fait aujourd'hui"><i></i></button>
         <button class="dcoche-n" onclick="openById('${a?a.id:""}')">${esc(c.nom)}</button></div>`; }).join("")}</div>`}
+    ${ptsLigneHtml()}
     ${note}
   </div>`;
 }
@@ -5220,6 +5250,10 @@ function ptsDay(d){
       add(b.e,b.nom,n); if(b.kept) add("⏰","À l'heure : "+b.nom,5); }); }catch(e){}
   // priorités du stage, candidatures
   unitsOn(d).forEach(c=>{ if(catDoneDay(c.id,d)) add(c.e,c.nom+" fait",15); });
+  // 02/11 : les autres apps (guitare, piano, mandarin…) comptent aussi
+  { const U=new Set(unitsOn(d).map(c=>c.id));
+    S.apps.forEach(a=>{ if(!vivante(a)||U.has(catOf(a))||isForgeApp(a)) return;
+      if(stOf(a.id).days.includes(d)) add(a.emoji||"✓",a.name+" fait",10); }); }
   const nc=cOn(d); if(nc) add("📨",nc+" candidature"+(nc>1?"s":""),nc*10);
   if(nc>=5) add("🎯","Objectif 5 candidatures atteint",10);
   // rituels, focus, carnet de travail, SOS
@@ -5233,6 +5267,11 @@ function ptsDay(d){
   if(ps) add("🆘","Passe-droit utilisé",-20*ps);
   const tot=L.reduce((a,x)=>a+x[2],0);
   return {tot,L};
+}
+function ptsLigneHtml(){
+  let D,w,g; try{ D=ptsDay(today()); w=ptsWeek(); g=ptsGrade(w).g; }catch(e){ return ""; }
+  const pct=Math.max(0,Math.min(100,Math.round(D.tot/PTS_OBJ*100)));
+  return `<button class="dpts" onclick="openPts()"><span class="dpts-n">⚡ <b>${D.tot}</b> / ${PTS_OBJ}</span><span class="dpts-g">${g[2]} ${g[1]} ›</span><i><em style="width:${pct}%"></em></i></button>`;
 }
 function ptsWeek(){ let n=0; for(let i=0;i<7;i++) n+=ptsDay(dayShift(today(),-i)).tot; return n; }
 function ptsGrade(w){ let g=PTS_GRADES[0], nx=null; PTS_GRADES.forEach((x,i)=>{ if(w>=x[0]){ g=x; nx=PTS_GRADES[i+1]||null; } }); return {g,nx}; }
@@ -5252,7 +5291,7 @@ function openPts(){
   sheet(`<h3>⚡ Tes points du jour : ${D.tot}</h3>
     <div class="ksub" style="text-align:left">Grade actuel : <b>${g[2]} ${g[1]}</b> (${w} pts sur 7 jours)${nx?`. Prochain : ${nx[2]} ${nx[1]} à ${nx[0]}.`:"."} Une bonne journée vaut environ ${PTS_OBJ} points.</div>
     <div class="krows">${D.L.length?D.L.map(x=>`<div class="krow"><span class="ke">${x[0]}</span><div class="kn">${esc(x[1])}</div><b class="${x[2]<0?"kpts-neg":"kpts-pos"}">${x[2]>0?"+":""}${x[2]}</b></div>`).join(""):`<div class="ksub">Rien encore aujourd'hui. Premier geste : un verre d'eau, +5.</div>`}</div>
-    <div class="ksec"><h4>Le barème</h4><p>💧 Eau, 🛏️ lit, 🍳 petit-déj : +5 · 🔥 Réveil : +10 · 🥊 Séance FORGE : +30 · 🇬🇧 IELTS : +1 pt par 2 min · ⏰ fait à l'heure prévue : +5<br>Priorité du stage faite : +15 · 📨 Candidature : +10, et +10 à la 5e · 🎯 Focus terminé : +15 · ⏱ Travail noté : +1 par 5 min (60 max)<br>☀️ Rituel du matin : +10 · 🌙 Rituel du soir : +15 · 📵 Téléphone hors de la chambre : +10 · 🆘 Envie battue : +15<br>📸 Instagram : −1 par minute · Passe-droit : −20</p></div>
+    <div class="ksec"><h4>Le barème</h4><p>💧 Eau, 🛏️ lit, 🍳 petit-déj : +5 · 🔥 Réveil : +10 · 🥊 Séance FORGE : +30 · 🇬🇧 IELTS : +1 pt par 2 min · ⏰ fait à l'heure prévue : +5<br>Priorité du jour faite : +15 · 🎸 Autre app faite (guitare, piano, mandarin…) : +10 · 📨 Candidature : +10, et +10 à la 5e · 🎯 Focus terminé : +15 · ⏱ Travail noté : +1 par 5 min (60 max)<br>☀️ Rituel du matin : +10 · 🌙 Rituel du soir : +15 · 📵 Téléphone hors de la chambre : +10 · 🆘 Envie battue : +15<br>📸 Instagram : −1 par minute · Passe-droit : −20</p></div>
     <div class="ksec"><h4>Les grades (7 derniers jours)</h4><p>${PTS_GRADES.map(x=>`${x[2]} ${x[1]} ${x[0]}+`).join(" · ")}</p></div>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
 }
