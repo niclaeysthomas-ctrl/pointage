@@ -1055,8 +1055,8 @@
   .cahier{max-width:640px}
   .cahseg{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin:8px 0 4px}
   .cahseg button{flex:1;height:38px;border:none;border-radius:10px;background:none;color:var(--muted);font:600 13.5px var(--sans);cursor:pointer}
-  .bib-rayons{display:flex;gap:6px;margin:12px 0 0;overflow-x:auto}
-  .bib-rayons button{flex:1;min-height:40px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);font:500 12px Georgia,serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+  .bib-rayons{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+  .bib-rayons button{flex:1 1 auto;min-height:40px;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--muted);font:500 12px Georgia,serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
   .bib-rayons button.on{color:var(--ink);border-color:var(--ink)}
   .bib-rosace{position:relative;height:min(118vw,560px);margin:12px 0 0;border-radius:20px;overflow:hidden;background:#060608}
   .bib-q-in{width:100%;min-height:70px;margin-top:10px;background:var(--bg);border:1px solid var(--line2);border-radius:12px;color:var(--ink);padding:12px;font:16px/1.5 Georgia,serif;resize:vertical}
@@ -1242,6 +1242,7 @@
 <script src="lectures.js"></script>
 <script src="biblio.js"></script>
 <script src="biblio-informatique.js"></script>
+<script src="biblio-crypto.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
 <script src="atelier/pieces/t2-06-cretes-couleur.js"></script>
 <script src="atelier/pieces/t2-08-enluminure.js"></script>

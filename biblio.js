@@ -176,8 +176,8 @@ function bibTrouve(id){ for(const r of BIBLIO){ const c=bibTous(r).find(x=>x.id=
 function bibDuJour(r){ const L=bibLus(); return bibTous(r).find(c=>!L[c.id])||null; }
 
 /* les noms courts des chapitres : ce que la Rosace couche au sol (un quartier par chapitre) */
-const BIB_ONGLET={quantique:"Quantique", informatique:"Informatique & IA"};
-const BIB_COURT={quantique:["ORIGINES","PRINCIPES","APPLICATIONS","EINSTEIN"], informatique:["LA MACHINE","LES RÉSEAUX","LA SÉCURITÉ","L'IA"]};
+const BIB_ONGLET={quantique:"Quantique", informatique:"Informatique & IA", crypto:"Crypto"};
+const BIB_COURT={quantique:["ORIGINES","PRINCIPES","APPLICATIONS","EINSTEIN"], informatique:["LA MACHINE","LES RÉSEAUX","LA SÉCURITÉ","L'IA"], crypto:["LES BASES","LE MARCHÉ","STABLECOINS","GÉOPOLITIQUE"]};
 function bibRayon(){ return BIBLIO.find(r=>r.id===S.bibR)||BIBLIO[0]; }
 function bibR(id){ S.bibR=id; save0(); render(); }
 /* ---- les questions de Thomas, par rayon (synchronisées) ; les réponses de Claude vivent dans r.rep ---- */
@@ -243,6 +243,8 @@ function bibRosPoser(){
       const m=monterPiece(bloc, etude_rosace4, {donnees:etude_rosace4_DONNEES, avec:bibRosDonnees(r)});
       m.piece.etat(e.liste, e.boucle); ROS[r.id]={bloc, m, liste:e.liste.slice(), boucle:e.boucle}; return; }
     slot.replaceWith(x.bloc);
+    const PRs=etude_rosace4_DONNEES.priorites, ND=bibRosDonnees(r);   // légendes au sol tenues à jour
+    if(Array.isArray(PRs)) PRs.forEach((p,i)=>{ if(ND.priorites[i]) p.sous=ND.priorites[i].sous; });
     const P=x.m.piece, neufs=e.liste.filter(i=>!x.liste.includes(i)), partis=x.liste.filter(i=>!e.liste.includes(i));
     if(partis.length||(x.boucle&&!e.boucle)) P.etat(e.liste, e.boucle);
     else { neufs.forEach((i,k)=>setTimeout(()=>P.faire(i), 400+k*2500)); if(e.boucle&&!x.boucle) setTimeout(()=>P.boucler(), 400+neufs.length*3500); }
