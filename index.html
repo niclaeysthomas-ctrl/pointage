@@ -1630,13 +1630,14 @@ function render(){
   let corps="";
   if(T==="maintenant") corps=`<div class="cols une"><div class="col-l">
         ${isStandalone()?modeHtml():""}
-        ${mondeSlotHtml()}
         ${dayBarHtml()}
         ${appsDispoHtml()}
+        ${rouleauJourHtml()}
         ${coachHtml()}
         ${echHtml()}
         ${ritHtml()}
         ${choseHtml()}
+        ${mondeSlotHtml()}
       </div><div class="col-r">
         ${jpHtml()}
         ${agCardHtml()}
@@ -1915,6 +1916,9 @@ function rouleauVerifier(){
   const AC=unitsOn(today()), C=acc();
   if(AC.every(c=>catDone(c.id))&&!(C.rouleau&&C.rouleau[today()])) setTimeout(rouleauOuvrir,1200);
 }
+/* le rouleau du jour, sous les cases (02/11) : on coche d'abord, on contemple ensuite */
+function rouleauJourHtml(){ if(typeof emakiMonter!=="function"||!unitsOn(today()).length) return "";
+  return `<div class="dbar"><div id="menuJSlot"></div><div class="menu-aide">glisse le rouleau · touche une scène pour l'ouvrir · touche le sceau pour cocher</div></div>`; }
 function dayBarHtml(){
   const AC=unitsOn(today()); if(!AC.length) return `<div class="dbar"><div class="dbar-h"><span>Ta journée</span><a href="#" onclick="event.preventDefault();goTab('domaines')">choisir mes priorités ›</a></div></div>`;
   const fait=AC.filter(c=>catDone(c.id)).length, tout=fait===AC.length;
@@ -1925,7 +1929,6 @@ function dayBarHtml(){
     :(typeof etude_cretesc_DONNEES!=="undefined"?etude_cretesc_DONNEES.couleurs:["#ddd"]);
   return `<div class="dbar ${tout?"tout":""}">
     <div class="dbar-h"><span>${tout?"Journée bouclée"+(rouleauPossible()?` · <a href="#" class="rouleau-revoir" onclick="event.preventDefault();rouleauOuvrir()">revoir le rouleau</a>`:""):"Ta journée · "+fait+" sur "+AC.length}</span><a href="#" onclick="event.preventDefault();goTab('domaines')">domaines ›</a></div>
-    ${typeof emakiMonter==="function"?`<div id="menuJSlot"></div><div class="menu-aide">glisse le rouleau · touche une scène pour l'ouvrir · touche le sceau pour cocher</div>`:""}
     ${`<div class="dpied-c">${AC.map((c,i)=>{ const a=appsOfCat(c.id)[0], ok=catDone(c.id), col=COUL[i%COUL.length];
       return `<div class="dcoche ${ok?"on":""}" style="--c:${col}">
         <button class="dcoche-b" onclick="onCheck('${a?a.id:""}')" role="checkbox" aria-checked="${ok}" aria-label="${esc(c.nom)} : fait aujourd'hui"><i></i></button>
@@ -5253,7 +5256,10 @@ function ptsDay(d){
   // 02/11 : les autres apps (guitare, piano, mandarin…) comptent aussi
   { const U=new Set(unitsOn(d).map(c=>c.id));
     S.apps.forEach(a=>{ if(!vivante(a)||U.has(catOf(a))||isForgeApp(a)) return;
-      if(stOf(a.id).days.includes(d)) add(a.emoji||"✓",a.name+" fait",10); }); }
+      if(stOf(a.id).days.includes(d)) add(a.emoji||"✓",a.name+" fait",10); });
+    // le chrono : +1 par 5 min, 30 max par app et par jour (une vraie séance vaut plus qu'une coche)
+    S.apps.forEach(a=>{ if(!vivante(a)||isForgeApp(a)) return; const m=Math.round((stOf(a.id).min||{})[d]||0);
+      if(m>=5) add("⏱",a.name+" : "+fmtMin(m)+" de chrono",Math.min(30,Math.floor(m/5))); }); }
   const nc=cOn(d); if(nc) add("📨",nc+" candidature"+(nc>1?"s":""),nc*10);
   if(nc>=5) add("🎯","Objectif 5 candidatures atteint",10);
   // rituels, focus, carnet de travail, SOS
@@ -5291,7 +5297,13 @@ function openPts(){
   sheet(`<h3>⚡ Tes points du jour : ${D.tot}</h3>
     <div class="ksub" style="text-align:left">Grade actuel : <b>${g[2]} ${g[1]}</b> (${w} pts sur 7 jours)${nx?`. Prochain : ${nx[2]} ${nx[1]} à ${nx[0]}.`:"."} Une bonne journée vaut environ ${PTS_OBJ} points.</div>
     <div class="krows">${D.L.length?D.L.map(x=>`<div class="krow"><span class="ke">${x[0]}</span><div class="kn">${esc(x[1])}</div><b class="${x[2]<0?"kpts-neg":"kpts-pos"}">${x[2]>0?"+":""}${x[2]}</b></div>`).join(""):`<div class="ksub">Rien encore aujourd'hui. Premier geste : un verre d'eau, +5.</div>`}</div>
-    <div class="ksec"><h4>Le barème</h4><p>💧 Eau, 🛏️ lit, 🍳 petit-déj : +5 · 🔥 Réveil : +10 · 🥊 Séance FORGE : +30 · 🇬🇧 IELTS : +1 pt par 2 min · ⏰ fait à l'heure prévue : +5<br>Priorité du jour faite : +15 · 🎸 Autre app faite (guitare, piano, mandarin…) : +10 · 📨 Candidature : +10, et +10 à la 5e · 🎯 Focus terminé : +15 · ⏱ Travail noté : +1 par 5 min (60 max)<br>☀️ Rituel du matin : +10 · 🌙 Rituel du soir : +15 · 📵 Téléphone hors de la chambre : +10 · 🆘 Envie battue : +15<br>📸 Instagram : −1 par minute · Passe-droit : −20</p></div>
+    <div class="ksec"><h4>Le barème</h4><p>
+      <b>Tes priorités</b> : chacune faite +15 · 📨 candidature +10, et +10 à la 5e<br>
+      <b>Tes autres apps</b> (guitare, piano, mandarin…) : faite +10 · ⏱ chrono de n'importe quelle app : +1 par 5 min (30 max par app)<br>
+      <b>Le corps</b> : 🔥 réveil +10 · 🥊 séance FORGE +30 · 💧 eau, 🛏️ lit, 🍳 petit-déj +5<br>
+      <b>La tête</b> : 🎯 focus terminé +15 · ⏱ travail noté +1 par 5 min (60 max) · ⏰ fait à l'heure prévue +5<br>
+      <b>Les rituels</b> : ☀️ matin +10 · 🌙 soir +15 · 📵 téléphone hors de la chambre +10 · 🆘 envie battue +15<br>
+      <b>Ce qui coûte</b> : 📸 Instagram −1 par minute · passe-droit −20</p></div>
     <div class="ksec"><h4>Les grades (7 derniers jours)</h4><p>${PTS_GRADES.map(x=>`${x[2]} ${x[1]} ${x[0]}+`).join(" · ")}</p></div>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
 }
