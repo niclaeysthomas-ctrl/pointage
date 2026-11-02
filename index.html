@@ -1012,6 +1012,10 @@
   .kac.on .kac-n b{color:var(--muted)}
   .kac.on .kac-n small{color:var(--accent)}
   .kac-t{width:38px;height:38px;flex:none;border:none;border-radius:10px;background:var(--card2);color:var(--muted);cursor:pointer;font-size:12px}
+  .kbil{font-size:13.5px;line-height:1.5;color:var(--muted);margin:9px 0 0}
+  .kbil-b{display:flex;gap:8px;margin-top:11px}
+  .kbil-b button{flex:1;min-height:44px;border-radius:12px;border:1px solid var(--line2);background:none;color:var(--ink);font:600 13px var(--sans);cursor:pointer}
+  .kbil-b button:first-child{background:var(--ink);color:var(--bg);border-color:var(--ink);flex:1.5}
   .dpts{display:block;width:100%;margin-top:12px;padding:10px 0 2px;border:none;border-top:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);text-align:left;font:600 12px var(--mono);letter-spacing:.04em}
   .dpts-n b{color:var(--ink);font-size:16px}
   .dpts-g{float:right}
@@ -1632,6 +1636,7 @@ function render(){
         ${isStandalone()?modeHtml():""}
         ${dayBarHtml()}
         ${appsDispoHtml()}
+        ${lecBilanHtml()}
         ${rouleauJourHtml()}
         ${coachHtml()}
         ${echHtml()}
@@ -5480,7 +5485,7 @@ function lireSheet(go){
       ${I.length?`<button class="btn" onclick="ideesClaude()">✳️ Envoyer ${nonEnv?nonEnv+" idée"+(nonEnv>1?"s":"")+" nouvelle"+(nonEnv>1?"s":""):"le carnet"} à Claude</button>
       <p style="margin-top:8px">Claude les développera en textes, à ajouter ensuite dans lectures.js.</p>`:""}</div>
     <div class="ksec"><h4>📚 Mon bilan lecture</h4>
-      <p>${L.notes.filter(n=>!n.del).length} note${L.notes.filter(n=>!n.del).length>1?"s":""} « ce que j'en retiens » · ${I.length} idée${I.length>1?"s":""}. Tout part seul vers Claude à chaque synchro${syncOn()?"":" (active la synchro : ⋯ Plus › Appareils)"}. Prochain bilan par mail : <b>${lecBilanProchain()}</b>.</p>
+      <p>${L.notes.filter(n=>!n.del).length} note${L.notes.filter(n=>!n.del).length>1?"s":""} « ce que j'en retiens » · ${I.length} idée${I.length>1?"s":""}. Prochain bilan : <b>${lecBilanProchain()}</b> ; un rappel apparaîtra dans Maintenant, et un toucher l'envoie à Claude.</p>
       <button class="btn ghost" onclick="lecBilanEnvoyer()">📤 Envoyer le bilan maintenant</button></div>
     <button class="btn ghost" onclick="closeOv();render()">Fermer</button>`);
   if(go){ const s=document.getElementById("ls-"+go); if(s) setTimeout(()=>s.scrollIntoView({block:"start"}),60); }
@@ -5709,8 +5714,18 @@ function lecDoc(){
     minutes_14j:lireMinJours(14), minutes_30j:lireMinJours(30), dernier_bilan:L.bilan||"", textes, notes, idees, livres, aeon};
 }
 function lecBilanTexte(){ return "# Mon bilan lecture ("+today()+")\n\n"+JSON.stringify(lecDoc(),null,1); }
-function lecBilanEnvoyer(){ const txt=lecBilanTexte(), done=()=>toast("📋 Bilan copié — colle-le dans Claude");
-  if(navigator.share) navigator.share({title:"Mon bilan lecture → Claude", text:txt}).catch(()=>{});
+/* le rappel du 1er et du 15 (02/11) : visible dans Maintenant pendant 7 jours, jusqu'à l'envoi */
+function lecBilanEcheance(){ const t=today(); return t.slice(0,8)+(+t.slice(8)>=15?"15":"01"); }
+function lecBilanDu(){ const L=lir(), e=lecBilanEcheance();
+  if(L.bilan&&L.bilan>=e) return false;
+  if(dDiff(e,today())>7) return false;
+  return L.notes.some(n=>!n.del)||L.idees.some(x=>!x.del)||L.ses.length>0; }
+function lecBilanHtml(){ if(!lecBilanDu()) return ""; const L=lir(), n=L.notes.filter(x=>!x.del).length, i=L.idees.filter(x=>!x.del).length;
+  return `<div class="dbar"><div class="dbar-h"><span>📚 C'est le jour du bilan lecture</span></div>
+    <p class="kbil">${n} note${n>1?"s":""} « ce que j'en retiens » · ${i} idée${i>1?"s":""} · ${fmtMin(lireMinJours(14))} lues en 14 jours. Envoie-les à Claude : retour honnête, liens entre tes idées, questions de rappel, nouveaux textes.</p>
+    <div class="kbil-b"><button onclick="lecBilanEnvoyer()">📤 Envoyer à Claude</button><button onclick="lir().bilan=today();save();render()">Plus tard</button></div></div>`; }
+function lecBilanEnvoyer(){ lir().bilan=today(); save(); const txt="Claude, voici mon bilan lecture des deux dernières semaines. Fais-moi : un retour honnête sur ce que j'ai retenu (corrige ce qui est faux), 2 ou 3 liens entre mes idées, 3 questions de rappel sur des lectures plus anciennes (réponses à la fin), une question ouverte, 2 essais Aeon à lire, et écris de nouveaux textes à partir de mes idées pour les ajouter à lectures.js dans niclaeysthomas-ctrl/pointage.\n\n"+lecBilanTexte(), done=()=>{ toast("📋 Bilan copié — colle-le dans Claude"); render(); };
+  if(navigator.share) navigator.share({title:"Mon bilan lecture → Claude", text:txt}).then(()=>render()).catch(()=>{});
   else if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(()=>jCopyFallback(txt,done)); else jCopyFallback(txt,done); }
 function lecBilanProchain(){ const d=new Date(today()+"T12:00:00"), j=d.getDate();
   if(j<15) d.setDate(15); else { d.setMonth(d.getMonth()+1); d.setDate(1); }
