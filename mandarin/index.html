@@ -120,7 +120,7 @@ main{max-width:980px;margin:0 auto;padding-block:20px 24px;padding-left:max(16px
 .btn:disabled{opacity:.45;cursor:not-allowed}
 
 /* Accueil */
-.home{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px}
+.home{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:760px){.home{grid-template-columns:1fr}}
 .hero{display:flex;gap:22px;align-items:center;background:var(--jade);color:var(--on-accent);border-radius:20px;padding:24px;position:relative;overflow:hidden;min-width:0}
 .hero .eyebrow{color:inherit;opacity:.8}
@@ -135,7 +135,7 @@ main{max-width:980px;margin:0 auto;padding-block:20px 24px;padding-left:max(16px
 .side{display:flex;flex-direction:column;gap:16px;min-width:0}
 .review{flex-direction:row;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .review > div{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 200px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin:0}
 .stats div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .stats dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink2);font-weight:600}
 .stats dd{margin:2px 0 0;font-family:var(--f-display);font-size:1.4rem;font-variant-numeric:tabular-nums}
@@ -417,6 +417,67 @@ body.lesson-open{overflow:hidden}
 .seg.big{margin-bottom:4px}.seg.big button{padding:10px 12px;font-size:.95rem}
 .comps.quiz .comp{min-width:110px}
 .sheet.wide{width:min(100%,620px)}
+
+/* Tracé */
+.trace-q{display:flex;align-items:center;justify-content:center;gap:14px;text-align:center;flex-wrap:wrap}
+.trace-q .py{font-size:1.2rem}
+.trace-hz{font-family:var(--f-hz);font-size:2.2rem;color:var(--ink2)}
+.trace-hz.big{font-size:5rem;color:var(--ink);text-align:center;display:block}
+.trace-host{display:flex;flex-direction:column;align-items:center;gap:10px}
+.trace{position:relative;width:min(84vw,340px);aspect-ratio:1;max-width:100%;border-radius:18px;background:var(--surface);border:1.5px solid var(--line);overflow:hidden}
+.trace-svg{width:100%;height:100%;display:block;touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
+.trace-svg .tg{stroke:var(--line);stroke-width:4;fill:none}
+.trace-svg .tg.dash{stroke-dasharray:18 18;stroke-width:3}
+.t-guide path{fill:transparent}
+.trace.guided .t-guide path{fill:var(--sunk)}
+.t-done path{fill:var(--ink);animation:tfade .25s ease-out both}
+@keyframes tfade{from{opacity:0}to{opacity:1}}
+.t-user{fill:none;stroke:var(--jade);stroke-width:46;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.t-hint{fill:none;stroke:var(--cinnabar);stroke-width:30;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.t-start{fill:var(--cinnabar)}
+.trace-demo{position:absolute;inset:0;background:var(--surface);padding:10px;pointer-events:none}
+.trace-bar{display:flex;justify-content:space-between;gap:10px;width:min(84vw,340px);max-width:100%;font-size:.9rem}
+.trace-msg{font-weight:600;color:var(--ink2)}
+.trace-msg.good{color:var(--good)}.trace-msg.bad{color:var(--bad)}.trace-msg.help{color:var(--sand)}
+.trace-count{font-variant-numeric:tabular-nums;color:var(--ink2);flex:none}
+.trace-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.practice-box{display:flex;flex-direction:column;align-items:center;gap:10px}
+/* Clavier pinyin */
+.ime{display:flex;flex-direction:column;gap:10px;max-width:520px;width:100%;align-self:center}
+.ime-in{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:1.15rem;font-family:var(--f-py)}
+.ime-in:focus{border-color:var(--jade);outline:none}
+.ime-cands{display:flex;gap:6px;flex-wrap:wrap;min-height:52px;padding:6px;border-radius:12px;background:var(--sunk);align-items:center}
+.cand{display:flex;align-items:baseline;gap:4px;padding:6px 12px;border-radius:10px;background:var(--surface);border:1.5px solid transparent}
+.cand [lang]{font-size:1.4rem}
+.cand-n{font-size:.7rem;color:var(--ink2)}
+.cand:hover:not(:disabled){border-color:var(--jade)}
+.cand.right{border-color:var(--good);background:var(--good-soft)}
+.cand.wrong{border-color:var(--bad);background:var(--bad-soft)}
+/* Unité Les traits */
+.basics{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.basic{display:flex;gap:12px;align-items:center;text-align:left;padding:10px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.basic:hover{border-color:var(--jade)}
+.basic-svg{width:76px;height:76px;flex:none;border-radius:12px;background:var(--paper);padding:6px;display:block}
+.basic-t{display:flex;flex-direction:column;gap:2px;min-width:0}
+.basic-n{font-weight:600}
+.basic-q{width:160px;height:160px;padding:10px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.sk-hl{fill:var(--cinnabar-soft)}
+.sk-ink.hl{stroke:var(--cinnabar)}
+.rules{display:flex;flex-direction:column;gap:10px}
+.rule{display:flex;gap:14px;align-items:center;padding:10px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.stroke-box.sm{width:92px;height:92px;flex:none;padding:6px}
+.tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
+/* Accueil : objectif, phrase */
+.goal-list{list-style:none;margin:0;padding:0;display:flex;gap:16px;flex-wrap:wrap}
+.goal-list li{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink2)}
+.goal-list li i{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:inline-block}
+.goal-list li svg{width:20px;height:20px;padding:2px;border-radius:50%;background:var(--jade);color:var(--on-accent)}
+.goal-list li.ok{color:var(--ink)}
+.goal.met{border-color:var(--jade);box-shadow:0 0 0 3px var(--jade-soft)}
+.goal-msg{color:var(--jade);font-weight:600}
+.phrase{gap:6px}
+.ph-hz{font-family:var(--f-hz);font-size:1.5rem;line-height:1.35}
+.phrase .row{margin-top:6px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* Réglages, toast */
@@ -1152,6 +1213,7 @@ function chunksOf(u) {
 }
 const _steps = {};
 function stepsOf(u) {
+  if (u.special) return U0_STEPS;
   if (_steps[u.id]) return _steps[u.id];
   const ch = chunksOf(u);
   const mots = ch.map((ws, i) => ({ k: "mots" + (i + 1), n: ch.length > 1 ? `Mots ${i + 1}/${ch.length}` : "Mots", ic: "字", min: 4, d: ws.map(w => w[0]).join(" · "), words: ws }));
@@ -1169,7 +1231,7 @@ const ttsText = s => String(s).replace(/[（(][^)）]*[)）]/g, "").replace(/…
 
 // ---------- état ----------
 const KEY = "mandarin-entre-amis-v1";
-const DEFAULT = { done: {}, words: {}, chars: {}, streak: { n: 0, last: null }, best: 0, settings: { pinyin: "auto", rate: 0.8, tones: true } };
+const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, settings: { pinyin: "auto", rate: 0.8, tones: true } };
 let S = load();
 function load() {
   try { const raw = localStorage.getItem(KEY); if (raw) { const o = JSON.parse(raw); return Object.assign({}, DEFAULT, o, { settings: Object.assign({}, DEFAULT.settings, o.settings || {}) }); } } catch (e) {}
@@ -1181,6 +1243,7 @@ function migrate() {
     if (S.done[u.id + ":mots"]) { stepsOf(u).filter(s => s.words).forEach(s => (S.done[u.id + ":" + s.k] = true)); delete S.done[u.id + ":mots"]; }
   });
   Object.keys(S.words).forEach(h => [...h].forEach(c => { if (CHARS[c] && !S.chars[c]) S.chars[c] = Date.now(); }));
+  if (!S.cw) { S.cw = {}; Object.keys(S.chars).forEach(c => charAdd(c)); }
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 function markActivity() {
@@ -1195,7 +1258,7 @@ function streakNow() { const t = dayStr(Date.now()), y = dayStr(Date.now() - DAY
 const ALLW = [];
 UNITS.forEach((u, ui) => u.words.forEach(w => ALLW.push({ h: w[0], p: w[1], f: w[2], tts: w[3] || w[0], u: u.id, ui, lvl: u.lvl })));
 const WMAP = Object.fromEntries(ALLW.map(w => [w.h, w]));
-const unitById = id => UNITS.find(u => u.id === id);
+const unitById = id => id === "u0" ? U0 : UNITS.find(u => u.id === id);
 
 // SRS
 function srsAdd(h) { if (!S.words[h]) S.words[h] = { b: 1, d: Date.now() + DAY }; }
@@ -1367,7 +1430,7 @@ function render() {
   document.body.classList.toggle("no-tones", !S.settings.tones);
   renderNav();
   const m = $("#main");
-  if (VIEW.tab === "parcours") m.innerHTML = VIEW.unit ? viewUnit(unitById(VIEW.unit)) : viewHome();
+  if (VIEW.tab === "parcours") m.innerHTML = VIEW.unit ? (VIEW.unit === "u0" ? viewU0() : viewUnit(unitById(VIEW.unit))) : viewHome();
   else if (VIEW.tab === "sons") m.innerHTML = viewSons();
   else if (VIEW.tab === "mots") m.innerHTML = viewMots();
   else if (VIEW.tab === "grammaire") m.innerHTML = viewGram();
@@ -1377,20 +1440,20 @@ function render() {
 
 // ---------- accueil ----------
 function nextStep() {
-  for (const u of UNITS) for (const s of stepsOf(u)) if (!isDone(u, s.k)) return { u, s };
+  for (const u of [U0, ...UNITS]) for (const s of stepsOf(u)) if (!isDone(u, s.k)) return { u, s };
   return null;
 }
 function seal(u, on, big) {
   return `<span class="seal${on ? " on" : ""}${big ? " big" : ""}" aria-label="${on ? "Sceau obtenu" : "Sceau à gagner"}">${u.hz[0]}</span>`;
 }
 function viewHome() {
-  const nx = nextStep(), due = dueWords().length, seen = Object.keys(S.words).length;
+  const nx = nextStep(), dw = dueWords().length, dc = dueChars().length, due = dw + dc, seen = Object.keys(S.words).length + Object.keys(S.cw || {}).length;
   const seals = UNITS.filter(unitDone).length;
   const hero = nx ? `
     <section class="hero">
       <div class="hero-hz" lang="zh-CN">${nx.u.hz}</div>
       <div class="hero-body">
-        <p class="eyebrow">${nx.u.lvl} · Unité ${UNITS.indexOf(nx.u) + 1} · ${esc(nx.u.title)}</p>
+        <p class="eyebrow">${nx.u.special ? "Pour commencer" : `${nx.u.lvl} · Unité ${UNITS.indexOf(nx.u) + 1}`} · ${esc(nx.u.title)}</p>
         <h2>${seen ? "Continuer" : "Commencer"} : ${nx.s.n}</h2>
         <p class="muted">${nx.s.d} · environ ${nx.s.min} min</p>
         <div class="row">
@@ -1402,10 +1465,14 @@ function viewHome() {
   const review = `
     <section class="panel review">
       <div><p class="eyebrow">Révision</p>
-        <h3>${due ? `${due} mot${due > 1 ? "s" : ""} à revoir` : seen ? "Rien à revoir pour l'instant" : "Tes mots apparaîtront ici"}</h3>
+        <h3>${due ? [dw ? `${dw} mot${dw > 1 ? "s" : ""}` : "", dc ? `${dc} caractère${dc > 1 ? "s" : ""}` : ""].filter(Boolean).join(" et ") + " à revoir" : seen ? "Rien à revoir pour l'instant" : "Tes mots apparaîtront ici"}</h3>
         <p class="muted small">${seen ? "Les mots ratés reviennent plus vite, les mots sus s'espacent." : "Termine une séance de mots pour les ajouter."}</p></div>
       <button class="btn ${due ? "primary" : "ghost"}" data-review ${seen ? "" : "disabled"}>${due ? "Réviser" : "S'entraîner"}</button>
     </section>`;
+  const g = todayGoal();
+  const goal = `<section class="panel goal${g.step && g.rev ? " met" : ""}"><p class="eyebrow">Objectif du jour</p>
+      <ul class="goal-list"><li class="${g.step ? "ok" : ""}">${g.step ? ICON.check : "<i></i>"}Une séance</li><li class="${g.rev ? "ok" : ""}">${g.rev ? ICON.check : "<i></i>"}Révisions à jour${!g.rev && g.due ? ` (${g.due})` : ""}</li></ul>
+      ${g.step && g.rev ? `<p class="small goal-msg">Objectif atteint. 明天见, à demain !</p>` : ""}</section>`;
   const stats = `
     <dl class="stats">
       <div><dt>Série</dt><dd>${streakNow()} <small>j</small></dd></div>
@@ -1416,17 +1483,17 @@ function viewHome() {
   const path = LEVELS.map(L => `
     <section class="level">
       <header class="level-h"><span class="lvl-tag">${L.id}</span><div><h3>${L.name}</h3><p class="muted small">${L.desc}</p></div></header>
-      <div class="units">${UNITS.filter(u => u.lvl === L.id).map(u => {
+      <div class="units">${(L.id === "A1" ? [U0] : []).concat(UNITS.filter(u => u.lvl === L.id)).map(u => {
         const c = unitCount(u), cur = nx && nx.u === u;
         return `<button class="ucard${cur ? " cur" : ""}" data-unit="${u.id}">
           <span class="u-hz" lang="zh-CN">${u.hz}</span>
-          <span class="u-txt"><span class="u-num">Unité ${UNITS.indexOf(u) + 1}</span><span class="u-title">${esc(u.title)}</span><span class="u-sub">${esc(u.sub)}</span>
+          <span class="u-txt"><span class="u-num">${u.special ? "Pour commencer" : "Unité " + (UNITS.indexOf(u) + 1)}</span><span class="u-title">${esc(u.title)}</span><span class="u-sub">${esc(u.sub)}</span>
           <span class="dots" aria-label="${c} étapes sur ${stepsOf(u).length}">${stepsOf(u).map(s => `<i class="${isDone(u, s.k) ? "on" : ""}"></i>`).join("")}</span></span>
           ${seal(u, unitDone(u))}
         </button>`;
       }).join("")}</div>
     </section>`).join("");
-  return `<div class="home">${hero}<div class="side">${review}${stats}</div></div>${path}
+  return `<div class="home">${hero}<div class="side">${goal}${review}${phraseCard()}${stats}</div></div>${path}
   <p class="foot-note muted small">Chaque unité se fait en petites étapes de 2 à 5 minutes, avec 3 ou 4 mots nouveaux à la fois. Tu peux les faire dans n'importe quel ordre, mais l'ordre proposé est le plus progressif.</p>`;
 }
 
@@ -1607,6 +1674,7 @@ function bindMain() {
   m.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
   m.querySelectorAll("[data-start]").forEach(b => b.onclick = () => { const [id, k] = b.dataset.start.split(":"); startStep(unitById(id), k); });
   m.querySelectorAll("[data-review]").forEach(b => b.onclick = startReview);
+  bindPhrase(m);
   m.querySelectorAll("[data-mview]").forEach(b => b.onclick = () => { motsView = b.dataset.mview; render(); });
   m.querySelectorAll("[data-char]").forEach(b => b.onclick = () => openChar(b.dataset.char));
   m.querySelectorAll("[data-toneset]").forEach(b => b.onclick = () => { toneSet = +b.dataset.toneset; const sc = window.scrollY; render(); window.scrollTo(0, sc); });
@@ -1804,9 +1872,10 @@ function scrDialogue(u) {
 
 // --- étapes ---
 function startStep(u, k) {
+  if (u.special) return startU0Step(k);
   const step = stepsOf(u).find(s => s.k === k);
   const title = `${u.hz} · ${step.n}`;
-  const done = (extra) => { S.done[u.id + ":" + k] = true; markActivity(); save(); return extra; };
+  const done = (extra) => { S.done[u.id + ":" + k] = true; markActivity(); dayLog("step"); save(); return extra; };
   const sealIfComplete = r => { if (unitDone(u) && k !== "defi") r.text = (r.text || "") + " Unité complète : sceau obtenu !"; return r; };
   let screens = [], onDone;
 
@@ -1841,11 +1910,15 @@ function startStep(u, k) {
     });
     const qs = shuffle(ws);
     const bc = shuffle(newChars.filter(buildable));
-    const types = ["au2f", "f2hz", "hz2f"];
-    qs.slice(0, bc.length ? 3 : 4).forEach((w, i) => screens.push(wordMCQ(w, types[i % 3])));
+    const tc = newChars.filter(c => STROKES[c] && STROKES[c][0].length <= 10).sort((a, b) => STROKES[a][0].length - STROKES[b][0].length);
+    screens.push(wordMCQ(qs[0], "au2f"));
+    screens.push(scrType(qs[1 % qs.length]));
+    if (tc.length) screens.push(scrTrace(tc[0], { guide: true }));
+    else screens.push(wordMCQ(qs[2 % qs.length], "f2hz"));
     if (bc.length) screens.push(buildMCQ(bc[0], newChars));
+    else if (qs.length > 2) screens.push(wordMCQ(qs[2], "hz2f"));
     onDone = () => {
-      ws.forEach(w => srsAdd(w.h)); newChars.forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); });
+      ws.forEach(w => srsAdd(w.h)); newChars.forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); });
       return sealIfComplete(done({ title: `${ws.length} mots, ${newChars.length} caractère${newChars.length > 1 ? "s" : ""}`, text: "Ils reviendront dans tes révisions demain. Retrouve les fiches dans l'onglet Mots, rubrique Caractères." }));
     };
   }
@@ -1880,12 +1953,15 @@ function startStep(u, k) {
     screens.push(wordMCQ(tw, "tone"));
     const ucs = [...new Set(u.words.flatMap(w => [...w[0]]))].filter(c => CHARS[c] && buildable(c));
     if (ucs.length) screens.push(buildMCQ(pick(ucs), ucs));
+    const utc = [...new Set(u.words.flatMap(w => [...w[0]]))].filter(c => STROKES[c] && STROKES[c][0].length <= 9);
+    if (utc.length) screens.push(scrTrace(pick(utc), { guide: false }));
+    screens.push(scrType(pick(ws)));
     u.gram.order.forEach(o => screens.push(scrOrder(o, u.lvl)));
     screens.unshift(scrInfo(`<p class="q-kicker">Défi de l'unité</p><h2 class="l-h">Gagne le sceau <span lang="zh-CN">${u.hz[0]}</span></h2><p>${screens.length} questions sur les mots, les tons et la grammaire de l'unité. Il faut <b>${screens.length - 2} bonnes réponses</b> pour obtenir le sceau.</p><p class="muted small">Pas de stress : tu peux recommencer autant de fois que tu veux.</p>`));
     const need = screens.length - 3;
     onDone = (score, total) => {
       if (score >= need) {
-        S.done[u.id + ":defi"] = true; markActivity(); save();
+        S.done[u.id + ":defi"] = true; markActivity(); dayLog("step"); save();
         return unitDone(u) ? { seal: u.hz[0], title: "Sceau obtenu !", text: `L'unité « ${u.title} » est complète. ${UNITS.indexOf(u) < UNITS.length - 1 ? "La suivante t'attend." : "Tu as terminé tout le parcours !"}` }
           : { seal: u.hz[0], title: "Défi réussi !", text: "Termine les autres étapes de l'unité pour valider le sceau." };
       }
@@ -1898,10 +1974,13 @@ function startStep(u, k) {
 
 // --- révision ---
 function startReview() {
-  let list = dueWords().slice(0, 10), practice = false;
-  if (!list.length) { practice = true; list = shuffle(Object.keys(S.words).filter(h => WMAP[h])).slice(0, 8); }
-  if (!list.length) return;
+  let list = dueWords().slice(0, 8), clist = dueChars().slice(0, 4), practice = false;
+  if (!list.length && !clist.length) { practice = true; list = shuffle(Object.keys(S.words).filter(h => WMAP[h])).slice(0, 6); clist = shuffle(Object.keys(S.cw || {})).slice(0, 2); }
+  if (!list.length && !clist.length) return;
   const screens = []; const requeued = new Set();
+  const mkc = c => (STROKES[c] && STROKES[c][0].length <= 12 && Math.random() < 0.7)
+    ? scrTrace(c, { guide: false, onAnswer: ok => { if (!practice || !ok) charAnswer(c, ok); } })
+    : charRecogMCQ(c, ok => { if (!practice || !ok) charAnswer(c, ok); });
   const mk = h => wordMCQ(WMAP[h], pick(["hz2f", "f2hz", "au2f", "hz2f", "tone"]), {
     onAnswer: ok => {
       if (!practice || !ok) srsAnswer(h, ok);
@@ -1909,10 +1988,11 @@ function startReview() {
     }
   });
   list.forEach(h => screens.push(mk(h)));
+  clist.forEach((c, i) => screens.splice(Math.min(screens.length, 2 + i * 3), 0, mkc(c)));
   startLesson({ title: practice ? "Entraînement libre" : "Révision", screens, onDone: (s, t) => {
-    markActivity();
-    const left = dueWords().length;
-    return { title: practice ? "Entraînement terminé" : "Révision terminée", text: left ? `Encore ${left} mot${left > 1 ? "s" : ""} à revoir : tu peux relancer une révision.` : "Tout est à jour. Les prochains mots reviendront au bon moment." };
+    markActivity(); dayLog("rev"); save();
+    const left = dueWords().length + dueChars().length;
+    return { title: practice ? "Entraînement terminé" : "Révision terminée", text: left ? `Encore ${left} élément${left > 1 ? "s" : ""} à revoir : tu peux relancer une révision.` : "Tout est à jour. Les prochains mots reviendront au bon moment." };
   } });
 }
 
@@ -2064,12 +2144,17 @@ function charCardHTML(c, opt = {}) {
     ${compsHTML(ch)}
     <section class="cx-sec"><h4>D'où il vient</h4><p>${esc(ch.ety)}</p></section>
     <section class="cx-sec mn"><h4>Pour le retenir</h4><p>${esc(ch.mn)}</p></section>
+    ${opt.practice && STROKES[c] ? `<section class="cx-sec"><button type="button" class="btn ghost" data-practice="${c}">S'entraîner à tracer</button><div class="practice-box"></div></section>` : ""}
     ${uses.length && !opt.noUses ? `<section class="cx-sec"><h4>Tu le retrouves dans</h4><div class="uses">${uses.map(w => `<button type="button" class="mini" data-say="${esc(w.tts)}"><span lang="zh-CN">${w.h}</span>${py(w.p, "A1", "show")}<span class="small muted">${esc(w.f)}</span></button>`).join("")}</div></section>` : ""}
   </article>`;
 }
 function bindCard(root) {
   root.querySelectorAll("[data-replay]").forEach(b => b.onclick = () => { animateStrokes(b.querySelector(".strokes")); speak(b.querySelector(".strokes")?.dataset.char || ""); });
   const svg = root.querySelector(".strokes"); if (svg) setTimeout(() => animateStrokes(svg), 250);
+  root.querySelectorAll("[data-practice]").forEach(b => b.onclick = () => {
+    const box = b.nextElementSibling; b.hidden = true;
+    mountTrace(box, b.dataset.practice, { guide: true, hintAfter: 1, onDone: ok => { if (ok) charAdd(b.dataset.practice); save(); } });
+  });
 }
 
 // Écrans de leçon
@@ -2108,7 +2193,7 @@ const buildable = c => { const ch = parseChar(c); return ch && ch.comps.length >
 // Fiche en surimpression
 function openChar(c) {
   const m = $("#charSheet"); if (!m) return;
-  $("#charBody").innerHTML = charCardHTML(c);
+  $("#charBody").innerHTML = charCardHTML(c, { practice: true });
   m.hidden = false; bindCard($("#charBody"));
   S.chars[c] = S.chars[c] || Date.now(); save();
 }
@@ -2123,6 +2208,380 @@ function viewChars() {
       const ch = parseChar(c), seen = !!S.chars[c];
       return `<button type="button" class="ctile${seen ? " seen" : ""}" data-char="${c}"><span lang="zh-CN">${c}</span><span class="ct-p">${colorize(ch.p)}</span></button>`;
     }).join("")}</div>`).join("")}`;
+}
+
+// ===== Écriture : tracer, clavier pinyin, unité « Les traits » =====
+
+// ---------- géométrie ----------
+const _d = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+function plen(p) { let l = 0; for (let i = 1; i < p.length; i++) l += _d(p[i - 1], p[i]); return l; }
+function resample(p, n) {
+  if (p.length === 1) return Array(n).fill(p[0]);
+  const L = plen(p); if (!L) return Array(n).fill(p[0]);
+  const step = L / (n - 1), out = [p[0]]; let acc = 0, prev = p[0], i = 1;
+  while (i < p.length && out.length < n) {
+    const cur = p[i], seg = _d(prev, cur);
+    if (acc + seg >= step && seg > 0) {
+      const t = (step - acc) / seg, q = [prev[0] + t * (cur[0] - prev[0]), prev[1] + t * (cur[1] - prev[1])];
+      out.push(q); prev = q; acc = 0;
+    } else { acc += seg; prev = cur; i++; }
+  }
+  while (out.length < n) out.push(p[p.length - 1]);
+  return out;
+}
+const centroid = p => [p.reduce((s, q) => s + q[0], 0) / p.length, p.reduce((s, q) => s + q[1], 0) / p.length];
+const medOf = (c, i) => STROKES[c][1][i].split(" ").map(s => s.split(",").map(Number));
+// 0 = bon, 1 = sens inverse, 2 = raté
+function matchStroke(user, med) {
+  const ml = plen(med), ul = plen(user);
+  if (ml < 170) return _d(centroid(user), centroid(med)) < 200 && ul < 500 ? 0 : 2;
+  const a = resample(user, 16), b = resample(med, 16);
+  let f = 0, r = 0; for (let k = 0; k < 16; k++) { f += _d(a[k], b[k]); r += _d(a[k], b[15 - k]); }
+  f /= 16; r /= 16;
+  const thr = 150 + Math.min(70, ml * 0.07);
+  if (ul < ml * 0.3 || ul > ml * 2.4) return 2;
+  if (f < thr && f <= r + 15) return 0;
+  if (r < thr) return 1;
+  return 2;
+}
+
+// ---------- le tracé ----------
+function mountTrace(box, c, opt = {}) {
+  const data = STROKES[c];
+  if (!data) { box.innerHTML = `<p class="muted">Tracé indisponible pour ${c}.</p>`; return; }
+  const n = data[0].length, hintAfter = opt.hintAfter ?? 2;
+  let cur = 0, miss = 0, missHere = 0, finished = false, drawing = false, pts = [];
+  box.innerHTML = `<div class="trace${opt.guide ? " guided" : ""}">
+    <svg class="trace-svg" viewBox="0 0 1024 1024" aria-label="Zone de tracé du caractère ${c}">
+      <path class="tg" d="M512 0V1024M0 512H1024"/><path class="tg dash" d="M0 0L1024 1024M1024 0L0 1024"/>
+      <g transform="scale(1,-1) translate(0,-900)">
+        <g class="t-guide">${data[0].map(p => `<path d="${p}"/>`).join("")}</g>
+        <g class="t-done"></g>
+        <polyline class="t-hint" points=""/><circle class="t-start" r="34" cx="-100" cy="-100"/>
+      </g>
+      <polyline class="t-user" points=""/>
+    </svg></div>
+    <div class="trace-bar">
+      <span class="trace-msg" aria-live="polite">${opt.guide ? "Repasse sur le modèle, trait par trait." : "Trace le caractère de mémoire, trait par trait."}</span>
+      <span class="trace-count">0 / ${n}</span>
+    </div>
+    <div class="trace-actions"><button type="button" class="btn ghost sm" data-t="hint">Aide</button><button type="button" class="btn ghost sm" data-t="show">Voir l'animation</button><button type="button" class="btn ghost sm" data-t="reset">Recommencer</button></div>`;
+  const svg = box.querySelector(".trace-svg"), user = box.querySelector(".t-user"), done = box.querySelector(".t-done"),
+    hint = box.querySelector(".t-hint"), start = box.querySelector(".t-start"), msg = box.querySelector(".trace-msg"), count = box.querySelector(".trace-count");
+  const toLocal = e => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const m = svg.getScreenCTM(); const q = pt.matrixTransform(m.inverse()); return [q.x, q.y]; };
+  const say = (t, cls) => { msg.textContent = t; msg.className = "trace-msg" + (cls ? " " + cls : ""); };
+  const clearHint = () => { hint.setAttribute("points", ""); start.setAttribute("cx", -100); };
+  function showHint() {
+    const m = medOf(c, cur);
+    hint.setAttribute("points", m.map(p => p.join(",")).join(" "));
+    start.setAttribute("cx", m[0][0]); start.setAttribute("cy", m[0][1]);
+    try { const len = hint.getTotalLength(); hint.style.strokeDasharray = len; hint.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 700, fill: "both" }); } catch (e) {}
+    say("Commence au rond et suis la flèche.", "help");
+  }
+  function addDone(i) {
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", data[0][i]); done.appendChild(p);
+  }
+  function finish() {
+    finished = true; clearHint();
+    const ok = miss <= Math.max(1, Math.floor(n / 3));
+    say(miss === 0 ? "Parfait, aucun faux pas !" : ok ? `Bravo ! ${miss} petite${miss > 1 ? "s" : ""} erreur${miss > 1 ? "s" : ""}.` : `Terminé, avec ${miss} erreurs : refais-le une fois.`, ok ? "good" : "help");
+    if (opt.onDone) opt.onDone(ok, miss, n);
+  }
+  function evaluate() {
+    if (pts.length < 1) return;
+    const u = pts.map(p => [p[0], 900 - p[1]]);
+    const r = matchStroke(u, medOf(c, cur));
+    user.setAttribute("points", "");
+    if (r === 0) {
+      addDone(cur); cur++; missHere = 0; clearHint(); count.textContent = `${cur} / ${n}`;
+      if (cur >= n) return finish();
+      say(pick(["Bien !", "Oui !", "Continue.", "C'est ça."]), "good");
+      return;
+    }
+    miss++; missHere++;
+    let other = -1; for (let j = cur + 1; j < n; j++) if (matchStroke(u, medOf(c, j)) === 0) { other = j; break; }
+    if (r === 1) say("Bon endroit, mais dans l'autre sens.", "bad");
+    else if (other > 0) say(`Ce trait vient plus tard (n° ${other + 1}). Trace d'abord le n° ${cur + 1}.`, "bad");
+    else say("Pas tout à fait. Réessaie ce trait.", "bad");
+    if (missHere >= hintAfter) setTimeout(showHint, 350);
+  }
+  svg.addEventListener("pointerdown", e => {
+    if (finished) return; e.preventDefault();
+    try { svg.setPointerCapture(e.pointerId); } catch (err) {}
+    drawing = true; pts = [toLocal(e)]; user.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+  });
+  svg.addEventListener("pointermove", e => {
+    if (!drawing) return; e.preventDefault();
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    (evs.length ? evs : [e]).forEach(ev => pts.push(toLocal(ev)));
+    user.setAttribute("points", pts.map(p => p.join(",")).join(" "));
+  });
+  const end = () => { if (!drawing) return; drawing = false; evaluate(); };
+  svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end); svg.addEventListener("lostpointercapture", end);
+  box.querySelector('[data-t="hint"]').onclick = () => { if (finished) return; miss++; showHint(); };
+  box.querySelector('[data-t="show"]').onclick = () => {
+    if (!finished) miss += 2;
+    const tmp = document.createElement("div"); tmp.className = "trace-demo"; tmp.innerHTML = strokeSVG(c);
+    const old = box.querySelector(".trace-demo"); if (old) old.remove();
+    box.querySelector(".trace").appendChild(tmp); animateStrokes(tmp.querySelector(".strokes"));
+    setTimeout(() => tmp.remove(), 600 * n + 1500);
+  };
+  box.querySelector('[data-t="reset"]').onclick = () => mountTrace(box, c, Object.assign({}, opt, { onDone: opt.onDone }));
+}
+
+// écran de leçon « Trace ce caractère »
+function scrTrace(c, opt = {}) {
+  return (el, api) => {
+    const ch = parseChar(c);
+    el.innerHTML = `<p class="q-kicker">${opt.guide ? "Trace ce caractère" : "Écris de mémoire"}</p>
+      <div class="trace-q"><div><span class="cx-f">${esc(ch.f)}</span>${py(ch.p, "A1", "show")}</div>${sayBtn(c)}${opt.guide ? `<span class="trace-hz" lang="zh-CN">${c}</span>` : ""}</div>
+      <div class="trace-host"></div>`;
+    api.lock();
+    let answered = false;
+    mountTrace(el.querySelector(".trace-host"), c, {
+      guide: !!opt.guide, hintAfter: opt.guide ? 1 : 2,
+      onDone: (ok, miss) => {
+        if (answered) return; answered = true;
+        if (opt.onAnswer) opt.onAnswer(ok);
+        api.result(ok, ok ? `<span lang="zh-CN">${c}</span> ${py(ch.p, "A1", "show")} · bien tracé !` : `Revois l'ordre des traits de <span lang="zh-CN">${c}</span> sur sa fiche.`);
+      }
+    });
+  };
+}
+
+// ---------- clavier pinyin ----------
+const pyKey = p => baseOf(p).replace(/ü/g, "v").replace(/[^a-z]/g, "");
+const pyKeyU = p => baseOf(p).replace(/ü/g, "u").replace(/[^a-z]/g, "");
+const IME = [];
+ALLW.forEach(w => IME.push({ h: w.h, p: w.p, k: pyKey(w.p), k2: pyKeyU(w.p) }));
+CHAR_LIST.forEach(c => { const ch = parseChar(c); if (!IME.some(x => x.h === c)) IME.push({ h: c, p: ch.p, k: pyKey(ch.p), k2: pyKeyU(ch.p) }); });
+function imeCandidates(q) {
+  q = q.toLowerCase().replace(/ü/g, "v").replace(/[^a-z]/g, "");
+  if (!q) return [];
+  const hits = IME.filter(x => x.k.startsWith(q) || x.k2.startsWith(q));
+  hits.sort((a, b) => ((a.k === q || a.k2 === q) ? 0 : 1) - ((b.k === q || b.k2 === q) ? 0 : 1) || a.h.length - b.h.length || (S.words[b.h] ? 1 : 0) - (S.words[a.h] ? 1 : 0));
+  return hits.slice(0, 8);
+}
+function scrType(w, opt = {}) {
+  return (el, api) => {
+    el.innerHTML = `<p class="q-kicker">Écris-le comme sur ton téléphone</p>
+      <div class="q-prompt"><div class="qp-f">« ${esc(w.f)} »</div>${sayBtn(w.tts)}</div>
+      <div class="ime">
+        <label class="sr" for="imeIn">Pinyin sans les tons</label>
+        <input id="imeIn" class="ime-in" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Tape le pinyin sans les tons, ex. nihao">
+        <div class="ime-cands" role="listbox" aria-label="Propositions"></div>
+        <p class="muted small ime-tip">Comme sur un clavier chinois : tape les lettres, puis choisis le bon caractère dans la barre. Pour ü, tape v.</p>
+      </div>`;
+    api.lock();
+    const inp = el.querySelector(".ime-in"), bar = el.querySelector(".ime-cands"); let done = false;
+    const draw = () => {
+      const c = imeCandidates(inp.value);
+      bar.innerHTML = c.length ? c.map((x, i) => `<button type="button" class="cand" data-h="${esc(x.h)}"><span class="cand-n">${i + 1}</span><span lang="zh-CN">${x.h}</span></button>`).join("")
+        : inp.value ? `<span class="muted small">Aucune proposition : vérifie l'orthographe.</span>` : "";
+      bar.querySelectorAll(".cand").forEach(b => b.onclick = () => choose(b.dataset.h));
+    };
+    const choose = h => {
+      if (done) return; done = true; inp.disabled = true;
+      const ok = h === w.h; speak(w.tts);
+      bar.querySelectorAll(".cand").forEach(b => { b.disabled = true; if (b.dataset.h === w.h) b.classList.add("right"); else if (b.dataset.h === h) b.classList.add("wrong"); });
+      if (opt.onAnswer) opt.onAnswer(ok);
+      api.result(ok, ok ? `Exact ! <span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")}` : `Il fallait taper « ${pyKey(w.p)} » puis choisir <span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")}`);
+    };
+    inp.addEventListener("input", draw);
+    inp.addEventListener("keydown", e => {
+      if (/^[1-8]$/.test(e.key)) { const c = imeCandidates(inp.value)[+e.key - 1]; if (c) { e.preventDefault(); choose(c.h); } }
+      if (e.key === " " || e.key === "Enter") { const c = imeCandidates(inp.value)[0]; if (c) { e.preventDefault(); e.stopPropagation(); choose(c.h); } }
+    });
+    setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 250);
+  };
+}
+
+// ---------- unité de départ « Les traits » ----------
+const U0 = { id: "u0", lvl: "A1", hz: "笔画", title: "Les traits", sub: "Écrire : traits de base et ordre", special: true, words: [] };
+const U0_STEPS = [
+  { k: "traits", n: "Les traits de base", ic: "丿", min: 4, d: "Huit traits pour tout écrire" },
+  { k: "ordre", n: "L'ordre des traits", ic: "顺", min: 4, d: "Les règles qui marchent presque toujours" },
+  { k: "tracer", n: "Premiers tracés", ic: "写", min: 5, d: "Trace 一 二 十 人 大 中" }
+];
+const BASIC = [
+  ["横", "héng", "Horizontal", "De gauche à droite, en montant très légèrement.", "一", 0],
+  ["竖", "shù", "Vertical", "De haut en bas, bien droit.", "十", 1],
+  ["撇", "piě", "Oblique gauche", "Part en haut et file vers le bas à gauche, en s'affinant.", "八", 0],
+  ["捺", "nà", "Oblique droite", "Descend vers la droite et s'élargit à la fin, comme un coup de pinceau.", "八", 1],
+  ["点", "diǎn", "Point", "Un petit trait court, en appuyant.", "六", 0],
+  ["提", "tí", "Remontée", "Part en bas à gauche et remonte vite vers la droite.", "我", 3],
+  ["折", "zhé", "Angle", "Un horizontal qui tourne d'un coup vers le bas, sans lever le crayon.", "回", 1],
+  ["钩", "gōu", "Crochet", "Le trait finit par un petit crochet, sans lever le crayon.", "了", 1]
+];
+function strokeOneSVG(c, i) {
+  const d = STROKES[c]; if (!d) return "";
+  const id = "so" + (++_sid);
+  return `<svg class="strokes one" viewBox="0 0 1024 1024" data-one="${i}"><defs><clipPath id="${id}"><path d="${d[0][i]}"/></clipPath></defs>
+    <g transform="scale(1,-1) translate(0,-900)">${d[0].map((p, j) => `<path class="${j === i ? "sk-hl" : "sk-bg"}" d="${p}"/>`).join("")}
+    <polyline class="sk-ink hl" clip-path="url(#${id})" points="${d[1][i]}"/></g></svg>`;
+}
+function animateOne(svg) { if (!svg) return; animateStrokes({ querySelectorAll: () => svg.querySelectorAll(".sk-ink") }); }
+function basicCard(b) {
+  return `<button type="button" class="basic" data-replay-one><span class="basic-svg">${strokeOneSVG(b[4], b[5])}</span>
+    <span class="basic-t"><span class="basic-n"><span lang="zh-CN">${b[0]}</span> ${colorize(b[1])} · ${b[2]}</span><span class="small muted">${b[3]} Exemple : <span lang="zh-CN">${b[4]}</span></span></span></button>`;
+}
+function bindBasics(el) {
+  el.querySelectorAll("[data-replay-one]").forEach(b => b.onclick = () => animateOne(b.querySelector("svg")));
+  setTimeout(() => el.querySelectorAll("[data-replay-one] svg").forEach(animateOne), 300);
+}
+const RULES = [
+  ["De haut en bas", "三", "On commence par le trait du haut."],
+  ["De gauche à droite", "明", "La partie gauche 日 d'abord, puis la droite 月."],
+  ["L'horizontal avant le vertical", "十", "Quand deux traits se croisent, l'horizontal passe en premier."],
+  ["L'oblique gauche avant l'oblique droite", "人", "Le 撇 qui part à gauche, puis le 捺 qui part à droite."],
+  ["Le cadre, l'intérieur, puis on ferme", "国", "On trace les côtés et le haut du cadre, on remplit, et le trait du bas ferme la boîte en dernier."],
+  ["Le milieu avant les côtés", "水", "Quand un caractère est symétrique, le trait central passe en premier."]
+];
+function ruleCard(r) {
+  return `<div class="rule"><button type="button" class="stroke-box sm" data-replay aria-label="Revoir ${r[1]}">${strokeSVG(r[1])}</button><div><h4>${r[0]}</h4><p class="small muted">${r[2]}</p></div></div>`;
+}
+function startU0Step(k) {
+  const u = U0, step = U0_STEPS.find(s => s.k === k);
+  const done = extra => { S.done["u0:" + k] = true; markActivity(); dayLog("step"); save(); if (U0_STEPS.every(s => S.done["u0:" + s.k])) extra.seal = "笔"; return extra; };
+  const screens = []; let onDone;
+  if (k === "traits") {
+    screens.push(el => { el.innerHTML = `<p class="q-kicker">Écrire · 1</p><h2 class="l-h">Huit traits pour tout écrire</h2>
+      <p>Les milliers de caractères chinois se construisent avec une poignée de traits. Chacun a un nom et <b>un sens de tracé</b>. Touche une carte pour revoir l'animation.</p>
+      <div class="basics">${BASIC.slice(0, 4).map(basicCard).join("")}</div>`; bindBasics(el); });
+    screens.push(el => { el.innerHTML = `<p class="q-kicker">Écrire · 1</p><h2 class="l-h">Quatre traits de plus</h2>
+      <p>Les quatre suivants sont des variantes : un trait court, un trait qui remonte, un angle et un crochet. L'angle et le crochet se font <b>sans lever le crayon</b>.</p>
+      <div class="basics">${BASIC.slice(4).map(basicCard).join("")}</div>`; bindBasics(el); });
+    [0, 3, 6].forEach(bi => {
+      const b = BASIC[bi], others = shuffle(BASIC.filter(x => x !== b)).slice(0, 3);
+      screens.push(scrMCQ({ kicker: "Quel est ce trait ?", prompt: `<div class="basic-q">${strokeOneSVG(b[4], b[5])}</div>`,
+        options: shuffle([b, ...others]).map(x => ({ html: `<span lang="zh-CN" class="o-hz">${x[0]}</span><span class="small muted">${x[2]}</span>`, ok: x === b })),
+        answer: `<span lang="zh-CN">${b[0]}</span> · ${b[2]}` }));
+    });
+    onDone = () => done({ title: "Les huit traits", text: "Tu sais maintenant reconnaître les briques de base de tous les caractères." });
+  }
+  if (k === "ordre") {
+    screens.push(el => { el.innerHTML = `<p class="q-kicker">Écrire · 2</p><h2 class="l-h">L'ordre des traits</h2><p>L'ordre n'est pas une fantaisie : il rend l'écriture plus fluide, et c'est lui que reconnaissent les claviers à écriture manuscrite. Trois règles de base :</p><div class="rules">${RULES.slice(0, 3).map(ruleCard).join("")}</div>`; bindCard(el); el.querySelectorAll(".rule .strokes").forEach((s, i) => setTimeout(() => animateStrokes(s), 300 + i * 900)); });
+    screens.push(el => { el.innerHTML = `<p class="q-kicker">Écrire · 2</p><h2 class="l-h">Trois règles de plus</h2><p>Avec ces six règles, tu devineras l'ordre de la grande majorité des caractères. Touche un caractère pour revoir son tracé.</p><div class="rules">${RULES.slice(3).map(ruleCard).join("")}</div>`; bindCard(el); el.querySelectorAll(".rule .strokes").forEach((s, i) => setTimeout(() => animateStrokes(s), 300 + i * 1200)); });
+    screens.push(scrMCQ({ kicker: "Dans 十, quel trait vient en premier ?", prompt: `<div class="trace-hz big" lang="zh-CN">十</div>`,
+      options: shuffle([{ html: "L'horizontal 一", ok: true }, { html: "Le vertical 丨", ok: false }]), answer: "L'horizontal, avant le vertical." }));
+    screens.push(scrMCQ({ kicker: "Dans 国, quel trait se trace en dernier ?", prompt: `<div class="trace-hz big" lang="zh-CN">国</div>`,
+      options: shuffle([{ html: "Le trait du bas, qui ferme la boîte", ok: true }, { html: "Le point à l'intérieur", ok: false }, { html: "Le côté gauche du cadre", ok: false }]), answer: "Le trait du bas : on ferme la boîte en dernier." }));
+    screens.push(scrMCQ({ kicker: "Dans 小, quel trait commence ?", prompt: `<div class="trace-hz big" lang="zh-CN">小</div>`,
+      options: shuffle([{ html: "Le trait du milieu", ok: true }, { html: "Le point de gauche", ok: false }, { html: "Le point de droite", ok: false }]), answer: "Le milieu, avant les côtés." }));
+    onDone = () => done({ title: "Règles en poche", text: "Ces règles marchent presque toujours. Les fiches caractères te montrent l'ordre exact quand tu as un doute." });
+  }
+  if (k === "tracer") {
+    screens.push(scrInfo(`<p class="q-kicker">Écrire · 3</p><h2 class="l-h">À toi de tracer</h2><p>Trace chaque trait <b>d'un seul geste</b>, au doigt ou à la souris, dans le bon ordre et dans le bon sens. L'application vérifie chaque trait.</p><p class="muted small">Si tu bloques, le bouton Aide montre où commencer. Le modèle gris est là pour t'aider : repasse dessus.</p>`));
+    ["一", "二", "十", "人", "大", "中"].forEach(c => screens.push(scrTrace(c, { guide: true })));
+    onDone = () => { ["一", "二", "十", "人", "大", "中"].forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); }); return done({ title: "Premiers caractères tracés", text: "Tu peux t'entraîner sur n'importe quel caractère depuis sa fiche, bouton « S'entraîner à tracer »." }); };
+  }
+  startLesson({ title: `笔画 · ${step.n}`, screens, onDone });
+}
+function viewU0() {
+  return `<button class="back" data-go="parcours">${ICON.back}Parcours</button>
+  <section class="unit-head"><div class="uh-hz" lang="zh-CN">${U0.hz}</div><div class="uh-body"><p class="eyebrow">Pour commencer</p><h2>${U0.title}</h2><p class="muted">${U0.sub}</p></div>${seal(U0, unitDone(U0), true)}</section>
+  <ol class="steps">${U0_STEPS.map(s => { const d = isDone(U0, s.k); return `<li><button class="step${d ? " done" : ""}" data-start="u0:${s.k}"><span class="st-ic" lang="zh-CN">${s.ic}</span><span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d">${s.d}</span></span><span class="st-min">${d ? ICON.check : s.min + " min"}</span></button></li>`; }).join("")}</ol>
+  <section class="panel"><p class="eyebrow">Conseils pour écrire</p>
+    <ul class="tips">
+      <li><b>Écris peu, mais de mémoire.</b> 3 à 5 fois en disant le son et le sens, puis le lendemain essaie sans regarder.</li>
+      <li><b>Pense en pièces.</b> 好 = 女 + 子 : quand tu connais les pièces, le caractère se retient tout seul.</li>
+      <li><b>Utilise du papier quadrillé 田字格.</b> Chaque caractère tient dans un carré coupé en quatre.</li>
+      <li><b>Installe un clavier pinyin</b> sur ton téléphone et écris un petit message par jour à tes amis.</li>
+    </ul></section>`;
+}
+
+// ---------- révision des caractères ----------
+function charAdd(c) { if (!S.cw) S.cw = {}; if (!S.cw[c] && STROKES[c]) S.cw[c] = { b: 1, d: Date.now() + DAY }; }
+function charAnswer(c, ok) {
+  const w = S.cw && S.cw[c]; if (!w) return;
+  if (ok) { w.b = Math.min(5, w.b + 1); w.d = Date.now() + INTERVALS[w.b] * DAY; } else { w.b = 1; w.d = Date.now() + 10 * 60000; }
+  save();
+}
+const dueChars = () => Object.keys(S.cw || {}).filter(c => S.cw[c].d <= Date.now() && STROKES[c]).sort((a, b) => S.cw[a].d - S.cw[b].d);
+function charRecogMCQ(c, onAnswer) {
+  const ch = parseChar(c), others = shuffle(CHAR_LIST.filter(x => x !== c)).slice(0, 3);
+  return scrMCQ({ kicker: "Que veut dire ce caractère ?", prompt: `<div class="qp-hz"><span lang="zh-CN">${c}</span></div>${sayBtn(c)}`,
+    options: shuffle([c, ...others]).map(x => ({ html: esc(parseChar(x).f), ok: x === c })), answer: `<span lang="zh-CN">${c}</span> ${py(ch.p, "A1", "show")} · ${esc(ch.f)}`, onAnswer });
+}
+
+// ---------- journée : objectif, Pointage ----------
+function dayLog(kind) {
+  if (!S.days) S.days = {};
+  const t = dayStr(Date.now()), d = S.days[t] || (S.days[t] = { steps: 0, rev: 0 });
+  if (kind === "step") d.steps++; else d.rev = 1;
+  if (kind === "step") pointageTick();
+}
+function todayGoal() {
+  const d = (S.days || {})[dayStr(Date.now())] || { steps: 0, rev: 0 };
+  const due = dueWords().length + dueChars().length;
+  return { step: d.steps > 0, rev: d.rev > 0 || due === 0, due };
+}
+// Coche MANDARIN dans le Pointage (même site : niclaeysthomas-ctrl.github.io)
+function pointageTick() {
+  try {
+    const t = new Date().toISOString().slice(0, 10);
+    if (S.ptLast === t) return;
+    const K = "pointage_v1", raw = localStorage.getItem(K); if (!raw) return;
+    const P = JSON.parse(raw); if (!P || !Array.isArray(P.apps)) return;
+    const a = P.apps.find(x => x.id === "mandarin") || P.apps.find(x => /mandarin/i.test(x.name || "") || /\/mandarin\/?$/.test(x.url || ""));
+    if (!a || a.arch) return;
+    P.st = P.st || {}; const st = P.st[a.id] || (P.st[a.id] = { days: [], min: {} });
+    if (!Array.isArray(st.days)) st.days = [];
+    S.ptLast = t;
+    if (st.days.includes(t)) return;
+    st.days.push(t); st.days.sort();
+    P.chk = P.chk || {}; P.chk[a.id + "|" + t] = { t: Date.now(), v: 1 };
+    localStorage.setItem(K, JSON.stringify(P));
+    setTimeout(() => toast("Séance cochée dans ton Pointage."), 600);
+  } catch (e) {}
+}
+
+// ---------- phrase du jour ----------
+const PHRASES = [
+  ["你好！最近怎么样？", "Nǐ hǎo! Zuìjìn zěnmeyàng?", "Salut ! Comment ça va en ce moment ?", "u1"],
+  ["谢谢你！", "Xièxie nǐ!", "Merci à toi !", "u1"],
+  ["对不起，我来晚了。", "Duìbuqǐ, wǒ lái wǎn le.", "Désolé, je suis en retard.", "u1"],
+  ["很高兴认识你！", "Hěn gāoxìng rènshi nǐ!", "Ravi de te connaître !", "u2"],
+  ["你叫什么名字？", "Nǐ jiào shénme míngzi?", "Comment tu t'appelles ?", "u2"],
+  ["你家有几个人？", "Nǐ jiā yǒu jǐ gè rén?", "Vous êtes combien dans ta famille ?", "u4"],
+  ["我喜欢听音乐，你呢？", "Wǒ xǐhuan tīng yīnyuè, nǐ ne?", "J'aime écouter de la musique, et toi ?", "u5"],
+  ["我们都喜欢看电影！", "Wǒmen dōu xǐhuan kàn diànyǐng!", "On aime tous les films !", "u5"],
+  ["你想吃什么？", "Nǐ xiǎng chī shénme?", "Tu as envie de manger quoi ?", "u6"],
+  ["我饿了！", "Wǒ è le!", "J'ai faim !", "u6"],
+  ["你星期六有空吗？", "Nǐ xīngqīliù yǒu kòng ma?", "Tu es libre samedi ?", "u7"],
+  ["我们一起看电影吧！", "Wǒmen yìqǐ kàn diànyǐng ba!", "Et si on allait voir un film ?", "u7"],
+  ["明天见！", "Míngtiān jiàn!", "À demain !", "u7"],
+  ["你在哪儿？", "Nǐ zài nǎr?", "Tu es où ?", "u8"],
+  ["我现在去！", "Wǒ xiànzài qù!", "J'y vais tout de suite !", "u8"],
+  ["你吃饭了吗？", "Nǐ chī fàn le ma?", "Tu as mangé ?", "u9"],
+  ["今天我很累。", "Jīntiān wǒ hěn lèi.", "Aujourd'hui je suis fatigué.", "u9"],
+  ["今天天气怎么样？", "Jīntiān tiānqì zěnmeyàng?", "Quel temps fait-il aujourd'hui ?", "u10"],
+  ["多喝热水！", "Duō hē rè shuǐ!", "Bois beaucoup d'eau chaude !", "u10"],
+  ["给我发微信吧！", "Gěi wǒ fā Wēixìn ba!", "Envoie-moi un message WeChat !", "u11"],
+  ["我会说一点儿中文。", "Wǒ huì shuō yìdiǎnr Zhōngwén.", "Je parle un peu chinois.", "u11"],
+  ["你去过法国吗？", "Nǐ qùguo Fǎguó ma?", "Tu es déjà allé en France ?", "u12"],
+  ["你想喝茶还是喝咖啡？", "Nǐ xiǎng hē chá háishi hē kāfēi?", "Tu veux du thé ou du café ?", "u13"],
+  ["虽然中文很难，但是很有意思！", "Suīrán Zhōngwén hěn nán, dànshì hěn yǒu yìsi!", "Le chinois a beau être difficile, c'est passionnant !", "u14"],
+  ["我的中文越来越好了！", "Wǒ de Zhōngwén yuèláiyuè hǎo le!", "Mon chinois s'améliore de plus en plus !", "u15"]
+];
+function unlockedPhrases() {
+  return PHRASES.filter(p => { const u = unitById(p[3]); return u && stepsOf(u).some(s => s.words && isDone(u, s.k)); });
+}
+function phraseCard() {
+  const L = unlockedPhrases();
+  if (!L.length) return `<section class="panel phrase"><p class="eyebrow">Phrase du jour pour tes amis</p><p class="muted small">Termine ta première séance de mots pour débloquer des phrases prêtes à envoyer.</p></section>`;
+  const dayN = Math.floor(Date.now() / DAY), p = L[dayN % L.length];
+  return `<section class="panel phrase"><p class="eyebrow">Phrase du jour pour tes amis</p>
+    <p class="ph-hz" lang="zh-CN" id="phraseText">${p[0]}</p>${py(p[1], "A1", "show")}<p class="small muted">${esc(p[2])}</p>
+    <div class="row">${sayBtn(p[0])}<button type="button" class="btn ghost sm" data-copy="${esc(p[0])}">Copier pour WeChat</button></div></section>`;
+}
+function bindPhrase(root) {
+  root.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => {
+    const txt = b.dataset.copy;
+    const fallback = () => { try { const r = document.createRange(); r.selectNodeContents($("#phraseText")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Texte sélectionné : copie-le avec ton appareil."); } catch (e) {} };
+    try { navigator.clipboard.writeText(txt).then(() => toast("Copié. Colle-le dans WeChat !"), fallback); } catch (e) { fallback(); }
+  });
 }
 
 init();
