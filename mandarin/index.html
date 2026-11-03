@@ -478,6 +478,25 @@ body.lesson-open{overflow:hidden}
 .phrase{gap:6px}
 .ph-hz{font-family:var(--f-hz);font-size:1.5rem;line-height:1.35}
 .phrase .row{margin-top:6px}
+
+/* Pratique */
+.step.locked{opacity:.55}
+.step.locked .st-min svg{width:18px;height:18px;color:var(--ink2)}
+.fb-again{display:block;font-weight:500;font-size:.85rem;opacity:.85;margin-top:2px}
+.cloze{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.cz-hz{font-size:1.7rem;line-height:1.5;font-family:var(--f-hz)}
+.gap{display:inline-block;min-width:1.8em;padding:0 .2em;margin:0 .1em;border-bottom:3px solid var(--jade);color:var(--jade);text-align:center}
+.gap.filled{color:var(--good);border-color:var(--good)}
+.reply-q{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;max-width:520px}
+.o-hz.sm{font-size:1.2rem}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.m-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mt{padding:12px 10px;min-height:58px;border-radius:14px;background:var(--surface);border:2px solid var(--line);font-weight:500;text-align:center}
+.mt [lang]{font-size:1.5rem}
+.mt.sel{border-color:var(--jade);background:var(--jade-soft)}
+.mt.ok{border-color:var(--good);background:var(--good-soft);opacity:.6;cursor:default}
+.mt.no{border-color:var(--bad);background:var(--bad-soft);animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* Réglages, toast */
@@ -525,6 +544,10 @@ const SPEAKERS = {
   T: { name: "汤姆", py: "Tāngmǔ", av: "汤", pitch: 1.0, cls: "av-t" }
 };
 
+const STEP_EXTRA = [
+  { k: "gram2", n: "Grammaire 2", ic: "法", min: 4, d: "Une deuxième structure" },
+  { k: "phr", n: "Phrases", ic: "句", min: 6, d: "Comprendre et construire des phrases" }
+];
 const LEVELS = [
   { id: "A1", name: "Premiers pas", desc: "Saluer, te présenter, parler de toi et de tes goûts." },
   { id: "A2", name: "Se débrouiller", desc: "Fixer un rendez-vous, raconter ta journée, garder le contact." },
@@ -561,10 +584,14 @@ const UNITS = [
   pron: { title: "zh, ch, sh, r : la langue recourbée",
     text: "Pour ces quatre sons, recourbe la pointe de la langue vers le haut du palais. <b>zh</b> ≈ « dj », <b>ch</b> ≈ « tch » avec un souffle d'air, <b>sh</b> ≈ « ch », <b>r</b> ≈ le « j » de « jour ». Ils donnent au mandarin du nord sa couleur caractéristique.",
     ex: [["中国","Zhōngguó","Chine"],["是","shì","être"],["人","rén","personne"],["什么","shénme","quoi"],["吃","chī","manger"]] },
-  gram: { title: "Poser une question", patterns: ["Phrase + 吗 ？","Sujet + 叫 + 什么 ？"],
-    text: "Pour une question fermée (oui ou non), on ajoute <b>吗 ma</b> à la fin d'une phrase affirmative. Rien d'autre ne bouge. Pour une question ouverte, on met le mot interrogatif <b>à la place exacte de la réponse</b> : 你叫<b>什么</b>？ → 我叫<b>汤姆</b>。 On n'utilise jamais 吗 avec un mot interrogatif. Et pour renvoyer la question, on dit simplement 你呢？",
-    ex: [["你是法国人吗？","Nǐ shì Fǎguórén ma?","Tu es français ?"],["你叫什么名字？","Nǐ jiào shénme míngzi?","Comment tu t'appelles ?"],["她是哪国人？","Tā shì nǎ guó rén?","De quel pays est-elle ?"],["我叫汤姆，你呢？","Wǒ jiào Tāngmǔ, nǐ ne?","Je m'appelle Tom, et toi ?"]],
-    order: [{ fr: "Comment tu t'appelles ?", t: [["你","nǐ"],["叫","jiào"],["什么","shénme"],["名字","míngzi"]] },{ fr: "Il est chinois ?", t: [["他","tā"],["是","shì"],["中国人","Zhōngguórén"],["吗","ma"]] }] },
+  gram: { title: "Question oui/non : 吗", patterns: ["Phrase + 吗 ？"],
+    text: "Pour poser une question fermée (oui ou non), prends une phrase affirmative et ajoute simplement <b>吗 ma</b> à la fin. Rien d'autre ne bouge : ni l'ordre des mots, ni le verbe. Pour répondre, il n'y a pas de « oui » universel : on <b>répète le verbe</b>. 是 « oui (c'est ça) », 不是 « non ».",
+    ex: [["你是法国人。","Nǐ shì Fǎguórén.","Tu es français."],["你是法国人吗？","Nǐ shì Fǎguórén ma?","Tu es français ?"],["是，我是法国人。","Shì, wǒ shì Fǎguórén.","Oui, je suis français."],["他是中国人吗？","Tā shì Zhōngguórén ma?","Il est chinois ?"],["不是，他是法国人。","Bú shì, tā shì Fǎguórén.","Non, il est français."],["你很高兴吗？","Nǐ hěn gāoxìng ma?","Tu es content ?"]],
+    order: [{ fr: "Il est chinois ?", t: [["他","tā"],["是","shì"],["中国人","Zhōngguórén"],["吗","ma"]] },{ fr: "Tu es français ?", t: [["你","nǐ"],["是","shì"],["法国人","Fǎguórén"],["吗","ma"]] },{ fr: "Non, elle est chinoise.", t: [["不是","bú shì"],["她","tā"],["是","shì"],["中国人","Zhōngguórén"]] }] },
+  gram2: { title: "Qui, quoi, lequel ? et 呢", patterns: ["Sujet + 叫 + 什么 + 名字 ？","Sujet + 是 + 哪国人 ？","…，你呢 ？"],
+    text: "Pour une question ouverte, le chinois ne déplace rien : on met le mot interrogatif <b>à la place exacte de la réponse</b>. 你叫<b>什么</b>名字？ → 我叫<b>汤姆</b>。 她是<b>哪</b>国人？ → 她是<b>中国</b>人。 Avec un mot interrogatif, on n'ajoute <b>jamais</b> 吗. Enfin, pour renvoyer la question, inutile de tout répéter : <b>你呢？</b> « et toi ? ».",
+    ex: [["你叫什么名字？","Nǐ jiào shénme míngzi?","Comment tu t'appelles ?"],["我叫汤姆。","Wǒ jiào Tāngmǔ.","Je m'appelle Tom."],["她是哪国人？","Tā shì nǎ guó rén?","De quel pays est-elle ?"],["她是中国人。","Tā shì Zhōngguórén.","Elle est chinoise."],["我叫王芳，你呢？","Wǒ jiào Wáng Fāng, nǐ ne?","Je m'appelle Wang Fang, et toi ?"],["他叫什么名字？","Tā jiào shénme míngzi?","Comment s'appelle-t-il ?"]],
+    order: [{ fr: "Comment tu t'appelles ?", t: [["你","nǐ"],["叫","jiào"],["什么","shénme"],["名字","míngzi"]] },{ fr: "De quel pays est-il ?", t: [["他","tā"],["是","shì"],["哪国人","nǎ guó rén"]] },{ fr: "Je suis français, et toi ?", t: [["我","wǒ"],["是","shì"],["法国人","Fǎguórén"],["你呢","nǐ ne"]] }] },
   dlg: { title: "À une soirée", lines: [
     ["W","你好！你叫什么名字？","Nǐ hǎo! Nǐ jiào shénme míngzi?","Salut ! Comment tu t'appelles ?"],
     ["T","我叫汤姆。你呢？","Wǒ jiào Tāngmǔ. Nǐ ne?","Je m'appelle Tom. Et toi ?"],
@@ -1216,8 +1243,9 @@ function stepsOf(u) {
   if (u.special) return U0_STEPS;
   if (_steps[u.id]) return _steps[u.id];
   const ch = chunksOf(u);
-  const mots = ch.map((ws, i) => ({ k: "mots" + (i + 1), n: ch.length > 1 ? `Mots ${i + 1}/${ch.length}` : "Mots", ic: "字", min: 4, d: ws.map(w => w[0]).join(" · "), words: ws }));
-  return (_steps[u.id] = [STEPS[0], ...mots, ...STEPS.slice(1)]);
+  const mots = ch.map((ws, i) => ({ k: "mots" + (i + 1), n: ch.length > 1 ? `Mots ${i + 1}/${ch.length}` : "Mots", ic: "字", min: 7, d: ws.map(w => w[0]).join(" · "), words: ws }));
+  const by = k => STEPS.find(x => x.k === k);
+  return (_steps[u.id] = [by("sons"), ...mots, by("gram"), ...(u.gram2 ? [STEP_EXTRA[0]] : []), STEP_EXTRA[1], by("dlg"), by("cult"), by("defi")]);
 }
 const INTERVALS = [0, 1, 3, 7, 16, 35]; // jours par boîte
 
@@ -1384,6 +1412,7 @@ const ICON = {
   back: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
   flame: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2.3 1.2-3.8 2.4-5 .2 1.6.9 2.6 1.9 3.1C11 8.8 11.2 5.6 12 3z" fill="currentColor"/></svg>'
 };
 
@@ -1508,11 +1537,11 @@ function viewUnit(u) {
     ${seal(u, unitDone(u), true)}
   </section>
   <ol class="steps">${stepsOf(u).map((s, si) => {
-    const d = isDone(u, s.k);
-    return `<li><button class="step${d ? " done" : ""}" data-start="${u.id}:${s.k}">
+    const d = isDone(u, s.k), lk = stepLocked(u, si);
+    return `<li><button class="step${d ? " done" : ""}${lk ? " locked" : ""}" data-start="${u.id}:${s.k}"${lk ? ' data-locked="1"' : ""}>
       <span class="st-ic" lang="zh-CN">${s.words ? s.words[0][0][0] : s.ic}</span>
-      <span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d"${s.words ? ' lang="zh-CN"' : ""}>${s.words ? s.d : s.k === "sons" ? esc(u.pron.title) : s.k === "gram" ? esc(u.gram.title) : s.k === "dlg" ? esc(u.dlg.title) : s.k === "cult" ? esc(u.cult.title) : s.d}</span></span>
-      <span class="st-min">${d ? ICON.check : s.min + " min"}</span>
+      <span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d"${s.words ? ' lang="zh-CN"' : ""}>${s.words ? s.d : s.k === "sons" ? esc(u.pron.title) : s.k === "gram" ? esc(u.gram.title) : s.k === "gram2" ? esc(u.gram2.title) : s.k === "dlg" ? esc(u.dlg.title) : s.k === "cult" ? esc(u.cult.title) : s.d}</span></span>
+      <span class="st-min">${d ? ICON.check : lk ? ICON.lock : s.min + " min"}</span>
     </button></li>`;
   }).join("")}</ol>
   <section class="panel">
@@ -1651,7 +1680,10 @@ function viewGram() {
     <details class="gcard">
       <summary><span class="g-hz" lang="zh-CN">${u.hz}</span><span class="g-t"><span class="g-title">${esc(u.gram.title)}</span><span class="small muted">Unité ${UNITS.indexOf(u) + 1} · ${esc(u.title)}</span></span>${isDone(u, "gram") ? `<span class="okmark">${ICON.check}</span>` : ""}</summary>
       <div class="g-body">${u.gram.patterns.map(patternHTML).join("")}<p>${u.gram.text}</p>${exList(u.gram.ex, u.lvl)}<button class="btn ghost" data-start="${u.id}:gram">S'entraîner</button></div>
-    </details>`).join("")}</div>`).join("")}`;
+    </details>${u.gram2 ? `<details class="gcard">
+      <summary><span class="g-hz" lang="zh-CN">${u.hz}</span><span class="g-t"><span class="g-title">${esc(u.gram2.title)}</span><span class="small muted">Unité ${UNITS.indexOf(u) + 1} · ${esc(u.title)} · 2</span></span>${isDone(u, "gram2") ? `<span class="okmark">${ICON.check}</span>` : ""}</summary>
+      <div class="g-body">${u.gram2.patterns.map(patternHTML).join("")}<p>${u.gram2.text}</p>${exList(u.gram2.ex, u.lvl)}<button class="btn ghost" data-start="${u.id}:gram2">S'entraîner</button></div>
+    </details>` : ""}`).join("")}</div>`).join("")}`;
 }
 
 // ---------- onglet Culture ----------
@@ -1672,7 +1704,10 @@ function bindMain() {
   const m = $("#main");
   m.querySelectorAll("[data-unit]").forEach(b => b.onclick = () => go("parcours", b.dataset.unit));
   m.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
-  m.querySelectorAll("[data-start]").forEach(b => b.onclick = () => { const [id, k] = b.dataset.start.split(":"); startStep(unitById(id), k); });
+  m.querySelectorAll("[data-start]").forEach(b => b.onclick = () => {
+    if (b.dataset.locked) { toast("Termine d'abord l'étape précédente : chaque étape prépare la suivante."); return; }
+    const [id, k] = b.dataset.start.split(":"); startStep(unitById(id), k);
+  });
   m.querySelectorAll("[data-review]").forEach(b => b.onclick = startReview);
   bindPhrase(m);
   m.querySelectorAll("[data-mview]").forEach(b => b.onclick = () => { motsView = b.dataset.mview; render(); });
@@ -1697,7 +1732,12 @@ const api = {
   unlock() { $("#lNext").disabled = false; },
   setNext(label, fn) { $("#lNext").textContent = label; L.handler = fn || null; },
   result(ok, msg) {
-    L.total++; if (ok) L.score++;
+    const cur = L.screens[L.i];
+    if (!cur.isRedo && !cur.noScore) { L.total++; if (ok) L.score++; }
+    if (!ok && cur.make && (cur.tries || 0) < 2) {
+      const again = cur.make(); again.make = cur.make; again.tries = (cur.tries || 0) + 1; again.isRedo = true; again.noScore = cur.noScore;
+      L.screens.push(again); msg += `<span class="fb-again">Cette question reviendra à la fin de la séance.</span>`;
+    }
     const f = $("#lFeedback"); f.className = "l-fb " + (ok ? "good" : "bad"); f.innerHTML = msg; f.hidden = false;
     L.handler = null; $("#lNext").textContent = "Continuer"; $("#lNext").disabled = false; $("#lNext").focus({ preventScroll: true });
   }
@@ -1707,6 +1747,7 @@ function renderScreen() {
   const f = $("#lFeedback"); f.hidden = true; f.className = "l-fb";
   $("#lNext").disabled = false; $("#lNext").textContent = "Continuer"; L.handler = null;
   $("#lProg").style.width = (100 * L.i / (L.screens.length + 1)) + "%";
+  const cs = L.screens[L.i]; $("#lTitle").textContent = L.title + (cs.isRedo ? " · reprise" : "");
   L.screens[L.i](body, api);
 }
 function nextScreen() {
@@ -1783,6 +1824,7 @@ function wordMCQ(w, type, opt = {}) {
     options = shuffle([w.p, ...vars]).map(p => ({ html: py(p, "A1", "show"), ok: p === w.p }));
     auto = true;
   }
+  if (opt.kicker) kicker = opt.kicker + " · " + kicker;
   return scrMCQ({ kicker, prompt, options, auto: auto ? w.tts : null, answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}`, onAnswer: ok => opt.onAnswer && opt.onAnswer(ok) });
 }
 function scrMCQ(q) {
@@ -1825,8 +1867,8 @@ function scrOrder(item, lvl) {
     let checked = false;
     api.setNext("Vérifier", () => {
       checked = true;
-      const got = placed.map(t => t.i).join();
-      const ok = answers.some(a => a.join() === got);
+      const got = placed.map(t => t.h).join("|");
+      const ok = answers.some(a => a.map(i => item.t[i][0]).join("|") === got);
       $(".answer", el).classList.add(ok ? "right" : "wrong");
       const sentence = item.t.map(t => t[0]).join("");
       speak(sentence);
@@ -1884,50 +1926,33 @@ function startStep(u, k) {
     screens.push(scrInfo(`<p class="q-kicker">Prononciation</p><h2 class="l-h">${esc(p.title)}</h2><p>${p.text}</p>
       <div class="pron-ex">${p.ex.map(e => `<button class="pex" data-say="${esc(e[3] || e[0])}"><span class="pex-hz" lang="zh-CN">${e[0]}</span>${py(e[1], "A1", "show")}<span class="small muted">${esc(e[2])}</span></button>`).join("")}</div>
       <p class="muted small">Touche chaque exemple, écoute, puis répète à voix haute. C'est en le disant que ça rentre.</p>`));
-    shuffle(p.ex).slice(0, 2).forEach(e => {
+    shuffle(p.ex).slice(0, 5).forEach(e => screens.push(rq(() => {
       const others = shuffle(p.ex.filter(x => x !== e).map(x => x[1]));
       const opts = shuffle([e[1], ...tonedVariants(e[1], 1), ...others].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4));
       if (!opts.includes(e[1])) opts[0] = e[1];
-      screens.push(scrMCQ({ kicker: "Écoute : quel pinyin entends-tu ?", prompt: `<button class="big-say" data-say="${esc(e[3] || e[0])}" aria-label="Réécouter">${ICON.sound}</button>`,
-        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: e[3] || e[0], answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` }));
-    });
-    onDone = () => sealIfComplete(done({ title: "Oreille affûtée", text: "Pense à répéter les exemples à voix haute, même seul." }));
+      return scrMCQ({ kicker: "Écoute : quel pinyin entends-tu ?", prompt: `<button class="big-say" data-say="${esc(e[3] || e[0])}" aria-label="Réécouter">${ICON.sound}</button>`,
+        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: e[3] || e[0], answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` });
+    })));
+    onDone = (sc, tot) => gate(sc, tot, () => sealIfComplete(done({ title: "Oreille affûtée", text: "Pense à répéter les exemples à voix haute, même seul." })));
   }
 
   if (step.words) {
-    const ws = step.words.map(w => WMAP[w[0]]);
-    const newChars = [];
-    ws.forEach((w, i) => {
-      const fresh = [...new Set([...w.h])].filter(c => CHARS[c] && CHAR_FIRST[c] && CHAR_FIRST[c].word === w.h);
-      if (w.h.length === 1 && fresh.length) {
-        screens.push(scrWordIntro(w, u.lvl, i + 1, ws.length));
-        screens.push(scrCharIntro(w.h));
-      } else {
-        screens.push(scrWordIntro(w, u.lvl, i + 1, ws.length));
-        fresh.forEach(c => screens.push(scrCharIntro(c, w.h)));
-      }
-      newChars.push(...fresh);
-    });
-    const qs = shuffle(ws);
-    const bc = shuffle(newChars.filter(buildable));
-    const tc = newChars.filter(c => STROKES[c] && STROKES[c][0].length <= 10).sort((a, b) => STROKES[a][0].length - STROKES[b][0].length);
-    screens.push(wordMCQ(qs[0], "au2f"));
-    screens.push(scrType(qs[1 % qs.length]));
-    if (tc.length) screens.push(scrTrace(tc[0], { guide: true }));
-    else screens.push(wordMCQ(qs[2 % qs.length], "f2hz"));
-    if (bc.length) screens.push(buildMCQ(bc[0], newChars));
-    else if (qs.length > 2) screens.push(wordMCQ(qs[2], "hz2f"));
-    onDone = () => {
-      ws.forEach(w => srsAdd(w.h)); newChars.forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); });
-      return sealIfComplete(done({ title: `${ws.length} mots, ${newChars.length} caractère${newChars.length > 1 ? "s" : ""}`, text: "Ils reviendront dans tes révisions demain. Retrouve les fiches dans l'onglet Mots, rubrique Caractères." }));
+    const W = buildWordSession(u, step);
+    screens = W.screens;
+    onDone = (sc, tot) => {
+      const g = W.onDone(sc, tot); if (g) return g;
+      return sealIfComplete(done({ title: `${W.words.length} mots, ${W.newChars.length} caractère${W.newChars.length > 1 ? "s" : ""}`, text: "Ils reviendront dans tes échauffements et tes révisions. Retrouve les fiches dans l'onglet Mots, rubrique Caractères." }));
     };
   }
 
-  if (k === "gram") {
-    const g = u.gram;
-    screens.push(scrInfo(`<p class="q-kicker">Grammaire</p><h2 class="l-h">${esc(g.title)}</h2>${g.patterns.map(patternHTML).join("")}<p>${g.text}</p>${exList(g.ex, u.lvl)}`));
-    g.order.forEach(o => screens.push(scrOrder(o, u.lvl)));
-    onDone = () => sealIfComplete(done({ title: "Structure en poche", text: "Essaie de fabriquer une phrase à toi avec cette structure et envoie-la à un ami." }));
+  if (k === "gram" || k === "gram2") {
+    screens = buildGramSession(u, k === "gram" ? u.gram : u.gram2);
+    onDone = (sc, tot) => gate(sc, tot, () => sealIfComplete(done({ title: "Structure en poche", text: "Essaie de fabriquer une phrase à toi avec cette structure et envoie-la à un ami." })));
+  }
+
+  if (k === "phr") {
+    screens = buildPhraseSession(u);
+    onDone = (sc, tot) => gate(sc, tot, () => sealIfComplete(done({ title: "Phrases maîtrisées", text: "Tu comprends et tu construis les phrases de l'unité. Le dialogue complet t'attend." })));
   }
 
   if (k === "dlg") {
@@ -2473,15 +2498,16 @@ function startU0Step(k) {
   }
   if (k === "tracer") {
     screens.push(scrInfo(`<p class="q-kicker">Écrire · 3</p><h2 class="l-h">À toi de tracer</h2><p>Trace chaque trait <b>d'un seul geste</b>, au doigt ou à la souris, dans le bon ordre et dans le bon sens. L'application vérifie chaque trait.</p><p class="muted small">Si tu bloques, le bouton Aide montre où commencer. Le modèle gris est là pour t'aider : repasse dessus.</p>`));
-    ["一", "二", "十", "人", "大", "中"].forEach(c => screens.push(scrTrace(c, { guide: true })));
+    ["一", "二", "十", "人", "大", "中"].forEach(c => screens.push(rq(() => scrTrace(c, { guide: true }))));
     onDone = () => { ["一", "二", "十", "人", "大", "中"].forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); }); return done({ title: "Premiers caractères tracés", text: "Tu peux t'entraîner sur n'importe quel caractère depuis sa fiche, bouton « S'entraîner à tracer »." }); };
   }
+  const od = onDone; onDone = (sc, tot) => gate(sc, tot, () => od(sc, tot));
   startLesson({ title: `笔画 · ${step.n}`, screens, onDone });
 }
 function viewU0() {
   return `<button class="back" data-go="parcours">${ICON.back}Parcours</button>
   <section class="unit-head"><div class="uh-hz" lang="zh-CN">${U0.hz}</div><div class="uh-body"><p class="eyebrow">Pour commencer</p><h2>${U0.title}</h2><p class="muted">${U0.sub}</p></div>${seal(U0, unitDone(U0), true)}</section>
-  <ol class="steps">${U0_STEPS.map(s => { const d = isDone(U0, s.k); return `<li><button class="step${d ? " done" : ""}" data-start="u0:${s.k}"><span class="st-ic" lang="zh-CN">${s.ic}</span><span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d">${s.d}</span></span><span class="st-min">${d ? ICON.check : s.min + " min"}</span></button></li>`; }).join("")}</ol>
+  <ol class="steps">${U0_STEPS.map((s, si) => { const d = isDone(U0, s.k), lk = stepLocked(U0, si); return `<li><button class="step${d ? " done" : ""}${lk ? " locked" : ""}" data-start="u0:${s.k}"${lk ? ' data-locked="1"' : ""}><span class="st-ic" lang="zh-CN">${s.ic}</span><span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d">${s.d}</span></span><span class="st-min">${d ? ICON.check : lk ? ICON.lock : s.min + " min"}</span></button></li>`; }).join("")}</ol>
   <section class="panel"><p class="eyebrow">Conseils pour écrire</p>
     <ul class="tips">
       <li><b>Écris peu, mais de mémoire.</b> 3 à 5 fois en disant le son et le sens, puis le lendemain essaie sans regarder.</li>
@@ -2582,6 +2608,231 @@ function bindPhrase(root) {
     const fallback = () => { try { const r = document.createRange(); r.selectNodeContents($("#phraseText")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast("Texte sélectionné : copie-le avec ton appareil."); } catch (e) {} };
     try { navigator.clipboard.writeText(txt).then(() => toast("Copié. Colle-le dans WeChat !"), fallback); } catch (e) { fallback(); }
   });
+}
+
+// ===== Pratique : phrases, nouveaux exercices, séances enrichies, maîtrise =====
+const rq = factory => { const s = factory(); s.make = factory; return s; };
+const warm = factory => { const s = rq(factory); s.noScore = true; return s; };
+const MASTERY = 0.8;
+
+// ---------- banque de phrases ----------
+const WORDSET = new Set(ALLW.filter(w => !/…/.test(w.h)).map(w => w.h));
+function sylls(pinyin) {
+  const out = []; (pinyin.match(LETTERS) || []).forEach(m => { const s = splitWord(m); if (s) out.push(...s); else out.push(m); });
+  return out;
+}
+function tokenize(hz, pinyin) {
+  const chars = [...hz].filter(c => /[一-鿿]/.test(c));
+  const sy = sylls(pinyin);
+  // 儿 final (哪儿 nǎr) : une seule syllabe pour deux caractères
+  const units = []; chars.forEach((c, i) => { if (c === "儿" && i > 0 && /r$/.test(baseOf(sy[units.length - 1] || ""))) units[units.length - 1].c += c; else units.push({ c }); });
+  if (units.length !== sy.length) return null;
+  units.forEach((u, i) => (u.p = sy[i]));
+  const toks = []; let i = 0;
+  while (i < units.length) {
+    let len = Math.min(4, units.length - i);
+    for (; len > 1; len--) if (WORDSET.has(units.slice(i, i + len).map(u => u.c).join(""))) break;
+    const part = units.slice(i, i + len);
+    toks.push([part.map(u => u.c).join(""), part.map(u => u.p).join("")]);
+    i += len;
+  }
+  // les noms propres et mots composés de la phrase restent groupés s'ils viennent du pinyin (ex. Zhōngguórén)
+  return toks;
+}
+const cleanFr = f => f.replace(/\([^)]*\)\s*/g, "").trim();
+const SENT = [];
+UNITS.forEach((u, ui) => {
+  const add = (hz, p, fr, src) => { if (SENT.some(x => x.hz === hz)) return; SENT.push({ hz, p, fr: cleanFr(fr), ui, u: u.id, src, toks: tokenize(hz, p) }); };
+  u.gram.ex.forEach(e => add(e[0], e[1], e[2], "gram"));
+  (u.gram2 ? u.gram2.ex : []).forEach(e => add(e[0], e[1], e[2], "gram2"));
+  u.dlg.lines.forEach(l => add(l[1], l[2], l[3], "dlg"));
+});
+const knownUpTo = ui => SENT.filter(s => s.ui <= ui);
+function sentencesWith(word, ui) {
+  return knownUpTo(ui).filter(s => s.hz.includes(word) && s.toks && s.toks.length >= 3 && s.toks.some(t => t[0] === word)).sort((a, b) => a.hz.length - b.hz.length);
+}
+function orderItem(s) {
+  if (!s.toks || s.toks.length < 3 || s.toks.length > 7) return null;
+  return { fr: s.fr, t: s.toks };
+}
+
+// ---------- exercices ----------
+// Phrase à trous : un mot manque
+function scrCloze(s, word, pool, lvl) {
+  return (el, api) => {
+    const idx = s.toks.findIndex(t => t[0] === word);
+    const opts = shuffle([word, ...shuffle(pool.filter(x => x !== word && !s.hz.includes(x))).slice(0, 3)]);
+    // on garde la ponctuation de la phrase d'origine
+    let before = 0; for (let i = 0; i < idx; i++) before += s.toks[i][0].length;
+    let pos = -1, seen = 0; for (let i = 0; i < s.hz.length; i++) { if (/[\u4e00-\u9fff]/.test(s.hz[i])) { if (seen === before) { pos = i; break; } seen++; } }
+    const line = pos >= 0 ? `<span lang="zh-CN">${esc(s.hz.slice(0, pos))}</span><span class="gap">？</span><span lang="zh-CN">${esc(s.hz.slice(pos + word.length))}</span>`
+      : s.toks.map((t, i) => i === idx ? `<span class="gap">？</span>` : `<span lang="zh-CN">${t[0]}</span>`).join("");
+    const sy = sylls(s.toks[idx][1]).map(x => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+    let skip = 0; for (let i = 0; i < idx; i++) if (s.toks[i][1].toLowerCase() === s.toks[idx][1].toLowerCase()) skip++;
+    let pyLine = null;
+    try { let n = 0; pyLine = s.p.replace(new RegExp("(?<![A-Za-züÜāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜĀÁǍÀĒÉĚÈŌÓǑÒ])" + sy.join("['\\s]?") + "(?![a-züāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ])", "gi"), m => (n++ === skip ? "___" : m)); if (!pyLine.includes("___")) pyLine = null; } catch (e) {}
+    if (!pyLine) pyLine = s.toks.map((t, i) => i === idx ? "___" : t[1]).join(" ");
+    el.innerHTML = `<p class="q-kicker">Complète la phrase</p>
+      <div class="cloze"><p class="cz-hz">${line}</p>${py(pyLine, lvl)}<p class="small muted">« ${esc(s.fr)} »</p></div>
+      <div class="opts">${opts.map((o, i) => { const w = WMAP[o]; return `<button class="opt" data-i="${i}"><span lang="zh-CN" class="o-hz">${o}</span>${w ? py(w.p, lvl) : ""}</button>`; }).join("")}</div>`;
+    api.lock(); let done = false;
+    el.querySelectorAll(".opt").forEach(b => b.onclick = e => {
+      if (e.target.closest(".py.m-veil") || done) return; done = true;
+      const o = opts[+b.dataset.i], ok = o === word;
+      el.querySelectorAll(".opt").forEach((x, i) => { x.disabled = true; if (opts[i] === word) x.classList.add("right"); });
+      if (!ok) b.classList.add("wrong");
+      el.querySelector(".gap").outerHTML = `<span lang="zh-CN" class="gap filled">${word}</span>`;
+      speak(s.hz);
+      api.result(ok, ok ? `Exact ! <span lang="zh-CN">${s.hz}</span>` : `Il fallait <span lang="zh-CN">${word}</span> : <span lang="zh-CN">${s.hz}</span>`);
+    });
+  };
+}
+// Compréhension orale d'une phrase
+function scrListen(s, others) {
+  const opts = shuffle([s, ...shuffle(others.filter(x => x.fr !== s.fr)).slice(0, 2)]);
+  return scrMCQ({ kicker: "Écoute : que veut dire cette phrase ?", prompt: `<button class="big-say" data-say="${esc(s.hz)}" aria-label="Réécouter">${ICON.sound}</button><p class="small muted">Touche pour réécouter, autant que tu veux.</p>`,
+    options: opts.map(x => ({ html: esc(x.fr), ok: x === s })), auto: s.hz,
+    answer: `<span lang="zh-CN">${s.hz}</span> · ${esc(s.fr)}` });
+}
+// Que répondre ? (suite logique d'un dialogue)
+function scrReply(u, i) {
+  const L = u.dlg.lines, a = L[i], b = L[i + 1];
+  const others = shuffle(L.filter((x, j) => j !== i && j !== i + 1 && x[1] !== b[1])).slice(0, 2);
+  const sp = SPEAKERS[a[0]];
+  return scrMCQ({ kicker: "Que répondre ?", prompt: `<div class="reply-q"><span class="av ${sp.cls}" lang="zh-CN">${sp.av}</span><div class="bubble"><span class="who">${sp.name}</span><button class="l-hz" lang="zh-CN" data-say="${esc(a[1])}" data-pitch="${sp.pitch}">${a[1]}</button>${py(a[2], u.lvl)}</div></div>`,
+    options: shuffle([b, ...others]).map(x => ({ html: `<span lang="zh-CN" class="o-hz sm">${x[1]}</span>${py(x[2], u.lvl)}`, ok: x === b, say: x[1] })),
+    auto: a[1], answer: `<span lang="zh-CN">${b[1]}</span> · ${esc(cleanFr(b[3]))}` });
+}
+// Associer les paires
+function scrMatch(ws) {
+  return (el, api) => {
+    const left = shuffle(ws), right = shuffle(ws);
+    el.innerHTML = `<p class="q-kicker">Associe chaque mot à son sens</p>
+      <div class="match"><div class="m-col">${left.map(w => `<button type="button" class="mt" data-k="${esc(w.h)}" data-side="l"><span lang="zh-CN">${w.h}</span></button>`).join("")}</div>
+      <div class="m-col">${right.map(w => `<button type="button" class="mt" data-k="${esc(w.h)}" data-side="r">${esc(w.f)}</button>`).join("")}</div></div>`;
+    api.lock(); let sel = null, miss = 0, found = 0;
+    el.querySelectorAll(".mt").forEach(b => b.onclick = () => {
+      if (b.classList.contains("ok")) return;
+      if (b.dataset.side === "l") speak(WMAP[b.dataset.k]?.tts || b.dataset.k);
+      if (!sel || sel.dataset.side === b.dataset.side) { el.querySelectorAll(".mt.sel").forEach(x => x.classList.remove("sel")); sel = b; b.classList.add("sel"); return; }
+      if (sel.dataset.k === b.dataset.k) { sel.classList.remove("sel"); sel.classList.add("ok"); b.classList.add("ok"); found++; sel = null;
+        if (found === ws.length) { const ok = miss <= 1; api.result(ok, ok ? (miss ? "Bien joué, une seule erreur !" : "Parfait, sans faute !") : `Terminé avec ${miss} erreurs : ces mots reviendront vite.`); }
+      } else { miss++; const a = sel; a.classList.add("no"); b.classList.add("no"); setTimeout(() => { a.classList.remove("no", "sel"); b.classList.remove("no"); }, 450); sel = null; }
+    });
+  };
+}
+// Mini-cloze de grammaire : la particule ou le mot-outil manque
+const GRAM_FILLERS = ["是", "不", "吗", "呢", "也", "很", "的", "了", "都", "在", "有", "没", "过", "比", "要", "想", "会", "吧"];
+function gramKeys(g) {
+  const keys = new Set();
+  g.patterns.forEach(p => (p.match(/[一-鿿]+/g) || []).forEach(k => keys.add(k)));
+  return [...keys];
+}
+function gramClozes(g, ui) {
+  const keys = gramKeys(g), out = [];
+  g.ex.forEach(e => {
+    const s = SENT.find(x => x.hz === e[0]); if (!s || !s.toks || s.toks.length < 3) return;
+    const k = keys.find(k => s.toks.some(t => t[0] === k)) || GRAM_FILLERS.find(k => s.toks.some(t => t[0] === k));
+    if (k) out.push([s, k]);
+  });
+  const known = x => !WMAP[x] || WMAP[x].ui <= ui;
+  const pool = [...new Set([...keys, ...GRAM_FILLERS.filter(x => WMAP[x] && WMAP[x].ui <= ui), ...ALLW.filter(x => x.ui <= ui && x.h.length === 1).map(x => x.h)])].filter(known);
+  return out.map(([s, k]) => () => scrCloze(s, k, pool, unitById(s.u).lvl));
+}
+
+// ---------- échauffement ----------
+function warmupScreens(exclude = []) {
+  const pool = Object.keys(S.words).filter(h => WMAP[h] && !exclude.includes(h));
+  if (pool.length < 2) return [];
+  const due = dueWords().filter(h => pool.includes(h));
+  const picks = [...due, ...shuffle(pool.filter(h => !due.includes(h)))].slice(0, 3);
+  const types = ["au2f", "f2hz", "hz2f"];
+  const scr = picks.map((h, i) => warm(() => wordMCQ(WMAP[h], types[i % 3], { kicker: "Échauffement", onAnswer: ok => srsAnswer(h, ok) })));
+  return scr;
+}
+
+// ---------- séances ----------
+function gate(score, total, pass) {
+  if (total && score / total < MASTERY) {
+    const pct = Math.round(100 * score / total);
+    return { ok: false, title: "Encore une fois", text: `${pct} % de bonnes réponses du premier coup. Il en faut 80 % pour valider l'étape : refais-la, elle sera bien plus facile la deuxième fois.` };
+  }
+  return pass();
+}
+function buildWordSession(u, step) {
+  const ui = UNITS.indexOf(u), ws = step.words.map(w => WMAP[w[0]]);
+  const screens = [...warmupScreens(ws.map(w => w.h))];
+  const newChars = [];
+  // 1. découvrir, puis vérifier tout de suite
+  ws.forEach((w, i) => {
+    const fresh = [...new Set([...w.h])].filter(c => CHARS[c] && CHAR_FIRST[c] && CHAR_FIRST[c].word === w.h);
+    screens.push(scrWordIntro(w, u.lvl, i + 1, ws.length));
+    fresh.forEach(c => screens.push(scrCharIntro(c, w.h.length > 1 ? w.h : "")));
+    newChars.push(...fresh);
+    const pool = ALLW.filter(x => x.ui <= ui && x.h !== w.h);
+    if (i > 0 || pool.length >= 2) screens.push(rq(() => wordMCQ(w, i % 2 ? "au2f" : "hz2f")));
+  });
+  // 2. pratique mélangée
+  const practice = [];
+  const mates = ws.length >= 4 ? ws : ws.concat(shuffle(Object.keys(S.words).map(h => WMAP[h]).filter(x => x && !ws.includes(x) && !/…/.test(x.h)))).slice(0, 4);
+  if (mates.length >= 3) practice.push(rq(() => scrMatch(mates.slice(0, 4))));
+  ws.forEach((w, i) => practice.push(rq(() => wordMCQ(w, i % 2 ? "f2hz" : "au2f"))));
+  shuffle(ws).slice(0, Math.min(2, ws.length)).forEach(w => practice.push(rq(() => scrType(w))));
+  const tc = newChars.filter(c => STROKES[c] && STROKES[c][0].length <= 10).sort((a, b) => STROKES[a][0].length - STROKES[b][0].length);
+  if (tc.length) practice.push(rq(() => scrTrace(tc[0], { guide: true })));
+  const bc = shuffle(newChars.filter(buildable));
+  if (bc.length) practice.push(rq(() => buildMCQ(bc[0], newChars)));
+  const wordPool = [...new Set([...ws.map(w => w.h), ...ALLW.filter(x => x.ui <= ui && !/…/.test(x.h)).map(x => x.h)])];
+  let cz = 0;
+  shuffle(ws).forEach(w => { if (cz >= 2) return; const s = sentencesWith(w.h, ui)[0]; if (s) { practice.push(rq(() => scrCloze(s, w.h, wordPool, u.lvl))); cz++; } });
+  // ordre : match d'abord, le reste mélangé
+  const first = practice[0] && mates.length >= 3 ? [practice.shift()] : [];
+  screens.push(...first, ...shuffle(practice));
+  const onDone = (score, total) => {
+    ws.forEach(w => srsAdd(w.h)); newChars.forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); }); save();
+    return gate(score, total, () => null);
+  };
+  return { screens, onDone, words: ws, newChars };
+}
+function buildGramSession(u, g) {
+  const ui = UNITS.indexOf(u);
+  const screens = [...warmupScreens()];
+  screens.push(scrInfo(`<p class="q-kicker">Grammaire</p><h2 class="l-h">${esc(g.title)}</h2>${g.patterns.map(patternHTML).join("")}<p>${g.text}</p>${exList(g.ex, u.lvl)}<p class="muted small">Touche chaque exemple pour l'écouter, puis répète-le à voix haute.</p>`));
+  const cl = shuffle(gramClozes(g, ui)).slice(0, 3);
+  const ord = g.order.map(o => () => scrOrder(o, u.lvl));
+  const extra = g.ex.map(e => SENT.find(x => x.hz === e[0])).filter(Boolean).map(orderItem).filter(Boolean)
+    .filter(it => !g.order.some(o => o.t.map(t => t[0]).join("") === it.t.map(t => t[0]).join(""))).slice(0, 2).map(it => () => scrOrder(it, u.lvl));
+  const lis = g.ex.map(e => SENT.find(x => x.hz === e[0])).filter(Boolean);
+  const listen = shuffle(lis).slice(0, 2).map(s => () => scrListen(s, knownUpTo(ui)));
+  // d'abord reconnaître (écoute, trous), puis produire (ordre)
+  [...shuffle([...listen, ...cl]), ...ord, ...extra].forEach(f => screens.push(rq(f)));
+  return screens;
+}
+function buildPhraseSession(u) {
+  const ui = UNITS.indexOf(u);
+  const mine = SENT.filter(s => s.u === u.id && s.src === "dlg" && s.toks);
+  const others = knownUpTo(ui);
+  const screens = [...warmupScreens()];
+  screens.push(scrInfo(`<p class="q-kicker">Phrases</p><h2 class="l-h">Des mots aux phrases</h2><p>On assemble maintenant ce que tu connais en vraies phrases, celles de la scène « ${esc(u.dlg.title)} ». D'abord comprendre, puis compléter, puis construire toi-même.</p><p class="muted small">Écoute chaque phrase plusieurs fois et répète-la à voix haute : c'est le meilleur entraînement.</p>`));
+  const list = [];
+  shuffle(mine).slice(0, 3).forEach(s => list.push(["L", () => scrListen(s, others)]));
+  const replies = []; u.dlg.lines.forEach((l, i) => { if (i < u.dlg.lines.length - 1 && u.dlg.lines[i + 1][0] !== l[0]) replies.push(i); });
+  shuffle(replies).slice(0, 2).forEach(i => list.push(["R", () => scrReply(u, i)]));
+  const uw = u.words.map(w => w[0]).filter(h => !/…/.test(h));
+  const pool = [...new Set([...uw, ...ALLW.filter(x => x.ui <= ui && !/…/.test(x.h)).map(x => x.h)])];
+  let cz = 0;
+  shuffle(mine).filter(s => s.toks.length >= 3).forEach(s => { if (cz >= 2) return; const w = s.toks.map(t => t[0]).find(t => uw.includes(t)); if (w) { list.push(["C", () => scrCloze(s, w, pool, u.lvl)]); cz++; } });
+  const ord = shuffle(mine.map(orderItem).filter(Boolean)).slice(0, 2);
+  ord.forEach(it => list.push(["O", () => scrOrder(it, u.lvl)]));
+  const rank = { L: 0, R: 1, C: 1, O: 2 };
+  shuffle(list).sort((a, b) => rank[a[0]] - rank[b[0]]).forEach(([, f]) => screens.push(rq(f)));
+  return screens;
+}
+
+// ---------- verrouillage des étapes ----------
+function stepLocked(u, si) {
+  const st = stepsOf(u);
+  return !isDone(u, st[si].k) && st.slice(0, si).some(s => !isDone(u, s.k));
 }
 
 init();
