@@ -931,6 +931,8 @@
   .lr-corps p{margin:0 0 1em}
   .lr-corps h4{font-family:var(--disp);font-size:calc(var(--lfs) * 1.08);margin:1.7em 0 .55em;color:var(--ink)}
   .lr-corps em{font-style:italic}
+  .lr-corps ul{margin:0 0 1.2em;padding-left:1.15em}
+  .lr-corps li{margin:0 0 .55em}
   .lr-q{background:var(--accent-soft);border-radius:16px;padding:16px;margin:26px 0 14px;font-size:calc(var(--lfs) * .98);line-height:1.55}
   .lr-plus{font-size:calc(var(--lfs) * .85);line-height:1.55;color:var(--muted);margin:0 0 20px}
   .lr-livre{text-align:center;padding-top:40px}
@@ -1262,6 +1264,7 @@
 <div id="toast"></div>
 <script src="/forge/forge-sync.js"></script>
 <script src="lectures.js"></script>
+<script src="lectures-closing.js"></script>
 <script src="biblio.js"></script>
 <script src="biblio-informatique.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
@@ -1730,7 +1733,7 @@ function recitAuj(c){
   const d=today(), k=normName(c.nom), sr=serieAu(c.id,dayShift(d,-1)), s=sr?` ; ${sr} jour${sr>1?"s":""} de suite jusqu'à hier`:"";
   if(k==="990") return `Neuf cent nonante points, c'est la mesure de l'épreuve des Anglois. Vingt minutes d'oreille tendue ce jour, et les mots manqués notés en marge${s}.`;
   if(k==="cumbre") return `Cumbre veut dire la cime, en la langue d'Espagne. Une marche à gravir ce jour : lire à voix haute, conjuguer, retenir trois mots${sr?` ; ${sr} marche${sr>1?"s":""} déjà sous les pieds`:""}.`;
-  if(k==="lecture"){ const l=lectureDu(d); return `Lecture d'un seul texte des philosophes${l?` : « ${l.titre} »`:""}, lu deux fois, la seconde plume en main, et la phrase qui demeure copiée au cahier${s}.`; }
+  if(k==="lecture"){ const l=lectureDu(d); return `Lecture d'un seul texte, philosophe ou marchand${l?` : « ${l.titre} »`:""}, lu deux fois, la seconde plume en main, et la phrase qui demeure copiée au cahier${s}.`; }
   if(k==="leclosing") return `Fusions et acquisitions sont le métier du Closing : peser une maison de commerce, lire ses comptes, mener la négociation jusqu'au sceau${s}.`;
   const nom=c.nom.charAt(0).toUpperCase()+c.nom.slice(1);
   return `${nom} : l'ouvrage du jour, fait avec soin, noté le soir${s}.`;
@@ -1748,7 +1751,7 @@ function recitDu(c,d){
   if(k==="lecture"){ const l=lectureDu(d);
     return fait
       ? `Lecture du jour${l?` : « ${l.titre} »`:""}, lue deux fois, la seconde plume en main${sr>1?`, ${sr} jours que le lecteur ne manque pas sa page`:""}. La phrase qui demeure est copiée au cahier.`
-      : `Lecture d'un seul texte des philosophes${l?` : « ${l.titre} »`:""}, ${passe?"resté fermé ce jour-là":"qui attend son lecteur"}. Deux lectures, la seconde plume en main, et une ligne au cahier.`; }
+      : `Lecture d'un seul texte, philosophe ou marchand${l?` : « ${l.titre} »`:""}, ${passe?"resté fermé ce jour-là":"qui attend son lecteur"}. Deux lectures, la seconde plume en main, et une ligne au cahier.`; }
   if(k==="leclosing"){ const n=cOn(d);
     return fait
       ? `Fusions et acquisitions sont le métier du Closing. Ce jour, ${duree} à peser maisons et dettes${n?`, et ${n} lettre${n>1?"s":""} de candidature parti${n>1?"es":"e"} au courrier`:""} : rien laissé au hasard.`
@@ -5419,7 +5422,9 @@ function coachSendMissed(){
 /* ═══════════════════════════════════════════════════════════════════
    📖 LIRE — pour le RER (marche hors-ligne, tunnels compris)
    • Les lectures : tes idées de philo, développées en textes de quelques
-     minutes (fichier lectures.js). La liseuse retient où tu t'es arrêté.
+     minutes (fichier lectures.js), et les masterclass du Closing reprises
+     telles quelles (lectures-closing.js, intercalées une sur deux).
+     La liseuse retient où tu t'es arrêté.
    • Mes livres : un chrono de lecture et la page atteinte, livre par livre.
    • Le carnet d'idées : ce que tu entends dans un podcast, noté en deux
      secondes ; un bouton l'envoie à Claude pour en faire les textes suivants.
