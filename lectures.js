@@ -398,6 +398,44 @@ corps: `
 `,
 question: "Où places-tu ta propre frontière, et sur quel marqueur précis ? Écris l'animal limite et la raison — c'est beaucoup plus dur qu'il n'y paraît.",
 plus: "Jonathan Birch, <em>The Edge of Sentience</em> (2024) · la Déclaration de New York sur la conscience animale (2024)"
+},
+
+{
+id: "rewilding",
+titre: "Rendre la terre à elle-même",
+sous: "Le rewilding, la plus belle histoire d'écologie — et pourquoi l'histoire est trop belle",
+note: "Creuser le rewilding : l'idée de rendre un territoire à lui-même, et voir ce qu'elle suppose vraiment.",
+src: "Ta réflexion du 9 novembre 2026",
+min: 10,
+question: "Rendre un territoire à lui-même : à quel état ? Si tu refuses de choisir une date, qu'est-ce que tu rends exactement ?",
+corps: `
+<p>Tu as sans doute déjà vu la vidéo : quatorze loups relâchés dans le parc de Yellowstone en 1995, et de proche en proche, tout le paysage qui change. Les loups font fuir les wapitis des fonds de vallée ; les saules et les trembles, qui n'étaient plus broutés, repoussent ; les oiseaux reviennent, les castors reviennent, leurs barrages créent des mares, les berges se tiennent, et la rivière elle-même se met à serpenter autrement. <em>Les loups ont changé les rivières.</em> Quatre minutes, des dizaines de millions de vues, et la plus belle démonstration jamais faite qu'un écosystème est un tissu.</p>
+<p>C'est aussi, en grande partie, une histoire trop bien racontée. Et comprendre pourquoi est plus intéressant que la vidéo.</p>
+
+<h4>Ce que les loups ont vraiment fait</h4>
+<p>Les travaux qui ont suivi ont été nettement plus prudents. Le nombre de wapitis a bien chuté, mais pas seulement à cause des loups : la chasse hors du parc, les grizzlis, plusieurs hivers rudes et des années de sécheresse ont compté. La repousse des saules s'est révélée inégale — forte là où la nappe d'eau le permettait et où les castors étaient déjà là, faible ailleurs, parfois inexistante. Quant aux rivières, leur forme dépend d'abord du débit, des crues et des sédiments, c'est-à-dire du climat et de la géologie.</p>
+<p>La cascade existe. Elle est seulement plus faible, plus locale et plus lente que dans le récit. Autrement dit : l'histoire est juste dans sa forme et exagérée dans sa force.</p>
+<p>Tu reconnais le mouvement — c'est celui de ton texte sur le biais du petit, à l'envers. Une explication par le haut, élégante, qui descend d'une cause unique vers tout le reste, est séduisante précisément parce qu'elle fait tenir le monde en une phrase. La nature, elle, additionne des causes médiocres.</p>
+
+<h4>La leçon hollandaise</h4>
+<p>Il existe un cas où l'on a vraiment essayé de laisser faire, et il s'est mal terminé. Aux Pays-Bas, un polder gagné sur la mer, l'Oostvaardersplassen, a été laissé à lui-même à partir des années 1980 : on y a introduit de grands herbivores — bovins rustiques, chevaux koniks, cerfs — pour rejouer le rôle des troupeaux disparus. Pas de prédateurs, pas de nourrissage : la nature devait s'équilibrer seule.</p>
+<p>Elle s'est équilibrée comme elle le fait toujours en l'absence de prédateurs : par la faim. Les populations ont grossi les bonnes années, puis des hivers difficiles ont tué des milliers d'animaux. Les images ont provoqué un scandale national, et il a fallu abattre une partie des troupeaux — c'est-à-dire redevenir gestionnaire après avoir annoncé qu'on ne le serait plus.</p>
+<p>La leçon n'est pas que le rewilding est une mauvaise idée. Elle est plus gênante : dans une réserve clôturée de quelques milliers d'hectares, sans prédateur et sans possibilité de migrer, « laisser faire » n'est pas s'effacer. C'est choisir une forme de gestion — celle qui laisse mourir — tout en prétendant n'en choisir aucune.</p>
+
+<h4>Ce qui marche, et ce que ça coûte</h4>
+<p>À l'inverse, Knepp, dans le Sussex : une ferme sur argile lourde qui perdait de l'argent depuis des décennies. À partir de 2001, les propriétaires cessent de cultiver, retirent les clôtures internes et laissent circuler des herbivores en liberté. Vingt ans plus tard, la tourterelle des bois et le rossignol philomèle y nichent alors qu'ils s'effondrent partout ailleurs dans le pays, et le grand mars changeant, un papillon rare, y prospère. Personne n'avait planifié cette liste : elle est arrivée.</p>
+<p>Même chose avec les castors, réintroduits ici et là en Europe. Un castor ne se contente pas d'habiter un paysage, il le fabrique : ses barrages ralentissent l'eau, écrêtent les crues en aval, créent des zones humides qui abritent tout le reste. Certaines espèces sont des ingénieurs ; les faire revenir fait revenir le reste sans qu'on s'en mêle.</p>
+<p>Mais Knepp était une ferme. C'est là le vrai arbitrage, et il est rarement posé franchement : la terre rendue au vivant est de la terre qui ne nourrit plus personne. Décider qu'un territoire redevient sauvage, c'est décider que la nourriture viendra d'ailleurs — et souvent de pays où la pression sur la nature est plus forte. Celui qui défend le rewilding sans dire sur quelle terre, aux dépens de quelle production et avec quelle compensation pour ceux qui en vivent, défend une image, pas une politique.</p>
+
+<h4>Rendre la terre à quel état ?</h4>
+<p>Reste la question qui m'intéresse le plus, et c'est une question philosophique, pas écologique. Rendre un territoire à lui-même suppose qu'il existe un « lui-même » : un état d'avant, authentique, auquel on reviendrait. Lequel ?</p>
+<p>L'Europe d'avant l'agriculture ? Mais les grands herbivores y avaient déjà disparu en partie du fait des hommes. L'Europe médiévale ? Elle était défrichée, pâturée, drainée. Les prairies fleuries que l'on protège aujourd'hui sont des paysages agricoles : sans fauche ni pâturage, elles deviennent des fourrés. Il n'existe pas de nature vierge à restaurer, seulement une longue succession d'états, tous partiellement humains.</p>
+<p>Le biologiste Daniel Pauly a donné un nom au piège : le glissement des références. Chaque génération prend pour normale la nature de son enfance. Ton grand-père a vu des insectes sur le pare-brise, toi non ; tu trouves normal ce qu'il aurait trouvé désolant. La perte devient invisible parce que l'étalon se déplace avec celui qui mesure.</p>
+<p>Tu vois où ça mène : c'est exactement ta question sur la vitesse du café. Demander « à quoi ressemblait vraiment la nature » sans préciser depuis quand, c'est demander la vitesse absolue d'un objet. Il n'y a pas de point de vue de nulle part — ni pour le mouvement, ni pour un paysage.</p>
+<p>Ce qui sauve l'idée, c'est de changer ce qu'on prétend rendre. Non pas un état, qui n'a jamais existé, mais un <em>processus</em> : le broutage, la crue, le feu, la mort des arbres sur pied, la prédation. On ne restaure pas une photographie, on relâche une mécanique et on accepte de ne pas savoir ce qu'elle produira. C'est beaucoup plus difficile à défendre devant un conseil municipal, parce qu'on ne peut rien promettre de précis — et c'est pourtant la seule version honnête.</p>
+<p>Alors la question à se poser devant chaque projet n'est pas « est-ce que ça redevient comme avant ? », mais : qu'est-ce qu'on accepte de ne plus décider ?</p>
+`,
+plus: "Pour creuser : Isabella Tree, <em>Wilding</em> (2018), le récit de Knepp par celle qui l'a fait · Daniel Pauly, « Anecdotes and the shifting baseline syndrome of fisheries » (1995), trois pages qui ont nommé le glissement des références · et pour l'envers du décor, les analyses des écologues de l'Oregon State University sur ce que les loups de Yellowstone ont réellement provoqué."
 }
 ];
 

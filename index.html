@@ -295,6 +295,26 @@
   .bdelta{font-weight:800}
   .bdelta.up{color:var(--good)} .bdelta.down{color:var(--muted)}
 
+  /* ---- LE BANDEAU DES RENDEZ-VOUS : l'agenda daté, en haut, impossible à rater ---- */
+  .rdvbande{border-radius:20px;padding:13px 16px 10px;margin-bottom:12px;box-shadow:var(--shadow);
+    border:1.5px solid color-mix(in srgb,var(--accent) 30%,transparent);
+    background:linear-gradient(120deg,var(--accent-soft),transparent 55%),var(--card)}
+  .rdvbande.urge{border-color:color-mix(in srgb,var(--bad) 38%,transparent)}
+  .rdvhead{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-family:var(--disp);
+    font-size:12.5px;font-weight:800;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+  .rdvhead b{margin-left:auto;font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;
+    background:color-mix(in srgb,var(--bad) 13%,transparent);color:var(--bad);text-transform:none;letter-spacing:0}
+  .rdvrow{display:flex;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);cursor:pointer}
+  .rdvrow:last-of-type{border-bottom:none}
+  .rdvq{flex:none;width:102px;font-size:12px;font-weight:800;color:var(--muted);
+    font-variant-numeric:tabular-nums}
+  .rdvq::first-letter{text-transform:uppercase}
+  .rdvrow.auj .rdvq{color:var(--accent)}
+  .rdvt{flex:1;min-width:0;font-size:14.5px;font-weight:700;line-height:1.35;word-break:break-word}
+  .rdvt i{display:block;font-style:normal;font-size:11.5px;font-weight:800;color:var(--accent);margin-top:2px}
+  .rdvall{width:100%;margin-top:6px;padding:9px;border:none;border-radius:12px;background:var(--card2);
+    color:var(--muted);font:inherit;font-size:12.5px;font-weight:750;cursor:pointer}
+
   /* ---- L'AGENDA : ce qui est prévu, ce qui traîne ---- */
   .agcard{background:var(--card);border-radius:20px;padding:15px 16px 12px;margin-bottom:12px;box-shadow:var(--shadow);
     border:1.5px solid transparent}
@@ -1265,6 +1285,7 @@
 <script src="/forge/forge-sync.js"></script>
 <script src="lectures.js"></script>
 <script src="lectures-closing.js"></script>
+<script src="lectures-ielts.js"></script>
 <script src="biblio.js"></script>
 <script src="biblio-informatique.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
@@ -1637,6 +1658,7 @@ function render(){
   let corps="";
   if(T==="maintenant") corps=`<div class="cols une"><div class="col-l">
         ${isStandalone()?modeHtml():""}
+        ${rdvBandeHtml()}
         ${dayBarHtml()}
         ${appsDispoHtml()}
         ${lecBilanHtml()}
@@ -2678,6 +2700,45 @@ function agPushToday(id){ const it=agGet(id); if(!it) return; it.d=today(); agTo
 function agSort(l){ return l.slice().sort((a,b)=>
   (b.star||0)-(a.star||0) || (a.d||"9999").localeCompare(b.d||"9999") ||
   (a.t||"99:99").localeCompare(b.t||"99:99") || (a.c||0)-(b.c||0)); }
+/* ─── LE BANDEAU DES RENDEZ-VOUS ───────────────────────────────────────────
+   L'agenda daté remonte en haut de « Maintenant ». On ne montre que ce qui a
+   une date dans les 7 jours : le reste reste dans la carte Agenda, sinon le
+   bandeau devient une deuxième liste et ne sert plus à rien. */
+function rdvProchains(){
+  const t=today(), lim=dayShift(t,7);
+  const dans7j=agAll().filter(x=>!x.done&&x.d&&x.d>=t&&x.d<=lim)
+    .sort((a,b)=>(a.d+(a.t||"99:99")).localeCompare(b.d+(b.t||"99:99")));
+  /* un rendez-vous a une heure : c'est ce qui ne se rattrape pas. Il passe
+     devant, sinon trois tâches du jour suffisent à faire disparaître
+     l'entretien de jeudi — exactement ce que le bandeau doit empêcher. */
+  const rdv=dans7j.filter(x=>x.t).slice(0,3);
+  const todo=dans7j.filter(x=>!x.t&&x.d===t).slice(0,2);
+  return rdv.concat(todo);
+}
+/* « dans 25 min » n'a de sens que le jour même : au-delà, la date suffit. */
+function rdvCompte(it){
+  if(it.d!==today()||!it.t) return "";
+  const m=Math.round((Date.parse(it.d+"T"+it.t+":00")-Date.now())/6e4);
+  if(m>600||m<-120) return "";
+  if(m<=0) return "maintenant";
+  if(m<60) return "dans "+m+" min";
+  const h=Math.floor(m/60), r=m%60;
+  return "dans "+h+" h"+(r?" "+String(r).padStart(2,"0"):"");
+}
+function rdvBandeHtml(){
+  const t=today(), B=agBuckets(), L=rdvProchains();
+  if(!L.length&&!B.late.length) return "";
+  const rows=L.map(it=>{
+    const cd=rdvCompte(it);
+    return `<div class="rdvrow ${it.d===t?"auj":""}" onclick="agSheet()">
+      <div class="rdvq">${it.t?esc(agDL(it.d))+" · "+esc(it.t):"à faire"}</div>
+      <div class="rdvt">${esc(it.txt)}${cd?`<i>${cd}</i>`:""}</div></div>`;
+  }).join("");
+  return `<div class="rdvbande${B.late.length?" urge":""}">
+    <div class="rdvhead"><span>🗓 Les rendez-vous</span>${B.late.length?`<b>${B.late.length} en retard</b>`:""}</div>
+    ${rows||`<div class="rdvrow" onclick="agSheet()"><div class="rdvt">Rien de daté dans les 7 jours</div></div>`}
+    <button class="rdvall" onclick="agSheet()">Tout l'agenda ›</button></div>`;
+}
 function agBuckets(){
   const t=today(), open=agAll().filter(x=>!x.done);
   return {
@@ -5423,7 +5484,8 @@ function coachSendMissed(){
    📖 LIRE — pour le RER (marche hors-ligne, tunnels compris)
    • Les lectures : tes idées de philo, développées en textes de quelques
      minutes (fichier lectures.js), et les masterclass du Closing reprises
-     telles quelles (lectures-closing.js, intercalées une sur deux).
+     telles quelles (lectures-closing.js, intercalées une sur deux), et les
+     thèses de l'IELTS développées (lectures-ielts.js, une sur quatre).
      La liseuse retient où tu t'es arrêté.
    • Mes livres : un chrono de lecture et la page atteinte, livre par livre.
    • Le carnet d'idées : ce que tu entends dans un podcast, noté en deux
