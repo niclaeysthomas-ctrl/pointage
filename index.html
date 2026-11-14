@@ -251,7 +251,27 @@
   .cday .cdt{display:flex;gap:2px;margin-top:auto}
   .cday .cdt i{width:4px;height:4px;border-radius:50%;background:var(--line2)}
   .cday .cdt i.on{background:var(--good)}
-  .cday .cag{position:absolute;top:4px;right:4px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  /* Le calendrier garde ses couleurs meme sous un theme monochrome : ici le rouge,
+     l'ambre et le vert portent un SENS (echeance, a faire, fait), ils ne decorent pas.
+     Les tuiles les melangent au fond du theme, donc elles suivent clair et sombre. */
+  :root{ --cal-due:#d1453b; --cal-todo:#e0871b; --cal-ok:#2e9e63 }
+  @media (prefers-color-scheme:dark){ :root{ --cal-due:#ff6f61; --cal-todo:#f5a524; --cal-ok:#48c98a } }
+  [data-theme="dark"]{ --cal-due:#ff6f61; --cal-todo:#f5a524; --cal-ok:#48c98a }
+  .cday.has{background:color-mix(in srgb,var(--cal-todo) 14%,var(--card2));
+    border-color:color-mix(in srgb,var(--cal-todo) 40%,transparent)}
+  .cday.due{background:color-mix(in srgb,var(--cal-due) 16%,var(--card2));
+    border-color:color-mix(in srgb,var(--cal-due) 48%,transparent)}
+  .cday.full{background:color-mix(in srgb,var(--cal-ok) 15%,var(--card2));
+    border-color:color-mix(in srgb,var(--cal-ok) 36%,transparent)}
+  .cday.full.has{background:color-mix(in srgb,var(--cal-todo) 13%,color-mix(in srgb,var(--cal-ok) 15%,var(--card2)))}
+  .cday .cdt i.on{background:var(--cal-ok)}
+  .cday .cag{position:absolute;top:3px;right:3px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;
+    background:var(--cal-todo);color:#fff;font-size:9.5px;font-weight:850;line-height:15px;text-align:center;
+    font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(0,0,0,.18)}
+  .cday .cag.due{background:var(--cal-due)}
+  .cday .cag.done{background:transparent;color:var(--faint);box-shadow:none;border:1.5px solid var(--line2)}
+  .callg i{display:inline-block;width:9px;height:9px;border-radius:5px;vertical-align:-1px;margin-right:4px}
+  .callg i.a{background:var(--cal-todo)} .callg i.d{background:var(--cal-due)} .callg i.g{background:var(--cal-ok)}
   .cday .cj{position:absolute;bottom:3px;right:4px;font-size:8px;color:var(--faint)}
   .calfoot{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
   .calfoot div{flex:1;min-width:84px;background:var(--card2);border-radius:13px;padding:11px 10px}
@@ -442,6 +462,11 @@
   .copen{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;border:none;border-radius:14px;
     background:var(--accent-soft);color:var(--accent);padding:13px;font-size:14.5px;font-weight:800;cursor:pointer}
   .copen:active{transform:scale(.98)}
+  .civ-link{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:8px;
+    border:1.5px solid var(--line2);border-radius:14px;background:var(--card2);color:var(--muted);
+    padding:12px;font-size:14px;font-weight:750;cursor:pointer;text-decoration:none}
+  .civ-link:active{transform:scale(.98)}
+  .civ-link b{color:var(--ink);font-weight:800}
   .sheet.wide{max-height:94vh}
   .cstats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:-4px 0 14px}
   .cstats div{background:var(--card2);border-radius:14px;padding:10px 6px;text-align:center}
@@ -1309,6 +1334,7 @@ const DEFAULT_APPS=[
 const BASE="https://niclaeysthomas-ctrl.github.io/";
 const CATALOGUE=[
   {grp:"Mon entraînement", items:[
+    {n:"LE PUPITRE",   e:"🎼", u:"pointage/pupitre/", d:"musique · une séance par jour"},
     {n:"SHRED",        e:"🎸", u:"shred/",     d:"guitare"},
     {n:"Piano Dojo",   e:"🎹", u:"piano-dojo/",d:"piano"},
     {n:"LA CLÉ",       e:"🎼", u:"lacle/",     d:"théorie & impro"},
@@ -1509,6 +1535,22 @@ function mandarinMigrate(){
     stOf("mandarin"); S.appsMod=Date.now();
   }
   S.migMandarin=1; save0();
+}
+/* LE PUPITRE (9/11) : la musique entre dans la journée comme UNE marche, pas trois.
+   L'app rassemble SHRED, Piano Dojo, LA CLÉ et SIDEMAN, en pose une devant toi
+   chaque jour (la plus délaissée passe devant), et coche cette priorité toute
+   seule dès qu'une séance a laissé une trace dans l'app jouée.
+   prioSince = aujourd'hui : les jours d'avant gardent leur verdict, la chaîne tient. */
+function pupitreMigrate(){
+  if(S.migPupitre) return;
+  const url=BASE+"pointage/pupitre/";
+  const supprime=S.tomb&&S.tomb["app:pupitre"];
+  if(!supprime&&!S.apps.some(a=>a.id==="pupitre"||normName(a.name)==="lepupitre"||a.url===url)){
+    S.apps.push({id:"pupitre",name:"LE PUPITRE",emoji:"🎼",url,cat:"",dom:"creation",
+                 prio:1,prioSince:today(),since:Date.now()});
+    stOf("pupitre"); S.appsMod=Date.now();
+  }
+  S.migPupitre=1; save0();
 }
 /* Les priorités : une par app qui compte, dans l'ordre des domaines. */
 function rebuildCats(){
@@ -1833,14 +1875,19 @@ function mondeSync(){
    touche un jour dans la frise des 28 derniers jours.
    ═══════════════════════════════════════════════════════════════════ */
 let LIVRE=null, LIVRE_BLOC=null, LIVRE_CLE="", LIVRE_J=null;
-function livreDispo(){ return typeof monterPiece==="function"&&typeof etude_enluminure==="function"&&unitsOn(today()).length===4; }
+/* Le Livre tient avec n'importe quel nombre de priorités (9/11) : à quatre, c'est
+   L'Enluminure et ses quatre lettrines ; au-delà, Les Crêtes en couleur, qui s'adaptent.
+   Avant, le Livre disparaissait dès qu'on ajoutait une cinquième priorité. */
+function livreDispo(){ return typeof monterPiece==="function"&&typeof etude_cretesc==="function"&&unitsOn(today()).length>0; }
 function livreJour(){ if(!LIVRE_J) LIVRE_J=dayShift(today(),-1); return LIVRE_J; }
 function livreDonnees(d){
   const AC=unitsOn(d), dt=new Date(d+"T12:00:00"), jan=new Date(dt.getFullYear(),0,1), quant=Math.floor((dt-jan)/864e5)+1, RC=mondeRecit(d);
   let n=0, x=dayShift(d,-1); while(dayOk(x)&&n<400){ n++; x=dayShift(x,-1); }
+  const jours=[]; for(let k=28;k>=1;k--){ const x=dayShift(d,-k); jours.push(AC.map((c,i)=>catDoneDay(c.id,x)?i:-1).filter(i=>i>=0)); }
+  const faits=AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0);
   return { priorites:AC.map(c=>({nom:c.nom, min:minDu(c.id,d)||20, serie:serieAu(c.id,d), domaine:((domDef(domOf(appsOfCat(c.id)[0]))||{}).nom)||""})),
     graine:Number(d.replace(/-/g,""))%100003, jour:dt.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}), folio:"f. "+quant+" r°",
-    chaine:n, textes:RC.textes, lettres:RC.lettres, faits:AC.map((c,i)=>catDoneDay(c.id,d)?i:-1).filter(i=>i>=0) };
+    chaine:n, textes:RC.textes, lettres:RC.lettres, jours, faits, aujourdhui:faits };
 }
 function livreHtml(){
   if(!livreDispo()) return "";
@@ -1860,13 +1907,14 @@ function livreAller(d){ if(d>=today()) return; LIVRE_J=d; render(); }
 function livrePoser(){
   const slot=document.getElementById("livreSlot"); if(!slot) return;
   try{
-    const d=livreJour(), cle=d+"|"+unitsOn(d).map(c=>c.id).join(",");
+    const d=livreJour(), AC=unitsOn(d), PC=mondePiece(AC.length), cle=d+"|"+PC.id+"|"+AC.map(c=>c.id).join(",");
     if(!LIVRE||cle!==LIVRE_CLE){
       if(LIVRE) LIVRE.arreter();
-      LIVRE_BLOC=document.createElement("div"); LIVRE_BLOC.className="livre-page"; LIVRE_CLE=cle; slot.replaceWith(LIVRE_BLOC);
+      LIVRE_BLOC=document.createElement("div"); LIVRE_BLOC.className="livre-page livre-"+PC.id; LIVRE_CLE=cle; slot.replaceWith(LIVRE_BLOC);
       const D=livreDonnees(d);
-      LIVRE=monterPiece(LIVRE_BLOC, ()=>etude_enluminure(D));
-      LIVRE.piece.etat(D.faits, D.faits.length===4);
+      LIVRE=PC.id==="enluminure"?monterPiece(LIVRE_BLOC, ()=>etude_enluminure(D))
+                                :monterPiece(LIVRE_BLOC, PC.fab, {donnees:PC.donnees, avec:D});
+      LIVRE.piece.etat(D.faits, D.faits.length===AC.length);
       return;
     }
     slot.replaceWith(LIVRE_BLOC);
@@ -2961,13 +3009,14 @@ function calShift(n){
 }
 function calGoToday(){ calYM=today().slice(0,7); calSheet(); }
 function calData(ym){
-  const map={}, get=d=>(map[d]=map[d]||{cats:{},min:0,ag:0,j:0});
+  const map={}, get=d=>(map[d]=map[d]||{cats:{},min:0,ag:0,j:0,star:0,open:0});
   S.apps.forEach(a=>{
     const st=stOf(a.id);
     st.days.forEach(d=>{ if(d.slice(0,7)===ym&&catOf(a)) get(d).cats[catOf(a)]=1; });
     Object.keys(st.min||{}).forEach(d=>{ if(d.slice(0,7)===ym) get(d).min+=Math.round(st.min[d]||0); });
   });
-  agAll().forEach(it=>{ if(it.d&&it.d.slice(0,7)===ym) get(it.d).ag++; });
+  agAll().forEach(it=>{ if(!it.d||it.d.slice(0,7)!==ym) return;
+    const g=get(it.d); g.ag++; if(!it.done){ g.open++; if(it.star) g.star++; } });
   Object.keys(jAll()).forEach(d=>{ if(d.slice(0,7)===ym&&jHas(d)) get(d).j=1; });
   return map;
 }
@@ -2994,11 +3043,15 @@ function calSheet(){
   const cells=[];
   for(let i=0;i<debut;i++) cells.push(`<div class="cday out"></div>`);
   for(let d=1;d<=n;d++){
-    const iso=ym+"-"+pad2(d), e=D[iso]||{cats:{},min:0,ag:0,j:0};
+    const iso=ym+"-"+pad2(d), e=D[iso]||{cats:{},min:0,ag:0,j:0,star:0,open:0};
     const faits=AC.filter(c=>e.cats[c.id]).length;
-    cells.push(`<div class="cday ${AC.length&&faits===AC.length?"full":""} ${iso===t?"now":""}" data-d="${iso}">
+    /* La couleur dit en un coup d'oeil ce que porte le jour : rouge une echeance
+       encore ouverte, orange des choses a faire, gris ce qui est deja regle. */
+    const ton=e.star?"due":(e.open?"has":"");
+    const badge=e.ag?`<span class="cag ${e.star?"due":(e.open?"":"done")}">${e.ag}</span>`:"";
+    cells.push(`<div class="cday ${AC.length&&faits===AC.length?"full":""} ${ton} ${iso===t?"now":""}" data-d="${iso}">
       <b>${d}</b>
-      ${e.ag?`<span class="cag"></span>`:""}
+      ${badge}
       ${e.j?`<span class="cj">✎</span>`:""}
       <div class="cdt">${AC.map(c=>`<i class="${e.cats[c.id]?"on":""}"></i>`).join("")}</div>
     </div>`);
@@ -3021,9 +3074,10 @@ function calSheet(){
       <div><b>${fmtMin(min)}</b><span>de pratique</span></div>
       <div><b>${ecrits}</b><span>journée${ecrits>1?"s":""} écrite${ecrits>1?"s":""}</span></div>
     </div>
-    <div class="callg">Les points sous chaque jour sont tes ${AC.length||"—"} dossiers.
-      Pastille orange en haut : quelque chose à l'agenda. <b>✎</b> : journée écrite.
-      Touche un jour pour l'ouvrir.</div>
+    <div class="callg"><i class="g"></i>Les points du bas sont tes ${AC.length||"—"} dossiers : verts quand c'est fait.
+      <br><i class="d"></i>Jour rouge : une échéance t'attend. <i class="a"></i>Jour orange : des choses à faire.
+      Gris : tout est réglé. Le chiffre en haut à droite dit combien.
+      <br><b>✎</b> : journée écrite. Touche un jour pour l'ouvrir.</div>
     <button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`);
   agSegBind();
   const g=document.getElementById("calGrid");
@@ -3274,6 +3328,7 @@ function candCardHtml(){
     </div>
     ${(()=>{ const R=L.filter(cARelancer).slice(0,3); return R.length?`<div class="civt" style="color:var(--accent);margin:12px 0 -6px">⏰ À relancer</div>`+cTable(R):""; })()}
     <button class="copen" onclick="cAllSheet()">📋 Ouvrir le tableau de suivi${n?" ("+n+")":""} ›</button>
+    <a class="civ-link" href="https://niclaeysthomas-ctrl.github.io/entretiens/" target="_blank" rel="noopener">🗣️ <b>LES ENTRETIENS</b> · fiches, pitch et quiz ›</a>
   </div>`;
 }
 /* ＋1 compte tout de suite, puis ouvre la fiche : on peut la remplir… ou pas. */
@@ -5920,7 +5975,7 @@ applyTheme();
 rollDay();
 chkPrune();
 cad(); acc(); cadPrune(); cfApply(); focusResume();
-domMigrate(); mandarinMigrate(); rebuildCats(); jpMigre();
+domMigrate(); mandarinMigrate(); pupitreMigrate(); rebuildCats(); jpMigre();
 render();
 syncSoon(900);
 /* lien direct : …/pointage/#candidatures ouvre le suivi */

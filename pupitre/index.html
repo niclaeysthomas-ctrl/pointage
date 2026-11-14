@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#100E0C" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F6F1E8" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pupitre">
+<title>LE PUPITRE · une séance par jour</title>
+<style>
+/* ─────────────────────────────────────────────────────────────
+   Concept : un pupitre de bois sombre, une lampe de cuivre, une
+   partition d'encre. Le cuivre ne sert qu'à ce qui est à jouer
+   maintenant ; chaque app garde sa couleur, en petit.
+   ───────────────────────────────────────────────────────────── */
+:root{
+  --bg:#100E0C; --bg2:#1A1613; --bg3:#241E19; --line:#332A23; --line2:#473A2F;
+  --ink:#F3ECE1; --dim:#A4947F; --dim2:#75675A;
+  --cuivre:#D9A441; --cuivre2:#B2822C; --cuivre-fond:#2A2013;
+  --ok:#7FC88A; --ok-fond:#16281A;
+  --r:16px; --w:560px;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#F6F1E8; --bg2:#FFFDF9; --bg3:#EFE7DA; --line:#DED2C0; --line2:#C9B9A1;
+  --ink:#231C14; --dim:#6B5D4D; --dim2:#8C7E6C;
+  --cuivre:#9A6A12; --cuivre2:#7E560C; --cuivre-fond:#F6E8CC;
+  --ok:#2E7D43; --ok-fond:#E0F0E3;
+  color-scheme:light;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top,0) 0 calc(env(safe-area-inset-bottom,0) + 28px)}
+.wrap{max-width:var(--w);margin:0 auto;padding:14px 16px 0}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+button:focus-visible,a:focus-visible{outline:2.5px solid var(--cuivre);outline-offset:2px;border-radius:10px}
+a{color:inherit}
+h1,h2,h3{margin:0;font-weight:800;line-height:1.15;letter-spacing:-.01em}
+p{margin:0}
+.dim{color:var(--dim)} .pt{font-size:13.5px} .ppt{font-size:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ─── en-tête ─── */
+.top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.logo{font-weight:900;font-size:17px;letter-spacing:.12em}
+.logo b{color:var(--cuivre);font-weight:900}
+.top .sp{flex:1}
+.pill{font-size:12.5px;font-weight:800;background:var(--bg2);border:1px solid var(--line);
+  padding:5px 11px;border-radius:999px;white-space:nowrap}
+.pill.chaude{color:var(--cuivre);border-color:var(--line2)}
+.date{color:var(--dim);font-size:13px;margin:0 0 16px}
+
+/* ─── la carte du jour ─── */
+.carte{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+  padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.carte.jour{border-color:var(--line2);box-shadow:0 1px 0 rgba(217,164,65,.12) inset, 0 14px 34px rgba(0,0,0,.28)}
+.carte.jour::before{content:"";position:absolute;inset:0 0 auto;height:3px;
+  background:linear-gradient(90deg,var(--cuivre),transparent 85%)}
+.oeil{font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--cuivre);
+  display:block;margin-bottom:10px}
+.titre-app{display:flex;align-items:center;gap:12px}
+.titre-app .em{font-size:34px;line-height:1}
+.titre-app h1{font-size:25px}
+.quoi{color:var(--dim);font-size:14px;margin-top:2px}
+.pourquoi{margin:14px 0 0;padding:11px 13px;background:var(--bg3);border-radius:12px;
+  border-left:3px solid var(--app,var(--cuivre));font-size:14px}
+.gros{display:block;width:100%;margin-top:14px;padding:15px;border-radius:13px;
+  background:var(--cuivre);color:#1B1304;font-weight:900;font-size:16px;text-align:center}
+.gros:active{transform:scale(.985)}
+.sous{display:block;width:100%;margin-top:9px;padding:11px;border-radius:12px;
+  background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:700;font-size:13.5px;text-align:center}
+
+/* journée faite */
+.carte.faite{background:var(--ok-fond);border-color:transparent}
+.carte.faite .oeil{color:var(--ok)}
+.coche{display:flex;align-items:center;gap:12px}
+.coche .rond{width:40px;height:40px;border-radius:999px;background:var(--ok);color:var(--ok-fond);
+  display:grid;place-items:center;font-size:21px;font-weight:900;flex:none}
+.coche h2{font-size:19px}
+
+/* ─── le rappel de retour ─── */
+.retour{background:var(--cuivre-fond);border:1px solid var(--line2);border-radius:var(--r);
+  padding:14px;margin-bottom:12px}
+.retour .duo{display:flex;gap:8px;margin-top:11px}
+.retour .duo button{flex:1;padding:11px;border-radius:11px;font-weight:800;font-size:13.5px;
+  background:var(--cuivre);color:#1B1304}
+.retour .duo button.non{background:transparent;border:1px solid var(--line2);color:var(--dim)}
+
+/* ─── l'étagère ─── */
+.sect{margin:22px 0 9px;display:flex;align-items:baseline;gap:8px}
+.sect h3{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);font-weight:800}
+.sect .sp{flex:1;height:1px;background:var(--line)}
+.ligne{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--app,var(--line));
+  border-radius:13px;padding:12px 13px;margin-bottom:8px}
+.ligne:active{background:var(--bg3)}
+.ligne .em{font-size:23px;line-height:1;flex:none;width:28px;text-align:center}
+.ligne .txt{flex:1;min-width:0;display:block;overflow:hidden;padding:0}
+.ligne .nom{font-weight:800;font-size:15px;display:flex;align-items:center;gap:7px}
+.ligne .nom i{font-style:normal;font-size:11px;font-weight:800;color:var(--ok);background:var(--ok-fond);
+  padding:2px 6px;border-radius:6px}
+.ligne .det{display:block;color:var(--dim);font-size:12.5px;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ligne .fl{color:var(--dim2);font-size:19px;flex:none}
+.ligne.rangee{opacity:.62;border-left-color:var(--line)}
+/* l'action secondaire reste discrète : ouvrir l'app est le vrai geste */
+.mini{font-size:11.5px;font-weight:700;padding:7px 2px 7px 10px;border-radius:9px;
+  background:none;border:none;color:var(--dim2);flex:none}
+.mini.plus{padding:7px 11px;background:var(--bg3);border:1px solid var(--line);color:var(--ink);font-weight:800;font-size:12.5px}
+
+/* ─── autre chose ─── */
+.autre{background:var(--bg2);border:1px dashed var(--line2);border-radius:13px;padding:13px;margin-bottom:8px}
+.autre p{font-size:13.5px;color:var(--dim)}
+.autre button{margin-top:10px;width:100%;padding:12px;border-radius:11px;font-weight:800;font-size:14px;
+  background:var(--bg3);border:1px solid var(--line2)}
+
+/* ─── le mois ─── */
+.mois{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:15px}
+.grille{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:10px 0 12px}
+.grille span{font-size:10px;color:var(--dim2);text-align:center;font-weight:800}
+.cel{aspect-ratio:1;border-radius:7px;background:var(--bg3);position:relative;
+  display:grid;place-items:center;font-size:9.5px;color:var(--dim2)}
+.cel.vide{background:transparent}
+.cel.fait{background:var(--c1);color:transparent}
+.cel.fait::after{content:"";position:absolute;inset:auto 3px 3px auto;width:5px;height:5px;border-radius:999px;
+  background:var(--c2);display:var(--d2,none)}
+.cel.auj{box-shadow:0 0 0 2px var(--cuivre)}
+.lgd{display:flex;flex-wrap:wrap;gap:4px 12px}
+.lgd b{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--dim)}
+.lgd b i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.chiffres{display:flex;gap:18px;margin-top:13px;padding-top:13px;border-top:1px solid var(--line)}
+.chiffres div b{display:block;font-size:20px;font-weight:900;line-height:1.1}
+.chiffres div small{font-size:11px;color:var(--dim)}
+
+.pied{margin:20px 0 8px;color:var(--dim2);font-size:12.5px;line-height:1.55}
+.pied a{color:var(--dim);text-decoration-color:var(--line2)}
+
+#toast{position:fixed;left:50%;transform:translateX(-50%) translateY(16px);bottom:calc(20px + env(safe-area-inset-bottom,0));
+  background:var(--ink);color:var(--bg);font-size:13.5px;font-weight:700;padding:11px 16px;border-radius:999px;
+  opacity:0;pointer-events:none;transition:.22s;max-width:88vw;text-align:center;z-index:50}
+#toast.vu{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap"><div id="app"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   LE PUPITRE — une séance de musique par jour, n'importe laquelle.
+
+   Cette app ne t'apprend rien : elle tient tes apps de musique sur le
+   même pupitre et t'en pose UNE devant toi chaque matin (la plus
+   délaissée passe devant). Elle ne te demande pas de cocher : SHRED,
+   Piano Dojo, LA CLÉ et SIDEMAN vivent sur le même site, donc dans le
+   même localStorage — on y lit l'XP, la série et la dernière journée
+   travaillée. Dès qu'une séance a laissé une trace, la journée est
+   validée ici, et LE PUPITRE se coche tout seul dans Le Pointage.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const KEY="pupitre.v1";
+const PT="pointage_v1";            /* la clé du Pointage, même origine */
+
+/* Les apps du pupitre. « cle » = la clé localStorage de l'app ; « dossier »
+   sert à la reconnaître dans Le Pointage. DISSONANCE ne garde pas de
+   journal de séances : elle se coche à la main, au retour. */
+const APPS=[
+  {id:"shred",     nom:"SHRED",      e:"🎸", quoi:"guitare",            dossier:"shred",          cle:"shred2",   c:"#E8A13C"},
+  {id:"piano",     nom:"Piano Dojo", e:"🎹", quoi:"piano & voix",       dossier:"piano-dojo",     cle:"pianodojo",c:"#EADFC8", cl:"#9A7B45"},
+  {id:"lacle",     nom:"LA CLÉ",     e:"🎼", quoi:"théorie & impro",    dossier:"lacle",          cle:"lacle",    c:"#8AB8E8"},
+  {id:"sideman",   nom:"SIDEMAN",    e:"🎷", quoi:"piano jazz",         dossier:"sideman",        cle:"sideman",  c:"#C9A0DC"},
+  {id:"dissonance",nom:"DISSONANCE", e:"🎤", quoi:"le carnet du groupe",dossier:"carnet-accords", cle:"",         c:"#E3563A"}
+];
+const AUTRE={id:"autre", nom:"Autre chose", e:"✋", quoi:"répèt', un morceau, une impro", c:"#7FC88A", cl:"#2E7D43"};
+/* La rotation de départ : les trois apps d'entraînement quotidien.
+   SIDEMAN et DISSONANCE attendent sur l'étagère, à un geste près. */
+const ROT0={shred:1, piano:1, lacle:1, sideman:0, dissonance:0};
+
+const DEF={rot:null, jours:{}, ptLast:"", theme:"", ouvert:null, mig:""};
+let S=load();
+function load(){ try{ const o=JSON.parse(localStorage.getItem(KEY)||"{}");
+  const s=Object.assign({},DEF,o&&typeof o==="object"?o:{});
+  if(!s.jours||typeof s.jours!=="object") s.jours={};
+  return s; }catch(e){ return Object.assign({},DEF,{jours:{}}); } }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+
+function today(){ return new Date().toISOString().slice(0,10); }
+function dayShift(iso,n){ const d=new Date(iso+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function ecart(a,b){ return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5); }
+function norm(x){ return String(x||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,""); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function def(id){ return id===AUTRE.id?AUTRE:APPS.find(a=>a.id===id)||null; }
+/* la couleur d'une app : certaines teintes de nuit s'effacent sur le fond clair */
+function coul(a){ return a?(theme()==="light"&&a.cl?a.cl:a.c):"transparent"; }
+function rot(){ return S.rot&&typeof S.rot==="object"?S.rot:ROT0; }
+function dans(id){ return !!rot()[id]; }
+function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.classList.add("vu");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("vu"),2400); }
+
+/* ─── le thème : celui du Pointage, pour que les deux apps se ressemblent ─── */
+function theme(){
+  if(S.theme) return S.theme;
+  try{ const P=JSON.parse(localStorage.getItem(PT)||"null"); if(P&&P.theme) return P.theme; }catch(e){}
+  return "dark";
+}
+function appliqueTheme(){ document.documentElement.dataset.theme=theme(); }
+function bascTheme(){ S.theme=theme()==="dark"?"light":"dark"; save(); appliqueTheme(); rendre(); }
+
+/* ═══ CE QUE DISENT LES APPS ELLES-MÊMES ═══
+   Même site = même localStorage : on lit leur état sans rien leur demander.
+   On ne l'écrit JAMAIS — le pupitre regarde, il ne touche pas. */
+function brut(a){ if(!a||!a.cle) return null;
+  try{ const o=JSON.parse(localStorage.getItem(a.cle)||"null"); return o&&typeof o==="object"?o:null; }catch(e){ return null; } }
+function joursDe(id){ return Object.keys(S.jours).filter(d=>(S.jours[d]||[]).includes(id)).sort(); }
+function infos(a){
+  const o=brut(a), J=joursDe(a.id), t=today();
+  const propre=o&&typeof o.lastDay==="string"?o.lastDay:"";
+  const dernier=[propre,J.length?J[J.length-1]:""].filter(Boolean).sort().pop()||"";
+  /* SHRED compte ses minutes jouées, jour par jour : on les affiche. */
+  let min=0; if(a.cle==="shred2"&&o&&o.days&&o.days[t]) min=Math.round((o.days[t].sec||0)/60);
+  return { xp:o&&typeof o.xp==="number"?Math.round(o.xp):0,
+           serie:o&&typeof o.streak==="number"?o.streak:0,
+           dernier, min, suivie:!!a.cle, seances:J.length };
+}
+function depuis(a){
+  const d=infos(a).dernier, t=today();
+  if(!d) return "jamais ouverte";
+  if(d===t) return "aujourd'hui";
+  if(d===dayShift(t,-1)) return "hier";
+  const n=ecart(d,t); return "il y a "+n+" jour"+(n>1?"s":"");
+}
+
+/* ═══ LA JOURNÉE ═══ */
+function faitLe(d){ return (S.jours[d]||[]).length>0; }
+function faitsDu(d){ return (S.jours[d]||[]).map(def).filter(Boolean); }
+function noter(d,id){ const L=S.jours[d]||(S.jours[d]=[]); if(L.includes(id)) return false; L.push(id); return true; }
+function serie(){ const t=today(); let n=0, x=faitLe(t)?t:dayShift(t,-1);
+  while(faitLe(x)&&n<2000){ n++; x=dayShift(x,-1); } return n; }
+function joues(n){ const t=today(); let k=0; for(let i=0;i<n;i++) if(faitLe(dayShift(t,-i))) k++; return k; }
+
+/* Le relevé : on repasse sur les apps et on valide la journée si l'une
+   d'elles a travaillé aujourd'hui. Appelé à l'ouverture et à chaque retour. */
+function relever(){
+  let chg=false;
+  const iso=d=>typeof d==="string"&&/^\d{4}-\d\d-\d\d$/.test(d);
+  APPS.forEach(a=>{ const o=brut(a); if(!o) return;
+    /* la dernière journée travaillée, même si elle est passée : le pupitre
+       ouvert aujourd'hui rattrape la séance d'hier qu'il n'a pas vue. */
+    if(iso(o.lastDay)&&noter(o.lastDay,a.id)) chg=true;
+    /* SHRED tient le compte des minutes, jour par jour */
+    if(a.cle==="shred2"&&o.days) Object.keys(o.days).forEach(d=>{
+      if(iso(d)&&(o.days[d].sec||0)>0&&noter(d,a.id)) chg=true; });
+  });
+  if(chg) save();
+  cocherPointage();
+  return chg;
+}
+
+/* Le passé : SHRED tient un journal par jour, et Le Pointage a l'histoire
+   des coches de SHRED / Piano Dojo / LA CLÉ. On s'en sert une fois pour
+   que le calendrier ne naisse pas vide. */
+function reprendreLePasse(){
+  if(S.mig==="v1") return;
+  try{ const o=brut(APPS[0]); if(o&&o.days) Object.keys(o.days).forEach(d=>{
+    if(/^\d{4}-\d\d-\d\d$/.test(d)&&(o.days[d].sec||0)>0) noter(d,"shred"); }); }catch(e){}
+  try{
+    const P=JSON.parse(localStorage.getItem(PT)||"null");
+    if(P&&Array.isArray(P.apps)&&P.st) P.apps.forEach(x=>{
+      const a=APPS.find(y=>norm(y.nom)===norm(x.name)||new RegExp("/"+y.dossier+"/?$").test(x.url||""));
+      if(!a) return;
+      const st=P.st[x.id]; if(!st||!Array.isArray(st.days)) return;
+      st.days.forEach(d=>{ if(/^\d{4}-\d\d-\d\d$/.test(d)) noter(d,a.id); });
+    });
+  }catch(e){}
+  S.mig="v1"; save();
+}
+
+/* La coche dans Le Pointage (même site). On n'écrit que la coche du jour,
+   jamais rien d'autre, et on ne décoche jamais. */
+function cocherPointage(){
+  try{
+    const t=today(); if(S.ptLast===t||!faitLe(t)) return;
+    const raw=localStorage.getItem(PT); if(!raw) return;
+    const P=JSON.parse(raw); if(!P||!Array.isArray(P.apps)) return;
+    const a=P.apps.find(x=>x.id==="pupitre")
+         || P.apps.find(x=>norm(x.name)==="lepupitre"||/\/pupitre\/?$/.test(x.url||""));
+    if(!a||a.arch) return;
+    P.st=P.st||{}; const st=P.st[a.id]||(P.st[a.id]={days:[],min:{}});
+    if(!Array.isArray(st.days)) st.days=[];
+    if(!st.days.includes(t)){
+      st.days.push(t); st.days.sort();
+      P.chk=P.chk||{}; P.chk[a.id+"|"+t]={t:Date.now(),v:1};
+      localStorage.setItem(PT,JSON.stringify(P));
+      setTimeout(()=>toast("Séance cochée dans ton Pointage."),500);
+    }
+    S.ptLast=t; save();
+  }catch(e){}
+}
+
+/* ═══ QUI EST AU PUPITRE AUJOURD'HUI ═══
+   La plus délaissée passe devant ; à égalité, l'ordre du pupitre tranche.
+   Celle déjà jouée aujourd'hui laisse la place à une autre. */
+function choix(){
+  const t=today(), faits=S.jours[t]||[];
+  const cand=APPS.filter(a=>dans(a.id)); if(!cand.length) return null;
+  const score=a=>{ const d=infos(a).dernier; return d?Math.min(400,ecart(d,t)):9999; };
+  const ordre=cand.map((a,i)=>({a,i,s:score(a)})).sort((x,y)=>(y.s-x.s)||(x.i-y.i));
+  const libres=ordre.filter(o=>!faits.includes(o.a.id));
+  return (libres[0]||ordre[0]).a;
+}
+
+/* ═══ ACTIONS ═══ */
+function ouvrir(id){
+  const a=def(id); if(!a) return;
+  if(a.id===AUTRE.id) return marquerAutre();
+  /* on note la sortie : au retour, si l'app n'a laissé aucune trace,
+     le pupitre demandera simplement si ça comptait. */
+  S.ouvert={id:a.id, t:Date.now()}; save();
+  window.open("../../"+a.dossier+"/","_blank","noopener");
+}
+function marquerAutre(){
+  const t=today();
+  if((S.jours[t]||[]).includes(AUTRE.id)){
+    S.jours[t]=(S.jours[t]||[]).filter(x=>x!==AUTRE.id);
+    if(!S.jours[t].length) delete S.jours[t];
+    save(); rendre(); toast("Retiré.");
+    return;
+  }
+  noter(t,AUTRE.id); save(); cocherPointage(); rendre(); toast("Journée validée. 🎵");
+}
+function retourOui(){
+  const o=S.ouvert; if(!o) return;
+  noter(today(),o.id); S.ouvert=null; save(); cocherPointage(); rendre(); toast("Journée validée. 🎵");
+}
+function retourNon(){ S.ouvert=null; save(); rendre(); }
+function basculer(id){
+  const r=Object.assign({},rot()); r[id]=r[id]?0:1; S.rot=r; save(); rendre();
+  toast(r[id]?def(id).nom+" entre dans la rotation.":def(id).nom+" part sur l'étagère.");
+}
+function voirTout(){ S.tout=!S.tout; save(); rendre(); }
+
+/* ═══ RENDU ═══ */
+function ligneHtml(a,opts){
+  const o=opts||{}, I=infos(a), t=today(), fait=(S.jours[t]||[]).includes(a.id);
+  const det=[];
+  if(a.id===AUTRE.id) det.push(a.quoi);
+  else{
+    det.push(a.quoi);
+    if(I.min) det.push(I.min+" min aujourd'hui");
+    else det.push(depuis(a));
+    if(I.serie>1) det.push("🔥 "+I.serie);
+    else if(I.xp) det.push(I.xp+" XP");
+  }
+  return `<div class="ligne ${o.rangee?"rangee":""}" style="--app:${coul(a)}">
+    <button class="em" onclick="ouvrir('${a.id}')" aria-label="Ouvrir ${esc(a.nom)}">${a.e}</button>
+    <button class="txt" onclick="ouvrir('${a.id}')">
+      <span class="nom">${esc(a.nom)}${fait?"<i>fait</i>":""}</span>
+      <span class="det">${esc(det.join(" · "))}</span>
+    </button>
+    ${o.rangee
+      ? `<button class="mini plus" onclick="basculer('${a.id}')">+ rotation</button>`
+      : `<button class="mini" onclick="basculer('${a.id}')" aria-label="Mettre ${esc(a.nom)} de côté">de côté</button>`}
+  </div>`;
+}
+
+function moisHtml(){
+  const t=today(), N=35, cells=[];
+  const prem=dayShift(t,-(N-1));
+  const js=new Date(prem+"T12:00:00").getDay();        /* 0 = dimanche */
+  const vides=(js+6)%7;                                 /* grille lundi → dimanche */
+  for(let i=0;i<vides;i++) cells.push(`<div class="cel vide"></div>`);
+  for(let i=N-1;i>=0;i--){
+    const d=dayShift(t,-i), F=faitsDu(d), n=new Date(d+"T12:00:00").getDate();
+    const st=F.length
+      ? `--c1:${coul(F[0])};${F[1]?`--c2:${coul(F[1])};--d2:block;`:""}`
+      : "";
+    cells.push(`<div class="cel ${F.length?"fait":""} ${d===t?"auj":""}" style="${st}"
+      title="${d}${F.length?" · "+F.map(x=>x.nom).join(", "):""}">${n}</div>`);
+  }
+  const vus=APPS.filter(a=>joursDe(a.id).length).concat(joursDe(AUTRE.id).length?[AUTRE]:[]);
+  return `<section class="mois">
+    <div class="sect" style="margin-top:0"><h3>Les cinq dernières semaines</h3><span class="sp"></span></div>
+    <div class="grille">${["L","M","M","J","V","S","D"].map(x=>`<span>${x}</span>`).join("")}${cells.join("")}</div>
+    ${vus.length?`<div class="lgd">${vus.map(a=>`<b><i style="background:${coul(a)}"></i>${esc(a.nom)}</b>`).join("")}</div>`:""}
+    <div class="chiffres">
+      <div><b>${serie()}</b><small>jours de suite</small></div>
+      <div><b>${joues(30)}<span class="dim ppt"> / 30</span></b><small>jours joués</small></div>
+      <div><b>${Object.keys(S.jours).length}</b><small>en tout</small></div>
+    </div>
+  </section>`;
+}
+
+function rendre(){
+  const t=today(), app=document.getElementById("app");
+  const F=faitsDu(t), fait=F.length>0, S_=serie();
+  let dateTxt=new Date(t+"T12:00:00").toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+  dateTxt=dateTxt.charAt(0).toUpperCase()+dateTxt.slice(1);
+
+  /* le rappel de retour : sorti vers une app, revenu sans trace */
+  let retour="";
+  if(S.ouvert&&!fait&&(Date.now()-S.ouvert.t)>75e3){
+    const a=def(S.ouvert.id);
+    if(a) retour=`<div class="retour">
+      <b>Tu reviens de ${esc(a.nom)}.</b>
+      <p class="pt dim" style="margin-top:4px">Elle n'a rien enregistré — normal si tu as surtout joué.
+        Ça compte comme ta séance du jour ?</p>
+      <div class="duo"><button onclick="retourOui()">Oui, c'était ma séance</button>
+        <button class="non" onclick="retourNon()">Pas encore</button></div></div>`;
+  }
+
+  /* la carte du jour */
+  let carte="";
+  if(fait){
+    const noms=F.map(a=>a.nom).join(", ");
+    const mins=APPS.map(a=>infos(a).min).reduce((x,y)=>x+y,0);
+    carte=`<div class="carte faite">
+      <span class="oeil">La journée est faite</span>
+      <div class="coche"><span class="rond">✓</span>
+        <div><h2>${esc(noms)}</h2>
+          <p class="pt dim">${mins?mins+" min de jeu · ":""}${S_>1?S_+" jours de suite":"c'est reparti"}</p></div></div>
+      <button class="sous" onclick="voirTout()">${S.tout?"Replier le pupitre":"En faire une autre ?"}</button>
+    </div>`;
+  }else{
+    const a=choix();
+    if(!a){
+      carte=`<div class="carte"><span class="oeil">Le pupitre est vide</span>
+        <p class="pt dim">Aucune app dans la rotation. Remets-en une ci-dessous.</p></div>`;
+    }else{
+      const I=infos(a), tard=new Date().getHours()>=20;
+      const pq = !I.dernier ? "Jamais ouverte : c'est le moment de voir ce qu'elle vaut."
+        : I.dernier===dayShift(t,-1) ? "Jouée hier — tu es dedans, on continue."
+        : "Délaissée depuis "+ecart(I.dernier,t)+" jours. C'est elle qui passe devant.";
+      carte=`<div class="carte jour" style="--app:${coul(a)}">
+        <span class="oeil">Au pupitre aujourd'hui</span>
+        <div class="titre-app"><span class="em">${a.e}</span>
+          <div><h1>${esc(a.nom)}</h1><p class="quoi">${esc(a.quoi)}</p></div></div>
+        <p class="pourquoi">${esc(pq)}${I.serie>1?` <span class="dim">· série de ${I.serie} dans l'app</span>`:""}</p>
+        <button class="gros" onclick="ouvrir('${a.id}')">Ouvrir ${esc(a.nom)}</button>
+        <button class="sous" onclick="voirTout()">${S.tout?"Replier":"Plutôt une autre"}</button>
+        ${tard?`<p class="pt dim" style="margin-top:11px">La journée file. Dix minutes suffisent à la sauver.</p>`:""}
+      </div>`;
+    }
+  }
+
+  /* l'étagère : la rotation, puis ce qui est rangé */
+  const enRot=APPS.filter(a=>dans(a.id)), range=APPS.filter(a=>!dans(a.id));
+  const choisie=fait?null:(choix()||{}).id;
+  let etagere="";
+  if(S.tout||fait){
+    etagere=`<div class="sect"><h3>Le pupitre</h3><span class="sp"></span></div>
+      ${enRot.filter(a=>a.id!==choisie).map(a=>ligneHtml(a,{})).join("")}
+      <div class="autre">
+        <b style="font-size:14px">${AUTRE.e} Autre chose</b>
+        <p>Une répèt', un morceau travaillé, une impro : ça compte autant.</p>
+        <button onclick="marquerAutre()">${(S.jours[t]||[]).includes(AUTRE.id)?"✓ Compté aujourd'hui — retirer":"C'est ma séance du jour"}</button>
+      </div>
+      ${range.length?`<div class="sect"><h3>Sur l'étagère</h3><span class="sp"></span></div>
+        ${range.map(a=>ligneHtml(a,{rangee:1})).join("")}`:""}`;
+  }
+
+  app.innerHTML=`
+    <div class="top">
+      <span class="logo">LE <b>PUPITRE</b></span><span class="sp"></span>
+      ${S_?`<span class="pill chaude">🔥 ${S_} j</span>`:""}
+      <button class="pill" onclick="bascTheme()" aria-label="Changer le thème">${theme()==="dark"?"☾":"☀"}</button>
+    </div>
+    <p class="date">${esc(dateTxt)} · une séance de musique par jour</p>
+    ${retour}${carte}${etagere}
+    ${moisHtml()}
+    <p class="pied">Le pupitre lit l'XP et la dernière journée de chaque app : dès qu'une séance laisse
+      une trace, la journée se valide ici et se coche dans <a href="../">Le Pointage</a>.
+      Rien à cocher à la main — sauf pour ce qui se joue hors des apps.</p>`;
+}
+
+/* ─── démarrage ─── */
+appliqueTheme();
+reprendreLePasse();
+relever();
+rendre();
+
+/* Au retour d'une app : on relit tout. C'est là que la journée se valide. */
+document.addEventListener("visibilitychange",()=>{ if(document.hidden) return;
+  const av=faitLe(today()); relever();
+  if(!av&&faitLe(today())) toast("Séance repérée. Journée validée. 🎵");
+  rendre(); });
+window.addEventListener("focus",()=>{ relever(); rendre(); });
+</script>
+</body>
+</html>
