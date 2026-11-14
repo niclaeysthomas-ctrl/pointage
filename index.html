@@ -294,6 +294,11 @@
   .motgrades button small{display:block;font-size:10px;font-weight:650;color:var(--muted);margin-top:2px}
   .motgrades button.g0{background:color-mix(in srgb,var(--cal-due) 15%,var(--card2))}
   .motgrades button.g2{background:color-mix(in srgb,var(--cal-ok) 16%,var(--card2))}
+  .motrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .motrow button{border:1.5px solid var(--line2);background:var(--card2);color:var(--ink);
+    border-radius:13px;padding:12px;font-size:13.5px;font-weight:750;cursor:pointer}
+  .motq{width:100%;border:1.5px solid var(--line2);border-radius:13px;background:var(--card2);
+    color:var(--ink);padding:12px 14px;font-size:14.5px;font-weight:650;font-family:inherit}
   .callg i{display:inline-block;width:9px;height:9px;border-radius:5px;vertical-align:-1px;margin-right:4px}
   .callg i.a{background:var(--cal-todo)} .callg i.d{background:var(--cal-due)} .callg i.g{background:var(--cal-ok)}
   .cday .cj{position:absolute;bottom:3px;right:4px;font-size:8px;color:var(--faint)}
@@ -1336,6 +1341,7 @@
 <script src="lectures-closing.js"></script>
 <script src="lectures-ielts.js"></script>
 <script src="mots.js"></script>
+<script src="regles.js"></script>
 <script src="biblio.js"></script>
 <script src="biblio-informatique.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
@@ -5600,7 +5606,14 @@ function lireSes(kind,ref,min,extra){ if(min<1) return; const L=lir();
    Le deck accepte type:"regle" sans une ligne de plus : une règle de
    grammaire est une carte comme une autre, avec sa propre échéance.
    ═══════════════════════════════════════════════════════════════════ */
-function motDeck(){ return Array.isArray(window.MOTS)?window.MOTS:[]; }
+/* Le deck alterne un mot, une règle : on ne veut pas trente mots d'affilée
+   puis soixante règles. Ajouter une source = une ligne de plus ici. */
+function motDeck(){
+  if(window.__DECK) return window.__DECK;
+  const A=Array.isArray(window.MOTS)?window.MOTS:[], B=Array.isArray(window.REGLES)?window.REGLES:[];
+  const out=[]; let i=0,j=0;
+  while(i<A.length||j<B.length){ if(i<A.length) out.push(A[i++]); if(j<B.length) out.push(B[j++]); }
+  return window.__DECK=out; }
 function mts(){ if(!S.mots) S.mots={v:{},jour:{}}; if(!S.mots.v) S.mots.v={}; if(!S.mots.jour) S.mots.jour={}; return S.mots; }
 function motCarte(id){ const M=mts().v; if(!M[id]) M[id]={n:0,iv:0,ef:2.5,due:today(),vu:0}; return M[id]; }
 function motDues(){ const t=today();
@@ -5630,7 +5643,7 @@ function motHtml(){ const m=motDuJour(); if(!m) return "";
   /* Une fois noté aujourd'hui, le mot reste affiché — on peut le relire —
      mais il ne se présente plus comme une carte qui attend une réponse. */
   const fait=c&&c.vu&&new Date(c.vu).toISOString().slice(0,10)===today();
-  const titre=fait?"Vu aujourd'hui ✓":(neuf?"Le mot du jour":"À revoir");
+  const titre=fait?"Vu aujourd'hui ✓":(neuf?(m.type==="regle"?"La règle du jour":"Le mot du jour"):"À revoir");
   return `<button class="kmot" onclick="motFiche('${m.id}')">
     <i>${titre}${st.dus?` · ${st.dus} en attente`:""}</i>
     <b>${esc(m.mot)}</b>
@@ -5644,15 +5657,39 @@ function motFiche(id,enchaine){ const m=motDeck().find(x=>x.id===id); if(!m) ret
     <h4>${esc(m.mot)}</h4>
     <div class="mnat">${esc(m.nat||"")}${m.reg?" · "+esc(m.reg):""}</div>
     <div class="mdef">${m.def||""}</div>
-    ${m.hist?`<div class="mbloc"><em>D'où il vient</em><div class="mhist">${m.hist}</div></div>`:""}
-    ${m.ex?`<div class="mbloc"><em>Pour t'en servir</em><div class="mex">${m.ex}</div></div>`:""}
+    ${m.hist?`<div class="mbloc"><em>${m.type==="regle"?"Le truc":"D'où il vient"}</em><div class="mhist">${m.hist}</div></div>`:""}
+    ${m.ex?`<div class="mbloc"><em>${m.type==="regle"?"Des exemples":"Pour t'en servir"}</em><div class="mex">${m.ex}</div></div>`:""}
     <div class="motgrades">
       <button class="g0" onclick="motNote('${m.id}',0)">À revoir<small>demain</small></button>
       <button onclick="motNote('${m.id}',1)">Hésité<small>bientôt</small></button>
       <button class="g2" onclick="motNote('${m.id}',2)">Je le tiens<small>plus tard</small></button>
     </div>
-    <button class="btn ghost" style="margin-top:12px" onclick="closeOv();render()">Fermer</button>
+    <div class="motrow"><button onclick="motListe()">📚 Toutes les cartes</button>
+      <button onclick="closeOv();render()">Fermer</button></div>
   </div>`); }
+
+/* La liste : pour retrouver une regle quand on en a besoin, sans attendre
+   qu'elle revienne d'elle-meme. Les cartes du jour restent le chemin normal. */
+function motListe(q){ const dk=motDeck(), V=mts().v, t=today();
+  const f=(q||"").trim().toLowerCase();
+  const vus=dk.filter(m=>{ if(!f) return true;
+    return (m.mot+" "+(m.def||"")+" "+(m.nat||"")).toLowerCase().includes(f); });
+  const etat=m=>{ const c=V[m.id]; if(!c||!c.n) return {e:"○",t:"jamais vue"};
+    if(c.due<=t) return {e:"◐",t:"à revoir"};
+    return {e:"✓",t:"revoir le "+new Date(c.due+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}; };
+  const st=motStats();
+  sheet(`<h3>📚 Les cartes <small style="font-weight:650;color:var(--muted)">· ${st.vus}/${st.total}</small></h3>
+    <input class="motq" id="motQ" placeholder="Chercher un mot, une règle…" value="${esc(q||"")}">
+    <div class="krows" style="margin-top:12px">${vus.map(m=>{ const e=etat(m);
+      return `<div class="krow" data-m="${m.id}" style="cursor:pointer"><span class="ke">${e.e}</span>
+        <div class="kn">${esc(m.mot)}<small style="display:block;color:var(--muted);font-weight:500">${m.type==="regle"?"règle · ":""}${esc(m.nat||"")} · ${e.t}</small></div><b>›</b></div>`; }).join("")
+      ||`<div class="ksub">Rien ne correspond.</div>`}</div>
+    <button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`);
+  const i=document.getElementById("motQ");
+  if(i){ i.addEventListener("input",()=>{ const v=i.value; motListe(v);
+    const n=document.getElementById("motQ"); if(n){ n.focus(); n.setSelectionRange(v.length,v.length); } }); }
+  document.querySelectorAll("[data-m]").forEach(el=>el.addEventListener("click",()=>motFiche(el.dataset.m)));
+}
 
 function lireHtml(){
   const L=lir(), nx=lecNext(), b=livreCourant(), w=lireMinJours(7), run=L.run;
