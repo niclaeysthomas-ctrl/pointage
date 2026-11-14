@@ -1,6 +1,6 @@
 // LE POINTAGE — service worker : network-first, repli cache (100 % hors-ligne)
-const CACHE = "pointage-v78-pupitre-calendrier";
-const ASSETS = ["./", "./index.html", "./coffre.html", "./lectures.js", "./lectures-closing.js", "./lectures-ielts.js", "./biblio.js", "./biblio-informatique.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./mandarin/", "./pupitre/", "./atelier/bibliotheque/commun.js", "./atelier/bibliotheque/monter.js", "./atelier/pieces/t2-06-cretes-couleur.js", "./atelier/pieces/t2-08-enluminure.js", "./atelier/bibliotheque/emaki.js", "./atelier/pieces/t4-18-rouleau.js", "./atelier/pieces/t4-16-rosace.js"];
+const CACHE = "pointage-v79-les-mots";
+const ASSETS = ["./", "./index.html", "./coffre.html", "./mots.js", "./lectures.js", "./lectures-closing.js", "./lectures-ielts.js", "./biblio.js", "./biblio-informatique.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./mandarin/", "./pupitre/", "./atelier/bibliotheque/commun.js", "./atelier/bibliotheque/monter.js", "./atelier/pieces/t2-06-cretes-couleur.js", "./atelier/pieces/t2-08-enluminure.js", "./atelier/bibliotheque/emaki.js", "./atelier/pieces/t4-18-rouleau.js", "./atelier/pieces/t4-16-rosace.js"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));

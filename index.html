@@ -270,6 +270,30 @@
     font-variant-numeric:tabular-nums;box-shadow:0 1px 2px rgba(0,0,0,.18)}
   .cday .cag.due{background:var(--cal-due)}
   .cday .cag.done{background:transparent;color:var(--faint);box-shadow:none;border:1.5px solid var(--line2)}
+  /* ---- LES MOTS : un mot par jour, et l'histoire derrière ---- */
+  .kmot{margin-top:11px;border:1.5px solid var(--line2);border-radius:16px;background:var(--card2);
+    padding:14px 15px;width:100%;text-align:left;cursor:pointer;display:block}
+  .kmot:active{transform:scale(.99)}
+  .kmot i{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-style:normal;margin-bottom:5px}
+  .kmot b{display:block;font-family:var(--disp);font-size:24px;font-weight:800;letter-spacing:-.015em;line-height:1.1}
+  .kmot small{display:block;color:var(--muted);font-size:12.5px;font-weight:650;margin-top:4px}
+  .kmot .kmot-du{display:inline-block;margin-top:9px;background:var(--cal-todo);color:#fff;
+    font-size:10px;font-weight:850;padding:2px 8px;border-radius:7px}
+  .motfiche h4{font-family:var(--disp);font-size:27px;font-weight:800;letter-spacing:-.015em;margin:2px 0 2px}
+  .motfiche .mnat{font-size:12px;color:var(--muted);font-weight:700;font-style:italic;margin-bottom:14px}
+  .motfiche .mdef{font-size:15.5px;line-height:1.6;font-weight:600}
+  .motfiche .mbloc{margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+  .motfiche .mbloc em{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);font-style:normal;margin-bottom:6px}
+  .motfiche .mhist{font-size:14.5px;line-height:1.68}
+  .motfiche .mex{font-size:14.5px;line-height:1.6;font-style:italic;color:var(--muted)}
+  .motgrades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+  .motgrades button{border:none;border-radius:13px;padding:13px 6px;font-size:13px;font-weight:800;cursor:pointer;
+    background:var(--card2);color:var(--ink)}
+  .motgrades button small{display:block;font-size:10px;font-weight:650;color:var(--muted);margin-top:2px}
+  .motgrades button.g0{background:color-mix(in srgb,var(--cal-due) 15%,var(--card2))}
+  .motgrades button.g2{background:color-mix(in srgb,var(--cal-ok) 16%,var(--card2))}
   .callg i{display:inline-block;width:9px;height:9px;border-radius:5px;vertical-align:-1px;margin-right:4px}
   .callg i.a{background:var(--cal-todo)} .callg i.d{background:var(--cal-due)} .callg i.g{background:var(--cal-ok)}
   .cday .cj{position:absolute;bottom:3px;right:4px;font-size:8px;color:var(--faint)}
@@ -1311,6 +1335,7 @@
 <script src="lectures.js"></script>
 <script src="lectures-closing.js"></script>
 <script src="lectures-ielts.js"></script>
+<script src="mots.js"></script>
 <script src="biblio.js"></script>
 <script src="biblio-informatique.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
@@ -5568,6 +5593,67 @@ function lireSes(kind,ref,min,extra){ if(min<1) return; const L=lir();
   L.ses.push({id:lireId(), d:today(), kind, ref, min:Math.min(180,Math.round(min)), ...(extra||{})}); if(min>=10) lecMark(); save(); }
 
 /* ---- la carte sur l'onglet Aujourd'hui ---- */
+/* ═══════════════════════════════════════════════════════════════════
+   ✒️ LES MOTS — un par jour, répétition espacée (SM-2 allégé)
+   L'etat vit dans S.mots, donc DANS la cle pointage_v1 : LE COFFRE le
+   sauvegarde et le transfère déjà, rien à ajouter de ce côté.
+   Le deck accepte type:"regle" sans une ligne de plus : une règle de
+   grammaire est une carte comme une autre, avec sa propre échéance.
+   ═══════════════════════════════════════════════════════════════════ */
+function motDeck(){ return Array.isArray(window.MOTS)?window.MOTS:[]; }
+function mts(){ if(!S.mots) S.mots={v:{},jour:{}}; if(!S.mots.v) S.mots.v={}; if(!S.mots.jour) S.mots.jour={}; return S.mots; }
+function motCarte(id){ const M=mts().v; if(!M[id]) M[id]={n:0,iv:0,ef:2.5,due:today(),vu:0}; return M[id]; }
+function motDues(){ const t=today();
+  return motDeck().filter(m=>{ const c=mts().v[m.id]; return c&&c.n>0&&c.due<=t; }); }
+function motNeufs(){ return motDeck().filter(m=>!mts().v[m.id]); }
+/* Le mot du jour est figé une fois choisi : on ne veut pas qu'il change
+   en cours de journée parce qu'on a répondu à une révision. */
+function motDuJour(){ const t=today(), J=mts().jour;
+  if(J.d===t&&J.id&&motDeck().some(m=>m.id===J.id)) return motDeck().find(m=>m.id===J.id);
+  const n=motNeufs(); const m=n.length?n[0]:(motDues()[0]||motDeck()[0]);
+  if(!m) return null;
+  J.d=t; J.id=m.id; save0(); return m; }
+function motNote(id,g){ const c=motCarte(id), t=today();
+  c.vu=Date.now();
+  if(g===0){ c.n=0; c.iv=1; c.ef=Math.max(1.3,c.ef-0.2); }
+  else if(g===1){ c.n=Math.max(1,c.n); c.iv=Math.max(1,Math.round((c.iv||1)*1.2)); c.ef=Math.max(1.3,c.ef-0.1); }
+  else { c.n=(c.n||0)+1; c.ef=Math.min(2.8,c.ef+0.08);
+         c.iv = c.n===1?1 : c.n===2?4 : Math.max(1,Math.round((c.iv||1)*c.ef)); }
+  c.due=dayShift(t,c.iv); save0();
+  const reste=motDues().filter(m=>m.id!==id);
+  if(reste.length) motFiche(reste[0].id,true); else { closeOv(); render(); } }
+function motStats(){ const V=mts().v, ids=Object.keys(V);
+  const su=ids.filter(i=>V[i].n>=3).length;
+  return {vus:ids.length, su, total:motDeck().length, dus:motDues().length}; }
+function motHtml(){ const m=motDuJour(); if(!m) return "";
+  const st=motStats(), c=mts().v[m.id], neuf=!c||!c.n;
+  /* Une fois noté aujourd'hui, le mot reste affiché — on peut le relire —
+     mais il ne se présente plus comme une carte qui attend une réponse. */
+  const fait=c&&c.vu&&new Date(c.vu).toISOString().slice(0,10)===today();
+  const titre=fait?"Vu aujourd'hui ✓":(neuf?"Le mot du jour":"À revoir");
+  return `<button class="kmot" onclick="motFiche('${m.id}')">
+    <i>${titre}${st.dus?` · ${st.dus} en attente`:""}</i>
+    <b>${esc(m.mot)}</b>
+    <small>${esc(m.nat||"")}${m.reg?" · "+esc(m.reg):""} — ${st.vus}/${st.total} vus · ${st.su} acquis</small>
+    ${neuf&&!fait?`<span class="kmot-du">découvrir</span>`:""}</button>`; }
+function motFiche(id,enchaine){ const m=motDeck().find(x=>x.id===id); if(!m) return;
+  motCarte(id); save0();
+  const st=motStats();
+  sheet(`<div class="motfiche">
+    <h3 style="margin-bottom:14px">✒️ ${m.type==="regle"?"La règle du jour":"Le mot du jour"}${enchaine?` <small style="font-weight:650;color:var(--muted)">· ${st.dus} en attente</small>`:""}</h3>
+    <h4>${esc(m.mot)}</h4>
+    <div class="mnat">${esc(m.nat||"")}${m.reg?" · "+esc(m.reg):""}</div>
+    <div class="mdef">${m.def||""}</div>
+    ${m.hist?`<div class="mbloc"><em>D'où il vient</em><div class="mhist">${m.hist}</div></div>`:""}
+    ${m.ex?`<div class="mbloc"><em>Pour t'en servir</em><div class="mex">${m.ex}</div></div>`:""}
+    <div class="motgrades">
+      <button class="g0" onclick="motNote('${m.id}',0)">À revoir<small>demain</small></button>
+      <button onclick="motNote('${m.id}',1)">Hésité<small>bientôt</small></button>
+      <button class="g2" onclick="motNote('${m.id}',2)">Je le tiens<small>plus tard</small></button>
+    </div>
+    <button class="btn ghost" style="margin-top:12px" onclick="closeOv();render()">Fermer</button>
+  </div>`); }
+
 function lireHtml(){
   const L=lir(), nx=lecNext(), b=livreCourant(), w=lireMinJours(7), run=L.run;
   const luAuj=lecs().filter(a=>L.lus[a.id]===today());
@@ -5585,7 +5671,8 @@ function lireHtml(){
         :`<button onclick="livreEdit('')">＋ Mon livre en cours</button>`}
       <button onclick="ideeAdd()">✎ Une idée</button>
     </div>
-    <button class="klire-aeon" onclick="lireSheet('aeon')">🌐 Sur Aeon <small>${aeons().length+lir().liens.filter(x=>!x.del&&!x.lu).length} à lire ›</small></button></div>`;
+    <button class="klire-aeon" onclick="lireSheet('aeon')">🌐 Sur Aeon <small>${aeons().length+lir().liens.filter(x=>!x.del&&!x.lu).length} à lire ›</small></button>
+    ${motHtml()}</div>`;
 }
 
 /* ---- la fiche complète : lectures, livres, carnet ---- */
