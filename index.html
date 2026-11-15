@@ -272,6 +272,7 @@
   .cday .cag.done{background:transparent;color:var(--faint);box-shadow:none;border:1.5px solid var(--line2)}
   /* ---- LES MOTS : un mot par jour, et l'histoire derrière ---- */
   .kmot{margin-top:11px;border:1.5px solid var(--line2);border-radius:16px;background:var(--card2);
+    color:var(--ink);font-family:inherit;
     padding:14px 15px;width:100%;text-align:left;cursor:pointer;display:block}
   .kmot:active{transform:scale(.99)}
   .kmot i{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
@@ -1061,6 +1062,60 @@
     --gem:#16161A; --gem-soft:rgba(22,22,26,.05);
     --cours:#4A4950; --on-accent:#FFFFFF;
   }
+  /* ═══════════ LES AUTRES PAPIERS (15/11) ═══════════
+     Même parti pris que NUIT et JOUR : aucune couleur, seuls les emojis
+     en portent. Ce qui change est le papier et l'encre, et chacun répond
+     à un moment — lire longtemps, un écran au lit, le plein soleil. */
+  :root[data-theme="papier"]{
+    --bg:#F6F1E7; --bg2:#EFE8DA; --card:#FFFCF5; --card2:#F2ECDF; --line:#E4DBC9; --line2:#D5C9B2;
+    --ink:#2B2419; --muted:#6B5F4D; --faint:#9A8E79;
+    --accent:#2B2419; --accent2:#120E07; --accent-soft:rgba(43,36,25,.06);
+    --good:#2B2419; --good-ink:#FFFCF5; --good-soft:rgba(43,36,25,.06); --bad:#6B4A33;
+    --gem:#2B2419; --gem-soft:rgba(43,36,25,.06);
+    --cours:#5A5040; --on-accent:#FFFCF5;
+  }
+  :root[data-theme="ardoise"]{
+    --bg:#171A1F; --bg2:#1C2026; --card:#21262E; --card2:#2A3038; --line:#333944; --line2:#434A57;
+    --ink:#DFE4EC; --muted:#9BA3B0; --faint:#6F7684;
+    --accent:#DFE4EC; --accent2:#FFFFFF; --accent-soft:rgba(223,228,236,.07);
+    --good:#DFE4EC; --good-ink:#171A1F; --good-soft:rgba(223,228,236,.07); --bad:#C2C9D4;
+    --gem:#DFE4EC; --gem-soft:rgba(223,228,236,.07);
+    --cours:#AEB6C4; --on-accent:#171A1F;
+  }
+  :root[data-theme="encre"]{
+    --bg:#000000; --bg2:#050505; --card:#0A0A0A; --card2:#121212; --line:#1E1E1E; --line2:#2C2C2C;
+    --ink:#EDEDED; --muted:#949494; --faint:#6A6A6A;
+    --accent:#EDEDED; --accent2:#FFFFFF; --accent-soft:rgba(237,237,237,.06);
+    --good:#EDEDED; --good-ink:#000000; --good-soft:rgba(237,237,237,.06); --bad:#C8C8C8;
+    --gem:#EDEDED; --gem-soft:rgba(237,237,237,.06);
+    --cours:#BDBDBD; --on-accent:#000000;
+  }
+  :root[data-theme="contraste"]{
+    --bg:#FFFFFF; --bg2:#F2F2F2; --card:#FFFFFF; --card2:#F0F0F0; --line:#BFBFBF; --line2:#8E8E8E;
+    --ink:#000000; --muted:#2E2E2E; --faint:#555555;
+    --accent:#000000; --accent2:#000000; --accent-soft:rgba(0,0,0,.08);
+    --good:#000000; --good-ink:#FFFFFF; --good-soft:rgba(0,0,0,.08); --bad:#262626;
+    --gem:#000000; --gem-soft:rgba(0,0,0,.08);
+    --cours:#2E2E2E; --on-accent:#FFFFFF;
+  }
+  /* Les couleurs du calendrier suivent la clarté du papier, pas le réglage
+     du système : sans ça, un thème clair choisi sous un OS sombre héritait
+     des teintes pensées pour le sombre. */
+  :root[data-theme="light"],:root[data-theme="papier"],:root[data-theme="contraste"]{
+    --cal-due:#C0392B; --cal-todo:#B4701A; --cal-ok:#2A7F55; --cal-cours:#3E5C96 }
+  :root[data-theme="dark"],:root[data-theme="ardoise"],:root[data-theme="encre"]{
+    --cal-due:#FF6F61; --cal-todo:#F5A524; --cal-ok:#48C98A; --cal-cours:#8AA9E8 }
+  .thlist{display:flex;flex-direction:column;gap:9px;margin-top:4px}
+  .thone{display:flex;align-items:center;gap:13px;background:var(--card2);border:1.5px solid var(--line2);
+    color:var(--ink);font-family:inherit;
+    border-radius:15px;padding:12px 14px;cursor:pointer;text-align:left;width:100%}
+  .thone.on{border-color:var(--accent);background:var(--accent-soft)}
+  .thsw{flex:none;width:46px;height:46px;border-radius:12px;border:1px solid var(--line2);overflow:hidden;
+    display:flex;flex-direction:column}
+  .thsw em{flex:1;display:block} .thsw i{height:13px;display:block;margin:0 7px 7px;border-radius:3px}
+  .thtx b{display:block;font-size:14.5px;font-weight:800}
+  .thtx small{display:block;color:var(--muted);font-size:12px;font-weight:600;margin-top:2px}
+  .thone .thok{margin-left:auto;font-size:15px;color:var(--accent)}
   body{background:var(--bg);background-attachment:scroll}
   .today{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--ink);font-family:var(--serif);font-weight:500;
     font-size:32px;letter-spacing:-.01em;text-transform:none;display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -1677,9 +1732,32 @@ function aSortir(a){ return jamaisPointee(a.id)&&!neuve(a); }
 
 /* --- thème --- */
 /* la nuit par défaut (26/10) ; le clair reste un choix */
+/* Six papiers, pas six couleurs : chacun répond à un moment de la journée.
+   `sombre` sert à l'icône du bouton et aux réglages qui s'en déduisent. */
+const THEMES=[
+  {id:"dark",      nom:"Nuit",       sous:"gris neutre, le réglage d'origine",     sombre:1, pap:"#17181D", enc:"#F2F0EA"},
+  {id:"light",     nom:"Jour",       sous:"blanc cassé, encre noire",              sombre:0, pap:"#F4F3EF", enc:"#16161A"},
+  {id:"papier",    nom:"Papier",     sous:"crème chaud, pour lire longtemps",      sombre:0, pap:"#F6F1E7", enc:"#2B2419"},
+  {id:"ardoise",   nom:"Ardoise",    sous:"sombre adouci, moins de contraste",     sombre:1, pap:"#21262E", enc:"#DFE4EC"},
+  {id:"encre",     nom:"Encre",      sous:"noir absolu — l'écran au lit, et la batterie", sombre:1, pap:"#0A0A0A", enc:"#EDEDED"},
+  {id:"contraste", nom:"Grand jour", sous:"contraste maximal, dehors en plein soleil",    sombre:0, pap:"#FFFFFF", enc:"#000000"}
+];
+function themeDef(){ return THEMES.find(t=>t.id===(S.theme||"dark"))||THEMES[0]; }
 function applyTheme(){ document.documentElement.dataset.theme=S.theme||"dark"; }
-function currentDark(){ return (S.theme||"dark")==="dark"; }
-function toggleTheme(){ S.theme=currentDark()?"light":"dark"; save(); applyTheme(); render(); }
+function currentDark(){ return !!themeDef().sombre; }
+function toggleTheme(){ themeSheet(); }
+function setTheme(id){ S.theme=id; save(); applyTheme(); themeSheet(); }
+function themeSheet(){ const cur=(S.theme||"dark");
+  sheet(`<h3>🎨 L'apparence</h3>
+    <div class="ksub" style="text-align:left">Six papiers. Aucun n'ajoute de couleur : seuls tes emojis en portent. Le choix te suit sur tes autres appareils par LE COFFRE.</div>
+    <div class="thlist">${THEMES.map(t=>`<button class="thone ${t.id===cur?"on":""}" data-th="${t.id}">
+      <span class="thsw" style="background:${t.pap}"><em></em><i style="background:${t.enc}"></i></span>
+      <span class="thtx"><b>${t.nom}</b><small>${t.sous}</small></span>
+      ${t.id===cur?`<span class="thok">✓</span>`:""}</button>`).join("")}</div>
+    <button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`);
+  document.querySelectorAll("[data-th]").forEach(el=>
+    el.addEventListener("click",()=>setTheme(el.dataset.th)));
+}
 
 /* --- calculs --- */
 function doneToday(id){ return stOf(id).days.includes(today()); }
@@ -1802,7 +1880,7 @@ function render(){
         ${(()=>{ try{ const E=ech(); if(!E) return ""; const j=coJ(); return `<span class="kgem" onclick="echGo('today')">${E.e} J-${j}</span>`; }catch(e){ return ""; } })()}
         <span class="kgem pts" onclick="openPts()">⚡ ${ptsDay(today()).tot}</span>
         ${syncDotHtml()}
-        <button class="tgl" onclick="toggleTheme()" aria-label="Changer de thème">${currentDark()?"☀":"☾"}</button>
+        <button class="tgl" onclick="themeSheet()" aria-label="Changer d'apparence">${currentDark()?"☀":"☾"}</button>
       </div>
       <div class="today">${titre}${T==="maintenant"?`<button class="sosmini" onclick="openSos()" aria-label="SOS, envie de scroller">SOS 10 min</button>`:""}</div>
     </header>
