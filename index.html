@@ -238,18 +238,20 @@
   .calnav button.now{width:auto;padding:0 12px;font-size:12.5px;background:var(--accent-soft);color:var(--accent)}
   .caldow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:5px}
   .caldow span{text-align:center;font-size:10px;font-weight:800;color:var(--faint);text-transform:uppercase}
-  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .cday{aspect-ratio:1/1.12;border-radius:11px;background:var(--card2);padding:5px 3px 4px;cursor:pointer;
+  .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cday{aspect-ratio:1/1.28;border-radius:12px;background:var(--card2);padding:6px 3px 5px;cursor:pointer;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;
-    position:relative;border:1.5px solid transparent;transition:transform .12s}
+    position:relative;border:1.5px solid transparent;transition:transform .12s,box-shadow .12s}
   .cday:active{transform:scale(.94)}
   .cday.out{background:transparent;cursor:default;opacity:.25}
   .cday.full{background:var(--good-soft);border-color:color-mix(in srgb,var(--good) 32%,transparent)}
-  .cday.now{border-color:var(--accent)}
-  .cday b{font-size:12.5px;font-weight:750;font-variant-numeric:tabular-nums;line-height:1}
+  .cday.now{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .cday.now b{position:relative}
+  .cday.now b::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-4px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+  .cday b{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
   .cday.now b{color:var(--accent);font-weight:850}
   .cday .cdt{display:flex;gap:2px;margin-top:auto}
-  .cday .cdt i{width:4px;height:4px;border-radius:50%;background:var(--line2)}
+  .cday .cdt i{width:4.5px;height:4.5px;border-radius:50%;background:var(--line2)}
   .cday .cdt i.on{background:var(--good)}
   /* Le calendrier garde ses couleurs meme sous un theme monochrome : ici le rouge,
      l'ambre et le vert portent un SENS (echeance, a faire, fait), ils ne decorent pas.
@@ -303,8 +305,8 @@
   .callg i{display:inline-block;width:9px;height:9px;border-radius:5px;vertical-align:-1px;margin-right:4px}
   .callg i.a{background:var(--cal-todo)} .callg i.d{background:var(--cal-due)} .callg i.g{background:var(--cal-ok)}
   .cday .cj{position:absolute;bottom:3px;right:4px;font-size:8px;color:var(--faint)}
-  .cday .ccrs{font-size:7.5px;font-weight:850;letter-spacing:.02em;color:var(--cal-cours);
-    line-height:1;margin-top:auto;white-space:nowrap;overflow:hidden;max-width:100%}
+  .cday .ccrs{font-size:9.5px;font-weight:850;letter-spacing:.01em;color:var(--cal-cours);
+    line-height:1.2;margin-top:auto;text-align:center;max-width:100%;overflow:hidden}
   .cday.crs{border-color:color-mix(in srgb,var(--cal-cours) 34%,transparent)}
   .crslist{margin-top:10px;display:flex;flex-direction:column;gap:7px}
   .crs{display:flex;gap:10px;align-items:flex-start;background:var(--card2);border-radius:12px;padding:10px 12px;
@@ -329,6 +331,10 @@
     color-mix(in srgb,var(--cal-due) 12%,var(--card2)) 0 6px,
     color-mix(in srgb,var(--cal-due) 19%,var(--card2)) 6px 12px);
     border-color:color-mix(in srgb,var(--cal-due) 45%,transparent)}
+  .caljnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .caljnav button{border:1.5px solid var(--line2);background:var(--card2);color:var(--ink);
+    width:38px;height:38px;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;flex:none}
+  .caljnav button:active{transform:scale(.94)}
   .calfoot{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
   .calfoot div{flex:1;min-width:84px;background:var(--card2);border-radius:13px;padding:11px 10px}
   .calfoot b{display:block;font-family:var(--disp);font-size:19px;font-weight:800;letter-spacing:-.02em;
@@ -3222,7 +3228,7 @@ function calSheet(){
     cells.push(`<div class="cday ${AC.length&&faits===AC.length?"full":""} ${ton} ${iso===t?"now":""}" data-d="${iso}">
       <b>${d}</b>
       ${badge}
-      ${e.cours?`<span class="ccrs">${coursDu(iso).map(c=>esc(c.code.split(" ")[0])).filter((v,i,a)=>a.indexOf(v)===i).join(" ")}</span>`:""}
+      ${e.cours?`<span class="ccrs">${coursDu(iso).map(c=>esc(c.code.split(" ")[0])).filter((v,i,a)=>a.indexOf(v)===i).slice(0,2).join("<br>")}</span>`:""}
       ${e.j?`<span class="cj">✎</span>`:""}
       <div class="cdt">${AC.map(c=>`<i class="${e.cats[c.id]?"on":""}"></i>`).join("")}</div>
     </div>`);
@@ -3251,7 +3257,7 @@ function calSheet(){
       Gris : tout est réglé. Le chiffre en haut à droite dit combien.
       <br>Le code en bas (BX1A, BX1B…) est ton cours du jour. <b>✎</b> : journée écrite.
       <br>Jour hachuré : tu as laissé passer quelque chose.
-      <br>Touche un jour pour voir le détail et y noter quelque chose. Glisse pour changer de mois.</div>
+      <br>Touche un jour pour l'ouvrir ; dedans, les flèches passent au suivant. Glisse pour changer de mois.</div>
     <button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`);
   agSegBind();
   const g=document.getElementById("calGrid");
@@ -3277,7 +3283,11 @@ function calDay(d){
   const pointe=S.apps.filter(a=>stOf(a.id).days.includes(d));
   const min=S.apps.reduce((s,a)=>s+Math.round(stOf(a.id).min[d]||0),0);
   const e=jGet(d), AC=catsActives();
-  sheet(`<h3>${jDateLabel(d,true)}</h3>
+  /* On entre dans un jour pour le lire, et presque toujours on veut voir
+     le suivant. Deux flèches évitent l'aller-retour par la grille. */
+  sheet(`<div class="caljnav"><button onclick="calDay('${dayShift(d,-1)}')" aria-label="Jour précédent">‹</button>
+      <h3 style="margin:0">${jDateLabel(d,true)}</h3>
+      <button onclick="calDay('${dayShift(d,1)}')" aria-label="Jour suivant">›</button></div>
     ${AC.length?`<div class="agpills" style="margin:-4px 0 15px">${AC.map(c=>
       `<span class="${catDoneDay(c.id,d)?"on":""}">${c.e} ${c.nom}</span>`).join("")}</div>`:""}
     ${(()=>{ const ev=(typeof calEvDay==="function"?calEvDay(new Date(d+"T12:00:00").getTime()):[]);
@@ -3312,6 +3322,12 @@ function calDay(d){
     <button class="btn ghost" style="margin-top:15px" onclick="calSheet()">← Le calendrier</button>`);
   const ag=document.getElementById("calDayAg");
   if(ag) ag.addEventListener("click",ev=>agRowAct(ev,()=>calDay(d)));
+  const sh=document.getElementById("sheet");
+  if(sh){ let x0=null,y0=null;
+    sh.addEventListener("touchstart",ev=>{ const p=ev.touches[0]; x0=p.clientX; y0=p.clientY; },{passive:true});
+    sh.addEventListener("touchend",ev=>{ if(x0==null) return;
+      const p=ev.changedTouches[0], dx=p.clientX-x0, dy=p.clientY-y0; x0=null;
+      if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.8) calDay(dayShift(d,dx<0?1:-1)); },{passive:true}); }
   const f=document.getElementById("calForm");
   if(f) f.addEventListener("submit",ev=>{
     ev.preventDefault();
