@@ -311,6 +311,23 @@
   .crs>b{font-size:11px;font-weight:850;color:var(--cal-cours);padding-top:2px;flex:none;min-width:34px}
   .crsn{font-size:14px;font-weight:700;line-height:1.35}
   .crsn small{display:block;color:var(--muted);font-size:11.5px;font-weight:600;margin-top:2px}
+  .cnxlate{margin-top:14px;background:color-mix(in srgb,var(--cal-due) 14%,var(--card2));
+    border:1.5px solid color-mix(in srgb,var(--cal-due) 42%,transparent);border-radius:14px;
+    padding:12px 14px;font-size:13.5px;font-weight:800;cursor:pointer}
+  .cnxlate small{display:block;color:var(--muted);font-size:11.5px;font-weight:600;margin-top:3px}
+  .cnxlist{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .cnx{display:flex;gap:11px;align-items:baseline;background:var(--card2);border-radius:12px;
+    padding:10px 12px;cursor:pointer;border-left:3px solid var(--cal-todo)}
+  .cnx.cours{border-left-color:var(--cal-cours)}
+  .cnx:active{transform:scale(.99)}
+  .cnxq{flex:none;min-width:74px;font-size:11px;font-weight:850;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.03em}
+  .cnxt{font-size:13.5px;font-weight:700;line-height:1.35}
+  .cnxt small{color:var(--muted);font-weight:650}
+  .cday.late{background:repeating-linear-gradient(135deg,
+    color-mix(in srgb,var(--cal-due) 12%,var(--card2)) 0 6px,
+    color-mix(in srgb,var(--cal-due) 19%,var(--card2)) 6px 12px);
+    border-color:color-mix(in srgb,var(--cal-due) 45%,transparent)}
   .calfoot{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap}
   .calfoot div{flex:1;min-width:84px;background:var(--card2);border-radius:13px;padding:11px 10px}
   .calfoot b{display:block;font-family:var(--disp);font-size:19px;font-weight:800;letter-spacing:-.02em;
@@ -3075,6 +3092,36 @@ function agSegBind(){
     if(el.dataset.v==="cal") calSheet(); else agSheet();
   });
 }
+/* ── Ce que le mois ne disait pas ──────────────────────────────────
+   Un calendrier qui colore les jours ne répond pas à la seule question
+   qu'on lui pose vraiment : qu'est-ce qui arrive, et qu'est-ce que j'ai
+   laissé passer. Ces deux fonctions servent le bandeau sous la grille. */
+function calEnRetard(){ const t=today();
+  return agSort(agAll().filter(x=>x.d&&x.d<t&&!x.done)); }
+function calQuand(d){ const t=today();
+  if(d===t) return "aujourd'hui";
+  if(d===dayShift(t,1)) return "demain";
+  const n=Math.round((new Date(d+"T12:00:00")-new Date(t+"T12:00:00"))/864e5);
+  return n<0?`il y a ${-n} j`:`dans ${n} j`; }
+/* Cours et tâches mélangés, parce que la journée ne les sépare pas. */
+function calProchain(n){ const t=today(), out=[];
+  agAll().forEach(x=>{ if(x.d&&x.d>=t&&!x.done)
+    out.push({d:x.d,t:x.t||"",star:x.star,txt:x.txt,kind:"ag",id:x.id}); });
+  coursTous().forEach(c=>{ if(c.d>=t)
+    out.push({d:c.d,t:c.t||"",txt:(c.code==="EXAMENS"?"":c.code+" — ")+(c.nom||coursNom(c)),kind:"cours"}); });
+  out.sort((a,b)=>a.d.localeCompare(b.d)||a.t.localeCompare(b.t)||(b.star||0)-(a.star||0));
+  return out.slice(0,n||6); }
+function calProchainHtml(){
+  const L=calProchain(6), R=calEnRetard();
+  if(!L.length&&!R.length) return "";
+  const ligne=o=>`<div class="cnx ${o.kind}" data-d="${o.d}">
+    <span class="cnxq">${calQuand(o.d)}</span>
+    <div class="cnxt">${o.star?"★ ":""}${esc(o.txt)}${o.t?` <small>${esc(o.t)}</small>`:""}</div></div>`;
+  return `${R.length?`<div class="cnxlate" data-d="${R[0].d}">⚠️ ${R.length} chose${R.length>1?"s":""} en retard
+      <small>la plus ancienne : ${esc(R[0].txt)} · ${calQuand(R[0].d)}</small></div>`:""}
+    ${L.length?`<div class="aggrp" style="margin-top:14px">Ce qui arrive</div>
+      <div class="cnxlist" id="calNext">${L.map(ligne).join("")}</div>`:""}`; }
+
 function calSheet(){
   calInit();
   const ym=calYM, p=ym.split("-"), y=+p[0], mo=+p[1];
@@ -3089,7 +3136,10 @@ function calSheet(){
     const faits=AC.filter(c=>e.cats[c.id]).length;
     /* La couleur dit en un coup d'oeil ce que porte le jour : rouge une echeance
        encore ouverte, orange des choses a faire, gris ce qui est deja regle. */
-    const ton=e.star?"due":(e.open?"has":(e.cours?"crs":""));
+    /* un jour passé qui garde des choses ouvertes n'est pas « à faire » :
+       il est en retard, et ça doit se voir autrement. */
+    const late=iso<t&&e.open>0;
+    const ton=(e.star?"due":(e.open?"has":(e.cours?"crs":"")))+(late?" late":"");
     const badge=e.ag?`<span class="cag ${e.star?"due":(e.open?"":"done")}">${e.ag}</span>`:"";
     cells.push(`<div class="cday ${AC.length&&faits===AC.length?"full":""} ${ton} ${iso===t?"now":""}" data-d="${iso}">
       <b>${d}</b>
@@ -3112,6 +3162,7 @@ function calSheet(){
     </div>
     <div class="caldow">${["L","M","M","J","V","S","D"].map(x=>`<span>${x}</span>`).join("")}</div>
     <div class="calgrid" id="calGrid">${cells.join("")}</div>
+    ${calProchainHtml()}
     <div class="calfoot">
       <div><b>${jours}</b><span>jour${jours>1?"s":""} plein${jours>1?"s":""}</span></div>
       <div><b>${fmtMin(min)}</b><span>de pratique</span></div>
@@ -3121,14 +3172,27 @@ function calSheet(){
       <br><i class="d"></i>Jour rouge : une échéance t'attend. <i class="a"></i>Jour orange : des choses à faire.
       Gris : tout est réglé. Le chiffre en haut à droite dit combien.
       <br>Le code en bas (BX1A, BX1B…) est ton cours du jour. <b>✎</b> : journée écrite.
-      <br>Touche un jour pour voir le détail et y noter quelque chose.</div>
+      <br>Jour hachuré : tu as laissé passer quelque chose.
+      <br>Touche un jour pour voir le détail et y noter quelque chose. Glisse pour changer de mois.</div>
     <button class="btn ghost" style="margin-top:16px" onclick="closeOv();render()">Fermer</button>`);
   agSegBind();
   const g=document.getElementById("calGrid");
-  if(g) g.addEventListener("click",ev=>{
-    const el=ev.target.closest("[data-d]"); if(!el) return;
-    calDay(el.dataset.d);
-  });
+  if(g){
+    g.addEventListener("click",ev=>{
+      const el=ev.target.closest("[data-d]"); if(!el) return;
+      calDay(el.dataset.d);
+    });
+    /* glisser d'un mois à l'autre : le pouce avant les flèches */
+    let x0=null,y0=null;
+    g.addEventListener("touchstart",ev=>{ const p=ev.touches[0]; x0=p.clientX; y0=p.clientY; },{passive:true});
+    g.addEventListener("touchend",ev=>{ if(x0==null) return;
+      const p=ev.changedTouches[0], dx=p.clientX-x0, dy=p.clientY-y0; x0=null;
+      if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.6) calShift(dx<0?1:-1); },{passive:true});
+  }
+  const nx=document.getElementById("calNext");
+  if(nx) nx.addEventListener("click",ev=>{ const el=ev.target.closest("[data-d]"); if(el) calDay(el.dataset.d); });
+  const lt=document.querySelector(".cnxlate");
+  if(lt) lt.addEventListener("click",()=>calDay(lt.dataset.d));
 }
 function calDay(d){
   const items=agSort(agAll().filter(x=>x.d===d));
