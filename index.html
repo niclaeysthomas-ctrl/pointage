@@ -302,6 +302,100 @@
     border-radius:13px;padding:12px;font-size:13.5px;font-weight:750;cursor:pointer}
   .motq{width:100%;border:1.5px solid var(--line2);border-radius:13px;background:var(--card2);
     color:var(--ink);padding:12px 14px;font-size:14.5px;font-weight:650;font-family:inherit}
+
+  /* ---- 🧩 LA FAILLE : reconstruire un argument, viser la prémisse faible ---- */
+  .kfai{margin-top:11px;border:1.5px solid var(--line2);border-radius:16px;background:var(--card2);
+    color:var(--ink);font-family:inherit;padding:14px 15px;width:100%;text-align:left;cursor:pointer;display:block}
+  .kfai:active{transform:scale(.99)}
+  .kfai.fait{border-color:color-mix(in srgb,var(--cal-ok) 42%,transparent);
+    background:linear-gradient(120deg,color-mix(in srgb,var(--cal-ok) 11%,transparent),transparent 50%),var(--card2)}
+  .kfai i{display:block;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-style:normal;margin-bottom:5px}
+  .kfai b{display:block;font-family:var(--disp);font-size:19px;font-weight:800;letter-spacing:-.015em;line-height:1.18}
+  .kfai small{display:block;color:var(--muted);font-size:12.5px;font-weight:650;margin-top:4px}
+  .kfai .kfai-go{display:inline-block;margin-top:9px;background:var(--accent);color:#fff;
+    font-size:10px;font-weight:850;padding:3px 9px;border-radius:7px}
+  .faex{background:var(--card2);border-left:3px solid var(--accent);border-radius:12px;padding:13px 15px;
+    font:400 16px/1.68 var(--serif);white-space:pre-wrap;margin:10px 0 4px}
+  .fasrc{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+  .fahint{font-size:12.5px;line-height:1.5;color:var(--muted);font-weight:600;margin:4px 0 14px}
+  .faclock{float:right;font-family:var(--mono);font-size:13px;font-weight:800;color:var(--muted);
+    background:var(--card2);border-radius:9px;padding:4px 9px}
+  .faclock.over{color:var(--cal-todo)}
+  .falbl{display:block;font-size:11px;font-weight:850;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--muted);margin:16px 0 6px}
+  .falbl em{display:block;font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;
+    color:var(--faint);font-style:normal;margin-top:3px}
+  .fatx{width:100%;background:var(--card2);border:1.5px solid transparent;border-radius:12px;color:var(--ink);
+    padding:11px 13px;font-size:15px;font-family:inherit;line-height:1.5;resize:vertical;min-height:46px}
+  .fatx:focus{outline:none;border-color:var(--accent);background:var(--card)}
+  .fapr{display:flex;gap:8px;align-items:flex-start;margin-bottom:7px}
+  .fapk{flex:none;width:34px;height:34px;margin-top:5px;border-radius:50%;border:2px solid var(--line2);
+    background:var(--card2);color:var(--muted);font-size:12px;font-weight:850;cursor:pointer;font-family:inherit}
+  .fapk.on{border-color:var(--cal-due);background:color-mix(in srgb,var(--cal-due) 18%,var(--card2));color:var(--cal-due)}
+  .fapr .fatx{flex:1;min-width:0;min-height:44px}
+  .faadd{margin-top:2px;background:none;border:1.5px dashed var(--line2);border-radius:11px;color:var(--muted);
+    padding:9px;font-size:12.5px;font-weight:750;width:100%;cursor:pointer;font-family:inherit}
+  .fachips{display:flex;flex-wrap:wrap;gap:6px}
+  .fachips span{font-size:11.5px;font-weight:800;padding:7px 10px;border-radius:99px;background:var(--card2);
+    color:var(--muted);border:1.5px solid transparent;cursor:pointer;user-select:none}
+  .fachips span.on{background:var(--accent-soft);color:var(--accent);
+    border-color:color-mix(in srgb,var(--accent) 38%,transparent)}
+  .facmp{margin-top:14px;border-radius:14px;overflow:hidden;border:1.5px solid var(--line)}
+  .facmp>div{padding:12px 14px}
+  .facmp .moi{background:var(--card2)}
+  .facmp .cle{background:color-mix(in srgb,var(--accent) 9%,var(--card2));border-top:1.5px solid var(--line)}
+  .facmp em{display:block;font-size:10.5px;font-weight:850;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);font-style:normal;margin-bottom:5px}
+  .facmp p{font-size:14.5px;line-height:1.55;font-weight:600}
+  .facmp p+p{margin-top:7px}
+  .faverdict{margin-top:14px;border-radius:13px;padding:12px 14px;font-size:13.5px;font-weight:750;line-height:1.5}
+  .faverdict.ok{background:color-mix(in srgb,var(--cal-ok) 15%,var(--card2));
+    border:1.5px solid color-mix(in srgb,var(--cal-ok) 40%,transparent)}
+  .faverdict.ko{background:color-mix(in srgb,var(--cal-todo) 14%,var(--card2));
+    border:1.5px solid color-mix(in srgb,var(--cal-todo) 40%,transparent)}
+  .fapl{list-style:none;counter-reset:fap}
+  .fapl li{counter-increment:fap;font-size:14.5px;line-height:1.55;font-weight:600;padding:7px 0 7px 34px;
+    position:relative;border-bottom:1px solid var(--line)}
+  .fapl li:last-child{border-bottom:none}
+  .fapl li::before{content:"P" counter(fap);position:absolute;left:0;top:7px;font-size:11px;font-weight:850;
+    color:var(--muted);font-family:var(--mono)}
+  .fapl li.faible{color:var(--cal-due)}
+  .fapl li.faible::before{color:var(--cal-due)}
+  .faent-big{font-family:var(--mono);font-size:44px;font-weight:800;text-align:center;letter-spacing:-.02em;margin:6px 0 2px}
+  .faent-tx{text-align:center;font-size:13px;font-weight:750;color:var(--muted);margin-bottom:16px}
+  .faent-tx b{color:var(--cal-ok)} .faent-tx b.ko{color:var(--cal-due)}
+  .faent-g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .faent-g button{border:1.5px solid var(--line2);border-radius:14px;padding:15px 5px;background:var(--card2);
+    color:var(--ink);font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;line-height:1.3}
+  .faent-g button u{display:block;font-size:23px;text-decoration:none;margin-bottom:5px}
+  .faent-g button s{display:block;font-family:var(--mono);font-size:17px;font-weight:850;text-decoration:none;margin-top:5px}
+  .faent-g button.cut{border-color:color-mix(in srgb,var(--cal-due) 38%,transparent)}
+  .faent-g button.q{border-color:color-mix(in srgb,var(--cal-ok) 38%,transparent)}
+  .fabar{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .fabar:last-child{border-bottom:none}
+  .fabar .n{flex:none;width:112px;font-size:12.5px;font-weight:750}
+  .fabar .t{flex:1;height:8px;border-radius:5px;background:var(--card2);overflow:hidden}
+  .fabar .t i{display:block;height:100%;background:var(--cal-ok)}
+  .fabar .t i.ko{background:var(--cal-due)}
+  .fabar .v{flex:none;font-family:var(--mono);font-size:11.5px;font-weight:800;color:var(--muted);width:44px;text-align:right}
+  .fatyp{background:var(--card2);border-radius:13px;padding:12px 14px;margin-bottom:8px}
+  .fatyp b{display:block;font-size:14.5px;font-weight:800;margin-bottom:4px}
+  .fatyp p{font-size:13px;line-height:1.55;color:var(--muted);font-weight:600}
+  .fatyp p.att{margin-top:6px;color:var(--ink);padding-top:6px;border-top:1px solid var(--line)}
+  .fatyp p.att::before{content:"⚔️ ";}
+  .farel{background:var(--card2);border-radius:13px;padding:12px 14px;margin-bottom:8px;border-left:3px solid var(--cal-ok)}
+  .farel b{display:block;font:500 16.5px/1.4 var(--serif);margin-bottom:5px}
+  .farel p{font-size:12.5px;line-height:1.5;color:var(--muted);font-weight:600}
+  .farow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .farow button{border:1.5px solid var(--line2);background:var(--card2);color:var(--ink);
+    border-radius:13px;padding:12px;font-size:13.5px;font-weight:750;cursor:pointer;font-family:inherit}
+  .fagrades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+  .fagrades button{border:none;border-radius:13px;padding:13px 6px;font-size:12.5px;font-weight:800;cursor:pointer;
+    background:var(--card2);color:var(--ink);font-family:inherit;line-height:1.25}
+  .fagrades button small{display:block;font-size:10px;font-weight:650;color:var(--muted);margin-top:3px}
+  .fagrades button.g0{background:color-mix(in srgb,var(--cal-due) 15%,var(--card2))}
+  .fagrades button.g2{background:color-mix(in srgb,var(--cal-ok) 16%,var(--card2))}
   .callg i{display:inline-block;width:9px;height:9px;border-radius:5px;vertical-align:-1px;margin-right:4px}
   .callg i.a{background:var(--cal-todo)} .callg i.d{background:var(--cal-due)} .callg i.g{background:var(--cal-ok)}
   .cday .cj{position:absolute;bottom:3px;right:4px;font-size:8px;color:var(--faint)}
@@ -1430,6 +1524,7 @@
 <script src="cours.js"></script>
 <script src="mots.js"></script>
 <script src="regles.js"></script>
+<script src="failles.js"></script>
 <script src="biblio.js"></script>
 <script src="biblio-informatique.js"></script>
 <script src="atelier/bibliotheque/commun.js"></script>
@@ -2623,6 +2718,20 @@ function briefAll(){
     add({k:"journal", score:62, e:"🌙", t:"Écris ta journée",
       w:jPrompt()+" Trois lignes suffisent — et c'est ce que tu me colleras plus tard.",
       a:[{l:"Ouvrir le journal", c:"go", f:"closeOv();openJournal()"}]});
+  }
+
+  /* LA FAILLE : dix minutes, et c'est la seule des trois compétences de fond
+     qui se mesure à la journée. Score sous les candidatures : le stage passe
+     d'abord, il a une date. */
+  if(!faFait(t)){
+    const it=faDuJour(), str=faStreak(), fbl=faFaiblesses(1)[0];
+    if(it) add({k:"faille", score:58+Math.min(str,8), e:"🧩", t:"La faille — "+FA_MIN+" minutes",
+      w:"Reconstruire l'argument en prémisses, viser la plus faible, écrire ce qui la ferait tomber. "+
+        (str>0?str+" jour"+(str>1?"s":"")+" d'affilée. ":"")+
+        (fbl?"Ton point faible en ce moment : "+fbl.nom.toLowerCase()+" ("+fbl.ok+"/"+fbl.n+"). ":"")+
+        "Aujourd'hui : "+it.src+".",
+      a:[{l:"▶ Reconstruire", c:"go", f:"closeOv();faDrill('"+it.id+"')"},
+         {l:"Voir", f:"closeOv();faSheet()"}]});
   }
 
   const dort=B.inbox.filter(x=>x.c&&(Date.now()-x.c)>7*864e5).sort((a,b)=>a.c-b.c)[0];
@@ -5892,6 +6001,439 @@ function motListe(q){ const dk=motDeck(), V=mts().v, t=today();
   document.querySelectorAll("[data-m]").forEach(el=>el.addEventListener("click",()=>motFiche(el.dataset.m)));
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   🧩 LA FAILLE — dix minutes par jour.
+   Demandé le 2026-11-15 : « travailler la compétence de trouver les
+   failles et poser des questions comme Alex O'Connor, dix minutes par
+   jour ». Deux compétences, deux exercices, et une seule règle : ce qui
+   ne se mesure pas ne progresse pas.
+
+   ① RECONSTRUIRE — tous les jours, dix minutes.
+      Un extrait → P1/P2/C écrits à la main → désigner la prémisse la
+      plus faible → UNE phrase qui la ferait tomber → la question qu'on
+      poserait. Puis le corrigé, et une note honnête.
+      L'extrait du jour vient du corpus (failles.js) ; on peut aussi
+      apporter le sien, et l'envoyer à Claude pour la critique.
+      Ce qui est mesuré : la série, et le taux PAR TYPE de faille — parce
+      qu'un exercice qui ne change que le sujet n'apprend qu'un réflexe,
+      pas une compétence.
+   ② INTERROGER SANS VOULOIR GAGNER — quand il y a une conversation.
+      Un chrono, trois boutons : coupé / question ouverte / j'ai placé ma
+      thèse. Ce qui est mesuré : les coupures par heure (objectif sous
+      cinq) et la part des questions. En direct ou à la réécoute.
+      Facultatif par construction : jamais compté dans la journée, jamais
+      bloquant — la séance du jour, c'est la reconstruction.
+
+   L'état vit dans S.faille, donc dans la clé pointage_v1 : LE COFFRE le
+   sauvegarde et le transfère déjà. Volontairement HORS de syncPayload,
+   comme LES MOTS : un appareil resté sur une version plus ancienne
+   republierait le registre sans cette clé et effacerait le travail.
+   ═══════════════════════════════════════════════════════════════════ */
+const FA_CUT=5;   // l'objectif : moins de cinq coupures par heure
+const FA_MIN=10;  // la séance visée, en minutes
+
+function fai(){
+  if(!S.faille) S.faille={};
+  const F=S.faille;
+  if(!Array.isArray(F.rec)) F.rec=[];     // les reconstructions écrites
+  if(!F.drl||typeof F.drl!=="object") F.drl={};  // l'échéance par extrait (SM-2 allégé)
+  if(!F.typ||typeof F.typ!=="object") F.typ={};  // ok / ko par type de faille
+  if(!Array.isArray(F.ent)) F.ent=[];     // les séances d'écoute
+  if(!F.jour||typeof F.jour!=="object") F.jour={};
+  return F;
+}
+function faCorpus(){ return Array.isArray(window.FAILLES)?window.FAILLES:[]; }
+function faTypes(){ return Array.isArray(window.FAILLE_TYPES)?window.FAILLE_TYPES:[]; }
+function faRelances(){ return Array.isArray(window.FAILLE_RELANCES)?window.FAILLE_RELANCES:[]; }
+function faType(id){ return faTypes().find(t=>t.id===id)||{id:id||"",nom:id||"—",court:id||"—",quoi:"",attaque:""}; }
+function faItem(id){ return faCorpus().find(f=>f.id===id)||null; }
+function faId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function faHMS(ms){ const s=Math.max(0,Math.round(ms/1000));
+  return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+
+/* ---- ce qui est fait, et la série ---- */
+function faRecs(){ return fai().rec.filter(r=>!r.del); }
+function faJour(d){ return faRecs().filter(r=>r.d===d); }
+function faFait(d){ return faJour(d||today()).length>0; }
+function faStreak(){ let d=today(); if(!faFait(d)) d=dayShift(d,-1);
+  let n=0; while(faFait(d)){ n++; d=dayShift(d,-1); } return n; }
+function faMinJours(n){ const t=today(), from=dayShift(t,-(n-1));
+  return faRecs().filter(r=>r.d>=from&&r.d<=t).reduce((a,r)=>a+(r.min||0),0); }
+
+/* ---- l'extrait du jour : une révision un jour, une découverte l'autre ----
+   Sans alternance on fait l'un des deux travers : découvrir vingt-cinq
+   extraits sans jamais y revenir, ou tourner sur les cinq premiers.
+   À découverte égale, on prend le type de faille le moins travaillé :
+   c'est la seule façon de ne pas s'entraîner trois semaines sur la
+   corrélation parce qu'elle vient en tête de liste. */
+function faDus(){ const t=today(), D=fai().drl;
+  return faCorpus().filter(f=>{ const c=D[f.id]; return c&&c.n>0&&c.due<=t; }); }
+function faNeufs(){ const D=fai().drl; return faCorpus().filter(f=>!D[f.id]); }
+function faTypeVus(id){ const v=fai().typ[id]||{}; return (v.ok||0)+(v.ko||0); }
+function faDuJour(){
+  const t=today(), F=fai(), J=F.jour;
+  if(J.d===t&&J.id&&faItem(J.id)) return faItem(J.id);
+  const dus=faDus(), neufs=faNeufs();
+  const revoir = J.kind!=="rev" && dus.length>0;
+  const pick = revoir ? dus[0]
+    : (neufs.slice().sort((a,b)=>faTypeVus(a.cle.type)-faTypeVus(b.cle.type))[0] || dus[0] || faCorpus()[0]);
+  if(!pick) return null;
+  J.d=t; J.id=pick.id; J.kind = F.drl[pick.id] ? "rev" : "neuf"; save0();
+  return pick;
+}
+
+/* ---- les séances d'écoute ---- */
+function faEnts(){ return fai().ent.filter(e=>!e.del); }
+function faEntTaux(e){ return e&&e.min>0 ? e.cut/(e.min/60) : null; }
+function faEntDer(n){ return faEnts().slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,n||5); }
+function faEntMoy(n){ const L=faEntDer(n||5); if(!L.length) return null;
+  const m=L.reduce((a,e)=>a+(e.min||0),0), c=L.reduce((a,e)=>a+(e.cut||0),0);
+  return m>0 ? c/(m/60) : null; }
+function faTauxTxt(v){ return v==null?"—":(Math.round(v*10)/10).toString().replace(".",",")+"/h"; }
+
+/* ---- le taux par type : là où ça casse ---- */
+function faTypStat(){
+  const T=fai().typ;
+  return faTypes().map(t=>{ const s=T[t.id]||{}; const ok=s.ok||0, ko=s.ko||0, n=ok+ko;
+    return {id:t.id, nom:t.nom, court:t.court, ok, ko, n, taux:n?ok/n:null}; });
+}
+function faFaiblesses(k){
+  return faTypStat().filter(s=>s.n>=2&&s.taux!=null&&s.taux<0.7)
+    .sort((a,b)=>a.taux-b.taux||b.n-a.n).slice(0,k||3);
+}
+
+/* ---- la carte, à côté du journal ---- */
+function faCardHtml(){
+  const it=faDuJour(); if(!it) return "";
+  const fait=faFait(), str=faStreak(), n=faRecs().length, moy=faEntMoy(5);
+  const vus=Object.keys(fai().drl).length, tot=faCorpus().length;
+  const bas=[ str>1?"🔥 "+str+" jours d'affilée":null,
+              n?n+" reconstruction"+(n>1?"s":""):null,
+              vus?vus+"/"+tot+" extraits":null,
+              moy!=null?"coupures "+faTauxTxt(moy):null ].filter(Boolean).join(" · ");
+  return `<button class="kfai ${fait?"fait":""}" onclick="faSheet()">
+    <i>🧩 La faille${fait?" · vu aujourd'hui ✓":" · "+FA_MIN+" min"}</i>
+    <b>${fait?"Trouvée. On recommence demain.":"Reconstruis l'argument, vise la prémisse faible"}</b>
+    <small>${fait?(bas||"à revoir demain"):esc(it.src)+" — "+faType(it.cle.type).nom.toLowerCase()+" à repérer"}</small>
+    ${fait?"":`<span class="kfai-go">commencer</span>`}</button>`;
+}
+
+/* ---- l'écran d'accueil du module ---- */
+function faSheet(){
+  const it=faDuJour(), fait=faFait(), str=faStreak(), st=faTypStat();
+  const vus=Object.keys(fai().drl).length, tot=faCorpus().length;
+  const fbl=faFaiblesses(2), moy=faEntMoy(5), der=faEntDer(1)[0];
+  const auj=faJour(today());
+  sheet(`<h3>🧩 La faille</h3>
+    <div class="ksub" style="text-align:left">Reconstruire un argument en prémisses, désigner la plus faible, écrire en une phrase ce qui la ferait tomber. Dix minutes. C'est le même geste qu'aux échecs : calculer la réfutation, pas réagir au coup.</div>
+    <div class="ksec"><h4>L'exercice du jour</h4>
+      ${it?`<div class="fasrc">${esc(it.src)}</div>
+      <div class="faex">${esc(it.txt.length>240?it.txt.slice(0,240)+"…":it.txt)}</div>
+      <button class="btn" onclick="faDrill('${it.id}')">${fait?"↻ Un autre tour":"▶ Reconstruire"} <small>${fai().drl[it.id]?"déjà vu — on y revient":"nouveau"}</small></button>`
+      :`<div class="ksub">Le corpus n'est pas chargé.</div>`}
+      <button class="btn ghost" onclick="faDrill('')">✎ Mon propre extrait <small>un podcast, un article, une conversation</small></button>
+      ${auj.length?`<div class="fahint">Aujourd'hui : ${auj.length} reconstruction${auj.length>1?"s":""}, ${fmtMin(auj.reduce((a,r)=>a+(r.min||0),0))}.</div>`:""}
+    </div>
+    <div class="ksec"><h4>Interroger sans vouloir gagner</h4>
+      <p>L'examen meurt si l'autre se sent en procès. Un chrono, trois boutons, en direct ou à la réécoute : on compte les fois où on l'a coupé. Objectif sous ${FA_CUT} par heure.</p>
+      <button class="btn ghost" onclick="faEntOpen()">🎙 Lancer un compteur</button>
+      ${moy!=null?`<div class="fahint">Tes ${faEntDer(5).length} dernières séances : <b>${faTauxTxt(moy)}</b>${moy<FA_CUT?" — sous l'objectif.":" — au-dessus de l'objectif de "+FA_CUT+"/h."}${der?" Dernière le "+cDate(der.d)+" : "+faTauxTxt(faEntTaux(der))+".":""}</div>`:`<div class="fahint">Aucune séance encore. Un podcast en réécoute suffit pour la première.</div>`}
+    </div>
+    <div class="ksec"><h4>Où ça casse</h4>
+      ${st.some(s=>s.n)?`<div style="margin-bottom:10px">${st.filter(s=>s.n).sort((a,b)=>(a.taux-b.taux)||(b.n-a.n)).map(s=>`<div class="fabar"><span class="n">${esc(s.nom)}</span><span class="t"><i class="${s.taux<0.7?"ko":""}" style="width:${Math.round((s.taux||0)*100)}%"></i></span><span class="v">${s.ok}/${s.n}</span></div>`).join("")}</div>
+        ${fbl.length?`<div class="faverdict ko">À travailler : ${fbl.map(f=>esc(f.nom.toLowerCase())).join(", ")}. L'extrait du jour ira les chercher en priorité.</div>`:`<div class="faverdict ok">Rien de franchement faible pour l'instant.</div>`}`
+      :`<div class="ksub">Le tableau se remplit à la première note.</div>`}
+      <div class="fahint">${str>0?"🔥 "+str+" jour"+(str>1?"s":"")+" d'affilée. ":""}${faRecs().length} reconstruction${faRecs().length>1?"s":""} en tout · ${vus}/${tot} extraits vus · ${fmtMin(faMinJours(7))} sur 7 jours.</div>
+    </div>
+    <div class="farow">
+      <button onclick="faTypesSheet()">📖 Les ${faTypes().length} types</button>
+      <button onclick="faRelSheet()">💬 Les relances</button>
+    </div>
+    <div class="farow">
+      <button onclick="faListe()">📚 Les ${tot} extraits</button>
+      <button onclick="faHisto()">🗂 Mes reconstructions</button>
+    </div>
+    <button class="btn ghost" style="margin-top:14px" onclick="closeOv();render()">Fermer</button>`);
+}
+
+/* ---- l'exercice : on écrit AVANT de voir le corrigé ---- */
+let faFaibleI=-1, faTypeCur="", faStart=0, faTick=null, faNP=3, faRef="";
+function faTicker(){
+  clearInterval(faTick);
+  faTick=setInterval(()=>{
+    const el=document.getElementById("faClock");
+    if(!el){ clearInterval(faTick); faTick=null; return; }
+    const ms=Date.now()-faStart;
+    el.textContent=faHMS(ms);
+    el.classList.toggle("over", ms>FA_MIN*60000);
+    if(document.getElementById("faRate")) faEntMaj();
+  },1000);
+}
+function faStop(){ clearInterval(faTick); faTick=null; }
+function faPrHtml(i){
+  return `<div class="fapr"><button class="fapk" data-p="${i}" aria-label="La plus faible">${i+1}</button>`+
+    `<textarea class="fatx" id="faP${i}" placeholder="${i===0?"Ce qu'il faut accorder pour que la conclusion suive":"Prémisse "+(i+1)+(i>1?" (si besoin)":"")}"></textarea></div>`;
+}
+function faDrill(ref){
+  const it=ref?faItem(ref):null;
+  faRef=ref||""; faFaibleI=-1; faTypeCur=""; faNP=3; faStart=Date.now();
+  sheet(`<span class="faclock" id="faClock">00:00</span>
+    <h3>🧩 ${it?"Reconstruire":"Mon extrait"}</h3>
+    ${it?`<div class="fasrc">${esc(it.src)}</div><div class="faex">${esc(it.txt)}</div>
+      <div class="fahint">Lis une fois. Puis découpe, sans chercher la faille tout de suite : le découpage honnête la fait apparaître tout seul.</div>`
+      :`<div class="fahint">Un extrait de dix minutes : un podcast, une tribune, une conversation. Note d'où il vient, puis reconstruis-le.</div>
+        <label class="falbl">D'où ça vient</label>
+        <textarea class="fatx" id="faS" style="min-height:40px" placeholder="Alex O'Connor × un invité, sur la morale — 12e minute"></textarea>`}
+    <label class="falbl">La conclusion<em>Ce qu'il veut te faire accorder, en une phrase. Commence par « donc ».</em></label>
+    <textarea class="fatx" id="faC" placeholder="Donc…"></textarea>
+    <label class="falbl">Les prémisses<em>Une par ligne. Puis touche le numéro de celle qui est la plus faible — celle qui, si elle tombe, emporte la conclusion.</em></label>
+    <div id="faPs">${faPrHtml(0)+faPrHtml(1)+faPrHtml(2)}</div>
+    <button class="faadd" onclick="faAddP()">＋ une prémisse</button>
+    <label class="falbl">Ce qui la ferait tomber<em>Une phrase. Un contre-exemple, une troisième option, une distinction. Pas le nom d'un sophisme : nommer ne réfute pas.</em></label>
+    <textarea class="fatx" id="faD" placeholder="Il suffit que…"></textarea>
+    <label class="falbl">Le type de faille<em>Facultatif. Si tu le vois, dis-le : c'est ce qui se mesure d'une semaine sur l'autre.</em></label>
+    <div class="fachips" id="faTy">${faTypes().map(t=>`<span data-t="${t.id}">${esc(t.nom)}</span>`).join("")}</div>
+    <label class="falbl">La question que tu poserais<em>Celle qui ouvre, pas celle qui cloue. Il doit avoir envie d'y répondre.</em></label>
+    <textarea class="fatx" id="faQ" placeholder="Quand tu dis…"></textarea>
+    <button class="btn" onclick="faSave()">${it?"Comparer au corrigé":"Enregistrer"}</button>
+    <button class="btn ghost" onclick="faStop();faSheet()">Revenir sans enregistrer</button>`);
+  const sh=document.getElementById("sheet"); if(sh) sh.classList.add("wide");
+  faBind(); faTicker();
+}
+function faAddP(){
+  if(faNP>=6) return toast("Six prémisses, c'est déjà un traité.");
+  const box=document.getElementById("faPs"); if(!box) return;
+  box.insertAdjacentHTML("beforeend", faPrHtml(faNP)); faNP++;
+}
+function faBind(){
+  const ps=document.getElementById("faPs");
+  if(ps) ps.addEventListener("click",ev=>{
+    const b=ev.target.closest("[data-p]"); if(!b) return;
+    faFaibleI=+b.dataset.p;
+    ps.querySelectorAll("[data-p]").forEach(x=>x.classList.toggle("on", +x.dataset.p===faFaibleI));
+  });
+  const ch=document.getElementById("faTy");
+  if(ch) ch.addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-t]"); if(!el) return;
+    faTypeCur = faTypeCur===el.dataset.t ? "" : el.dataset.t;
+    ch.querySelectorAll("[data-t]").forEach(x=>x.classList.toggle("on", x.dataset.t===faTypeCur));
+  });
+}
+function faVal(id){ const el=document.getElementById(id); return el?String(el.value||"").trim():""; }
+function faSave(){
+  /* la fiche affiche déjà « Donc » en gras : sans ça on lisait « Donc Donc… » */
+  const conc=faVal("faC").replace(/^donc\s*[,:]?\s*/i,""), def=faVal("faD"), q=faVal("faQ");
+  const brut=[]; for(let i=0;i<faNP;i++){ const v=faVal("faP"+i); if(v) brut.push({i,v}); }
+  if(!conc) return toast("D'abord la conclusion : qu'est-ce qu'il te fait accorder ?");
+  if(brut.length<2) return toast("Au moins deux prémisses — sinon il n'y a pas d'argument.");
+  if(faFaibleI<0||!brut.some(p=>p.i===faFaibleI)) return toast("Touche le numéro de la prémisse la plus faible.");
+  if(!def) return toast("Une phrase : qu'est-ce qui la ferait tomber ?");
+  const it=faRef?faItem(faRef):null;
+  const F=fai(), min=Math.max(1,Math.min(120,Math.round((Date.now()-faStart)/60000)));
+  const r={ id:faId(), d:today(), ts:Date.now(), ref:faRef||"",
+            src: it?it.src:(faVal("faS")||"Mon extrait"),
+            conc, prem:brut.map(p=>p.v), faible:brut.findIndex(p=>p.i===faFaibleI),
+            type:faTypeCur, def, q, min };
+  F.rec.push(r); save(); faStop();
+  if(it) faCle(it.id,r.id); else faPersoFin(r.id);
+}
+
+/* ---- le corrigé : les deux lectures côte à côte, et une note honnête ----
+   Aucune comparaison automatique de texte : c'est lui qui tranche s'il
+   avait trouvé. Une machine qui compare des chaînes dirait « faux » à une
+   bonne réponse formulée autrement, et on apprendrait à écrire le corrigé
+   plutôt qu'à penser. */
+function faCle(ref,recId){
+  const it=faItem(ref); if(!it) return;
+  const r=faRecs().find(x=>x.id===recId)||{prem:[],faible:-1,def:"",q:"",type:""};
+  const k=it.cle, ty=faType(k.type);
+  /* ce qui compte, c'est la cible : un découpage en deux ou en trois peut être
+     aussi juste. On le signale, on ne le compte pas comme une erreur. */
+  const memeP = r.faible===k.faible;
+  const memeN = r.prem.length===k.prem.length;
+  const memeT = r.type ? r.type===k.type : null;
+  sheet(`<h3>🧩 Le corrigé</h3>
+    <div class="fasrc">${esc(it.src)}</div>
+    <div class="facmp">
+      <div class="moi"><em>Ta reconstruction</em>
+        <ul class="fapl">${r.prem.map((p,i)=>`<li class="${i===r.faible?"faible":""}">${esc(p)}</li>`).join("")}</ul>
+        <p style="margin-top:8px"><b>Donc</b> ${esc(r.conc||"")}</p></div>
+      <div class="cle"><em>Le corrigé</em>
+        <ul class="fapl">${k.prem.map((p,i)=>`<li class="${i===k.faible?"faible":""}">${esc(p)}</li>`).join("")}</ul>
+        <p style="margin-top:8px"><b>Donc</b> ${esc(k.conc)}</p></div>
+    </div>
+    <div class="faverdict ${memeP?"ok":"ko"}">${memeP
+      ? "Même cible : <b>P"+(k.faible+1)+"</b>."+(memeN?" Et le même découpage.":" Le corrigé découpe en "+k.prem.length+" prémisses, toi en "+r.prem.length+" — vérifie que tu vises bien la même chose.")
+      : "Le corrigé vise <b>P"+(k.faible+1)+"</b>"+(r.faible>=0?", tu avais visé P"+(r.faible+1):"")+". Lis la raison avant de te juger : un autre découpage peut être aussi juste."}</div>
+    <label class="falbl">Pourquoi celle-là</label>
+    <div class="fatyp"><b>${esc(ty.nom)}${memeT===true?" — tu l'avais nommée ✓":memeT===false?" — tu avais dit « "+esc(faType(r.type).nom)+" »":""}</b>
+      <p>${esc(ty.quoi)}</p><p class="att">${esc(ty.attaque)}</p></div>
+    <div class="facmp">
+      <div class="moi"><em>Ton défaiseur</em><p>${esc(r.def||"—")}</p></div>
+      <div class="cle"><em>Celui du corrigé</em><p>${esc(k.defaiseur)}</p></div>
+    </div>
+    <div class="facmp">
+      <div class="moi"><em>Ta question</em><p>${r.q?esc(r.q):"— tu n'en as pas écrit. C'est la moitié de l'exercice : sans question, tu as une objection, pas un entretien."}</p></div>
+      <div class="cle"><em>Une question qui ouvre</em><p>${esc(k.question)}</p></div>
+    </div>
+    ${k.note?`<div class="ksec"><h4>Ce qu'il faut retenir</h4><p style="white-space:pre-wrap">${esc(k.note)}</p></div>`:""}
+    <label class="falbl">Honnêtement<em>C'est cette note qui remplit le tableau « où ça casse ». Mentir ici ne trompe que toi.</em></label>
+    <div class="fagrades">
+      <button class="g0" onclick="faNote('${it.id}',0,'${recId}')">À côté<small>on y revient vite</small></button>
+      <button onclick="faNote('${it.id}',1,'${recId}')">Autre cible, défendable<small>à revoir</small></button>
+      <button class="g2" onclick="faNote('${it.id}',2,'${recId}')">J'avais trouvé<small>plus tard</small></button>
+    </div>
+    <div class="farow"><button onclick="faClaude('${recId}')">✳️ Faire critiquer par Claude</button>
+      <button onclick="faStop();faSheet()">Plus tard</button></div>`);
+  const sh=document.getElementById("sheet"); if(sh) sh.classList.add("wide");
+}
+function faNote(ref,g,recId){
+  const F=fai(), t=today(), it=faItem(ref); if(!it) return;
+  const c=F.drl[ref]||(F.drl[ref]={n:0,iv:0,ef:2.5,due:t,vu:0});
+  c.vu=Date.now(); c.g=g;
+  /* intervalles plus longs que pour LES MOTS : vingt-cinq extraits, et ce
+     qui se retient n'est pas l'extrait mais le geste. */
+  if(g===0){ c.n=0; c.iv=2; c.ef=Math.max(1.3,c.ef-0.2); }
+  else if(g===1){ c.n=Math.max(1,c.n); c.iv=Math.max(3,Math.round((c.iv||3)*1.3)); c.ef=Math.max(1.3,c.ef-0.05); }
+  else { c.n=(c.n||0)+1; c.ef=Math.min(2.8,c.ef+0.08);
+         c.iv = c.n===1?4 : c.n===2?10 : Math.max(3,Math.round((c.iv||4)*c.ef)); }
+  c.due=dayShift(t,c.iv);
+  const s=F.typ[it.cle.type]||(F.typ[it.cle.type]={ok:0,ko:0});
+  if(g>=1) s.ok++; else s.ko++;
+  const r=faRecs().find(x=>x.id===recId); if(r){ r.g=g; r.vrai=it.cle.type; }
+  save(); faStop(); closeOv(); render();
+  toast(g>=2?"✓ Noté — revu dans "+c.iv+" jours":g===1?"Noté — à revoir dans "+c.iv+" jours":"Noté — on y revient dans "+c.iv+" jours");
+}
+function faPersoFin(recId){
+  const r=faRecs().find(x=>x.id===recId)||{};
+  sheet(`<h3>✓ Enregistré</h3>
+    <div class="ksub" style="text-align:left">Pas de corrigé pour un extrait qui est à toi. Le seul contrôle utile, c'est qu'on te réponde — fais-le critiquer, et sans ménagement.</div>
+    <div class="facmp"><div class="moi"><em>Ta prémisse faible</em><p>${esc(r.prem?r.prem[r.faible]||"":"")}</p></div>
+      <div class="cle"><em>Ce qui la ferait tomber</em><p>${esc(r.def||"")}</p></div></div>
+    <button class="btn" onclick="faClaude('${recId}')">✳️ Faire critiquer par Claude</button>
+    <button class="btn ghost" onclick="faStop();faSheet()">Revenir</button>`);
+}
+
+/* ---- la critique : on envoie la reconstruction, pas l'extrait entier ---- */
+function faTexte(recId){
+  const r=faRecs().find(x=>x.id===recId); if(!r) return "";
+  const it=r.ref?faItem(r.ref):null;
+  const L=["Claude, exercice de reconstruction d'argument (Le Pointage → LA FAILLE), le "+r.d+".",
+    "", "Source : "+r.src];
+  if(it) L.push("Extrait : "+it.txt.replace(/\n/g," "));
+  L.push("", "Ma reconstruction :");
+  r.prem.forEach((p,i)=>L.push("P"+(i+1)+" — "+p+(i===r.faible?"   ← la plus faible, selon moi":"")));
+  L.push("C — "+r.conc);
+  if(r.type) L.push("", "Type de faille que j'ai nommé : "+faType(r.type).nom);
+  L.push("", "Ce qui la ferait tomber, selon moi : "+r.def);
+  L.push("La question que je poserais : "+(r.q||"(je n'en ai pas écrit)"));
+  L.push("", "Réponds sur quatre points, et sois dur :",
+    "1. Mon découpage est-il fidèle, ou est-ce que j'ai ajouté une prémisse qu'il ne défend pas, ou omis celle qui porte tout ?",
+    "2. Est-ce bien la plus faible, ou est-ce qu'une autre tombe plus vite ?",
+    "3. Mon défaiseur suffit-il, ou se laisse-t-il répondre en une phrase ? Si oui, laquelle ?",
+    "4. Ma question ouvre-t-elle, ou est-ce une objection déguisée en question ?");
+  return L.join("\n");
+}
+function faClaude(recId){
+  const txt=faTexte(recId); if(!txt) return;
+  const done=()=>{ toast("📋 Copié — colle-le dans Claude"); };
+  if(navigator.share) navigator.share({title:"La faille → Claude", text:txt}).then(()=>toast("✳️ Envoyé")).catch(()=>{});
+  else if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(done).catch(()=>jCopyFallback(txt,done));
+  else jCopyFallback(txt,done);
+}
+
+/* ---- ② le compteur : interroger sans vouloir gagner ---- */
+let faE=null;
+function faEntOpen(){
+  faE={cut:0,q:0,th:0}; faStart=Date.now();
+  const R=faRelances();
+  sheet(`<h3>🎙 Interroger sans vouloir gagner</h3>
+    <div class="fahint">En direct, ou à la réécoute d'un enregistrement. Un toucher par événement. Personne ne regarde : le chiffre ne sert qu'à toi.</div>
+    <div class="faent-big" id="faClock">00:00</div>
+    <div class="faent-tx" id="faRate">—</div>
+    <div class="faent-g">
+      <button class="cut" onclick="faEntTap('cut')"><u>✋</u>Je l'ai coupé<s id="faNcut">0</s></button>
+      <button class="q" onclick="faEntTap('q')"><u>❓</u>Question ouverte<s id="faNq">0</s></button>
+      <button onclick="faEntTap('th')"><u>⚔️</u>J'ai placé ma thèse<s id="faNth">0</s></button>
+    </div>
+    <div class="farow"><button onclick="faEntFin()">■ Terminer</button><button onclick="faEntAnnul()">Annuler</button></div>
+    <div class="ksec"><h4>Si tu ne sais pas quoi demander</h4>
+      ${R.slice(0,4).map(x=>`<div class="farel"><b>${esc(x.q)}</b><p>${esc(x.pq)}</p></div>`).join("")}
+      <button class="btn ghost" onclick="faRelSheet()">Les ${R.length} relances ›</button></div>`);
+  faTicker(); faEntMaj();
+}
+function faEntTap(k){
+  if(!faE) return; faE[k]=(faE[k]||0)+1;
+  const el=document.getElementById("faN"+k); if(el) el.textContent=faE[k];
+  faEntMaj();
+}
+function faEntMaj(){
+  if(!faE) return;
+  const box=document.getElementById("faRate"); if(!box) return;
+  const min=(Date.now()-faStart)/60000;
+  if(min<3){ box.innerHTML="Le taux apparaît après trois minutes."; return; }
+  const taux=faE.cut/(min/60), tot=faE.q+faE.th;
+  box.innerHTML=`<b class="${taux<FA_CUT?"":"ko"}">${faTauxTxt(taux)}</b> de coupures — objectif sous ${FA_CUT}`+
+    (tot?` · ${Math.round(100*faE.q/tot)} % de questions`:"");
+}
+function faEntAnnul(){ faE=null; faStop(); faSheet(); }
+function faEntFin(){
+  if(!faE) return;
+  const min=Math.round((Date.now()-faStart)/60000);
+  if(min<1){ faE=null; faStop(); faSheet(); return toast("Moins d'une minute : rien à enregistrer."); }
+  const F=fai(), avant=faEntMoy(5);
+  const e={id:faId(), d:today(), ts:Date.now(), min, cut:faE.cut, q:faE.q, th:faE.th};
+  F.ent.push(e); save(); faE=null; faStop();
+  const taux=faEntTaux(e), tot=e.q+e.th;
+  sheet(`<h3>🎙 ${fmtMin(min)} d'écoute</h3>
+    <div class="faverdict ${taux<FA_CUT?"ok":"ko"}">${faTauxTxt(taux)} de coupures — ${taux<FA_CUT?"sous l'objectif de "+FA_CUT+"/h.":"au-dessus de l'objectif de "+FA_CUT+"/h."}
+      ${avant!=null?`<div style="font-weight:600;margin-top:5px">Tes séances précédentes : ${faTauxTxt(avant)}.</div>`:""}</div>
+    <div class="fahint">${e.cut} coupure${e.cut>1?"s":""} · ${e.q} question${e.q>1?"s":""} ouverte${e.q>1?"s":""} · ${e.th} fois ta thèse${tot?` — ${Math.round(100*e.q/tot)} % de questions dans tes prises de parole.`:"."}
+      ${e.q<=e.th?" Tu as autant affirmé que demandé : c'est un débat, pas un examen.":" Tu as plus demandé qu'affirmé — c'est exactement la bonne direction."}</div>
+    <button class="btn ghost" onclick="faSheet()">Revenir</button>`);
+  render();
+}
+
+/* ---- les références ---- */
+function faTypesSheet(){
+  const st={}; faTypStat().forEach(s=>st[s.id]=s);
+  sheet(`<h3>📖 Les ${faTypes().length} types de faille</h3>
+    <div class="ksub" style="text-align:left">Nommer un sophisme ne réfute rien : chaque fiche porte donc le coup à jouer, pas seulement l'étiquette.</div>
+    ${faTypes().map(t=>{ const s=st[t.id]||{};
+      return `<div class="fatyp"><b>${esc(t.nom)}${s.n?` <small style="font-weight:650;color:var(--muted)">· ${s.ok}/${s.n} repérée${s.n>1?"s":""}</small>`:""}</b>
+        <p>${esc(t.quoi)}</p><p class="att">${esc(t.attaque)}</p></div>`; }).join("")}
+    <button class="btn ghost" onclick="faSheet()">Revenir</button>`);
+}
+function faRelSheet(){
+  sheet(`<h3>💬 Les relances</h3>
+    <div class="ksub" style="text-align:left">Des amorces, pas des formules à réciter. Elles servent à sortir du réflexe « j'attends qu'il finisse pour placer mon objection ».</div>
+    ${faRelances().map(x=>`<div class="farel"><b>${esc(x.q)}</b><p>${esc(x.pq)}</p></div>`).join("")}
+    <button class="btn ghost" onclick="faSheet()">Revenir</button>`);
+}
+function faListe(){
+  const D=fai().drl, t=today();
+  const etat=f=>{ const c=D[f.id]; if(!c||!c.n) return {e:"○",t:"jamais faite"};
+    if(c.due<=t) return {e:"◐",t:"à refaire"};
+    return {e:"✓",t:"à refaire le "+cDate(c.due)}; };
+  sheet(`<h3>📚 Les ${faCorpus().length} extraits</h3>
+    <div class="krows">${faCorpus().map(f=>{ const e=etat(f);
+      return `<div class="krow" data-fa="${f.id}" style="cursor:pointer"><span class="ke">${e.e}</span>
+        <div class="kn">${esc(f.src)}<small style="display:block;color:var(--muted);font-weight:500">${esc(faType(f.cle.type).nom)} · ${e.t}</small></div><b>›</b></div>`; }).join("")}</div>
+    <button class="btn ghost" style="margin-top:14px" onclick="faSheet()">Revenir</button>`);
+  document.querySelectorAll("[data-fa]").forEach(el=>el.addEventListener("click",()=>faDrill(el.dataset.fa)));
+}
+function faHisto(){
+  const R=faRecs().slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  sheet(`<h3>🗂 Mes reconstructions</h3>
+    ${R.length?R.slice(0,40).map(r=>`<div class="fatyp"><b>${esc(r.src)} <small style="font-weight:650;color:var(--muted)">· ${cDate(r.d)} · ${fmtMin(r.min||0)}${r.g!=null?" · "+(r.g>=2?"trouvée":r.g===1?"autre cible":"à côté"):""}</small></b>
+      <p><b>Donc</b> ${esc(r.conc)}</p>
+      <p class="att">${esc(r.prem[r.faible]||"")} → ${esc(r.def)}</p>
+      <button class="faadd" style="margin-top:8px" onclick="faClaude('${r.id}')">✳️ Faire critiquer par Claude</button></div>`).join("")
+      :`<div class="ksub">Rien encore. La première séance est à dix minutes d'ici.</div>`}
+    <button class="btn ghost" onclick="faSheet()">Revenir</button>`);
+}
+
 function lireHtml(){
   const L=lir(), nx=lecNext(), b=livreCourant(), w=lireMinJours(7), run=L.run;
   const luAuj=lecs().filter(a=>L.lus[a.id]===today());
@@ -6232,6 +6774,7 @@ function cahierHtml(){
         <div class="cahecrire-f"><span id="cahSv">${tj?"✓ enregistré":"s'enregistre tout seul"}</span>${tj?`<a href="#" onclick="event.preventDefault();texteEdit('${tj.id}')">titre, thème ›</a>`:""}</div>
       </div>
       ${jCardHtml()}
+      ${faCardHtml()}
       ${der.length?`<div class="cahbloc"><div class="cahbloc-h"><b>Tes derniers textes</b><a href="#" onclick="event.preventDefault();cahSeg('textes')">tous ›</a></div><div class="txliste">${der.map(txRow).join("")}</div></div>`:""}`;
   }
   return `<div class="cahier">${h}</div>`;
