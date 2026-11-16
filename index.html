@@ -1520,6 +1520,59 @@
   .txzone{background:#D9D2C2;color:#14110F;border-color:#B9AF9A;font:italic 17px/27px Georgia,serif;
     background-image:repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.25) 26px 27px);background-attachment:local}
 
+  /* ───── LE JOURNAL (16/11) : une page de vélin réglée, pas une carte ─────
+     Même matière que le scriptorium : parchemin, réglure, rubrique rouge,
+     marge tracée à gauche comme sur un vrai cahier, écriture à la plume.
+     La réglure fait 27 px et l'interligne du texte aussi : l'écriture se
+     pose SUR les lignes au lieu de flotter entre elles. */
+  .jcard{position:relative;border-radius:3px;border:1px solid #B9AF9A;background:#D9D2C2;color:#14110F;
+    padding:15px 17px 14px 25px;box-shadow:inset 0 0 22px rgba(90,70,40,.22),0 1px 0 rgba(255,250,235,.4);
+    background-image:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.55),transparent 60%),
+      radial-gradient(60% 50% at 85% 90%,rgba(120,95,60,.16),transparent 70%),
+      repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.18) 26px 27px)}
+  .jcard::before{content:"";position:absolute;top:0;bottom:0;left:15px;width:1px;background:rgba(168,50,30,.38)}
+  .jcard.filled{border-color:#A08A6A;box-shadow:inset 0 0 26px rgba(90,70,40,.28),0 1px 0 rgba(255,250,235,.4);
+    background:#D9D2C2;
+    background-image:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.55),transparent 60%),
+      radial-gradient(60% 50% at 85% 90%,rgba(120,95,60,.2),transparent 70%),
+      repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.2) 26px 27px)}
+  /* le signet : il ne sort que les jours écrits */
+  .jcard.filled::after{content:"";position:absolute;top:-1px;right:16px;width:13px;height:26px;
+    background:linear-gradient(180deg,#A8321E,#7E2415);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%);opacity:.85}
+  .jrub{display:flex;align-items:baseline;gap:9px;padding-right:34px}
+  .jrub b{font:500 12.5px Georgia,serif;letter-spacing:.17em;text-transform:uppercase;color:#A8321E}
+  .jrub i{font:italic 12.5px Georgia,serif;color:#5C4E3C;text-transform:lowercase}
+  .jrub .go{margin-left:auto;color:#8A7A62;font:16px Georgia,serif}
+  /* l'encre noire ne vaut que sur le vélin : ailleurs (la fiche d'un jour du
+     calendrier, posée sur fond sombre) on garde la couleur du thème. */
+  .jprev{font:italic 15.5px/25px Georgia,serif;white-space:pre-wrap}
+  .jcard .jprev{margin-top:9px;font:italic 16px/27px Georgia,serif;color:#14110F;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;opacity:1}
+  .jvide{margin-top:9px;font:italic 15.5px/27px Georgia,serif;color:#7A6C58}
+  .jpied{margin-top:9px;font:11px var(--mono);letter-spacing:.08em;color:#5C4E3C}
+  .jcard .jtagrow{margin-top:8px}
+  .jcard .jtag{background:rgba(255,250,235,.45);border-color:#B9AF9A;color:#5C4E3C;
+    font:500 10.5px Georgia,serif;letter-spacing:.1em;text-transform:uppercase;border-radius:2px}
+  .jcard .jtag.on{background:rgba(168,50,30,.12);color:#A8321E;border-color:rgba(168,50,30,.45)}
+  /* la page qu'on ouvre pour écrire */
+  .jpage{font:italic 12.5px Georgia,serif;color:var(--muted);margin:-12px 0 10px;text-transform:lowercase}
+  .jrelance{border-left:2px solid rgba(168,50,30,.5);padding:2px 0 2px 10px;margin:0 0 12px;
+    font:italic 14.5px/1.5 Georgia,serif;color:var(--ink)}
+  #jTxt{min-height:46vh;border:1px solid #B9AF9A;border-radius:3px;background:#D9D2C2;color:#14110F;
+    font:italic 17px/27px Georgia,serif;padding:13px 14px;
+    background-image:repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.25) 26px 27px);
+    background-attachment:local}
+  #jTxt::placeholder{color:#7A6C58}
+  #jTxt:focus{outline:none;border-color:#A8321E;background-color:#DED7C8}
+  .jsave{font:11px var(--mono);letter-spacing:.08em}
+  #jTags .jtag{font:500 11px Georgia,serif;letter-spacing:.1em;text-transform:uppercase;border-radius:2px}
+  #jTags .jtag.on{background:rgba(168,50,30,.14);color:#C4432C;border-color:rgba(168,50,30,.55)}
+  /* l'index des jours : une table des matières, avec sa ligne de conduite */
+  .jday{align-items:baseline;gap:8px;padding:11px 2px;border-bottom:1px dotted rgba(150,120,90,.5)}
+  .jday .d{font:500 11px Georgia,serif;letter-spacing:.13em;text-transform:uppercase;color:#A8321E;width:94px}
+  .jday .p{font:italic 14px Georgia,serif;color:var(--ink);opacity:.85}
+  .jday .n{font-size:12px}
+
   /* le menu-rouleau */
   .menu-rouleau{position:relative;margin:10px -12px 0;overflow:hidden}
   .menu-aide{font:10.5px var(--mono);letter-spacing:.06em;color:var(--faint);text-align:center;margin-top:6px}
@@ -3585,16 +3638,12 @@ function jStreak(){
 function jCardHtml(){
   const t=today(), e=jGet(t), filled=jHas(t), n=jDays().length, str=jStreak();
   const tags=(e.tags||[]).map(id=>{ const T=J_TAGS.find(x=>x.id===id); return T?`<span class="jtag ro on">${T.lbl}</span>`:""; }).join("");
+  const pied=[str>1?"🔥 "+str+" jours d'affilée":"", n>1?n+" journées en tout":""].filter(Boolean).join(" · ");
   return `<div class="jcard ${filled?"filled":""}" id="jcard" onclick="openJournal()">
-    <div class="jhead">
-      <div class="ic">📓</div>
-      <div><b>Ma journée</b><small>${filled
-        ? "écrite" + (str>1?" · 🔥 "+str+" jours d'affilée":"") + (n>1?" · "+n+" en tout":"")
-        : jPrompt()}</small></div>
-      <div class="go">›</div>
-    </div>
-    ${filled?`<div class="jprev">${esc(e.txt)}</div>`:""}
+    <div class="jrub"><b>Ma journée</b><i>${esc(jDateLabel(t,true))}</i><span class="go">›</span></div>
+    ${filled?`<div class="jprev">${esc(e.txt)}</div>`:`<div class="jvide">${esc(jPrompt())}</div>`}
     ${tags?`<div class="jtagrow">${tags}</div>`:""}
+    ${filled&&pied?`<div class="jpied">${esc(pied)}</div>`:""}
   </div>`;
 }
 
@@ -3873,10 +3922,9 @@ let jSaveT=null;
 function openJournal(date){
   const d=date||today(), e=jGet(d), isToday=d===today();
   sheet(`
-    <h3>📓 ${isToday?"Ma journée":jDateLabel(d,true)}</h3>
-    <p style="color:var(--muted);font-size:12.5px;line-height:1.55;margin:-10px 0 12px">
-      Raconte ce que tu as fait, ce qui a marché, ce qui a coincé. Ça s'enregistre tout seul.
-      ${isToday?`<br><b style="color:var(--ink)">${esc(jPrompt())}</b>`:""}</p>
+    <h3>📓 ${isToday?"Ma journée":"Journal"}</h3>
+    <div class="jpage">${esc(jDateLabel(d,true))}${isToday&&jStreak()>1?" · "+jStreak()+"e jour d'affilée":""} — ça s'enregistre tout seul.</div>
+    ${isToday?`<div class="jrelance">${esc(jPrompt())}</div>`:""}
     <textarea id="jTxt" placeholder="Aujourd'hui j'ai…"></textarea>
     <div class="jsave" id="jSaved"></div>
     <div class="jtagrow" id="jTags">${J_TAGS.map(T=>
