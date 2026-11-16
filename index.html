@@ -1531,7 +1531,15 @@
       radial-gradient(60% 50% at 85% 90%,rgba(120,95,60,.16),transparent 70%),
       repeating-linear-gradient(180deg,transparent 0 26px,rgba(150,120,90,.18) 26px 27px)}
   .jcard::before{content:"";position:absolute;top:0;bottom:0;left:15px;width:1px;background:rgba(168,50,30,.38)}
-  .jcard.filled{border-color:#A08A6A;box-shadow:inset 0 0 26px rgba(90,70,40,.28),0 1px 0 rgba(255,250,235,.4);
+  /* la tranche : plus le journal est épais, plus on voit de feuilles dessous.
+     Des ombres décalées plutôt que des éléments en plus — ::before porte déjà
+     la marge rouge et ::after le signet. */
+  .jcard.ep1{box-shadow:inset 0 0 22px rgba(90,70,40,.22),3px 3px 0 -1px #CFC7B5,3px 3px 0 0 #AFA38B}
+  .jcard.ep2{box-shadow:inset 0 0 22px rgba(90,70,40,.22),3px 3px 0 -1px #CFC7B5,3px 3px 0 0 #AFA38B,
+    6px 6px 0 -1px #C9C0AD,6px 6px 0 0 #A79B83}
+  .jcard.ep3{box-shadow:inset 0 0 22px rgba(90,70,40,.22),3px 3px 0 -1px #CFC7B5,3px 3px 0 0 #AFA38B,
+    6px 6px 0 -1px #C9C0AD,6px 6px 0 0 #A79B83,9px 9px 0 -1px #C3BAA6,9px 9px 0 0 #9F937B}
+  .jcard.filled{border-color:#A08A6A;
     background:#D9D2C2;
     background-image:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.55),transparent 60%),
       radial-gradient(60% 50% at 85% 90%,rgba(120,95,60,.2),transparent 70%),
@@ -1549,7 +1557,12 @@
   .jcard .jprev{margin-top:9px;font:italic 16px/27px Georgia,serif;color:#14110F;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;opacity:1}
   .jvide{margin-top:9px;font:italic 15.5px/27px Georgia,serif;color:#7A6C58}
-  .jpied{margin-top:9px;font:11px var(--mono);letter-spacing:.08em;color:#5C4E3C}
+  .jpied{margin-top:7px;font:italic 12.5px Georgia,serif;color:#5C4E3C}
+  /* les quatre onglets du cahier débordaient à 375 px : les capitales espacées
+     de Georgia sont larges, et « BIBLIOTHÈQUE » ne tenait pas. On resserre et
+     on interdit le retour à la ligne. */
+  .cahseg{gap:2px;padding:3px}
+  .cahseg button{font-size:9.5px;letter-spacing:.04em;white-space:nowrap;padding:0 1px;min-width:0}
   .jcard .jtagrow{margin-top:8px}
   .jcard .jtag{background:rgba(255,250,235,.45);border-color:#B9AF9A;color:#5C4E3C;
     font:500 10.5px Georgia,serif;letter-spacing:.1em;text-transform:uppercase;border-radius:2px}
@@ -3620,6 +3633,19 @@ function jSet(d, txt, tags){
   if(!(e.txt||"").trim() && !(e.tags||[]).length) delete A[d]; else A[d]=e;
   save();
 }
+/* l'épaisseur du journal se voit sur la tranche : 3 jours une feuille,
+   10 une deuxième, 30 une troisième. Au-delà, inutile d'en rajouter. */
+function jEpaisseur(){ const n=jDays().length; return n>=30?"ep3":n>=10?"ep2":n>=3?"ep1":""; }
+/* l'index date à la manière d'un manuscrit : le quantième en chiffres romains.
+   Le jour de la semaine reste en clair, sinon on ne retrouve plus rien d'un coup d'oeil. */
+const J_ROM=["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX",
+  "XXI","XXII","XXIII","XXIV","XXV","XXVI","XXVII","XXVIII","XXIX","XXX","XXXI"];
+function jIndexDate(iso){
+  const d=new Date(iso+"T12:00:00"), q=d.getDate();
+  const jour=d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".",""),
+        mois=d.toLocaleDateString("fr-FR",{month:"short"}).replace(".","");
+  return jour+" "+(J_ROM[q]||q)+" "+mois;
+}
 function jPrompt(){ return J_PROMPTS[ Math.floor(Date.parse(today())/864e5) % J_PROMPTS.length ]; }
 function jDateLabel(iso, long){
   const d=new Date(iso+"T12:00:00");
@@ -3638,8 +3664,10 @@ function jStreak(){
 function jCardHtml(){
   const t=today(), e=jGet(t), filled=jHas(t), n=jDays().length, str=jStreak();
   const tags=(e.tags||[]).map(id=>{ const T=J_TAGS.find(x=>x.id===id); return T?`<span class="jtag ro on">${T.lbl}</span>`:""; }).join("");
-  const pied=[str>1?"🔥 "+str+" jours d'affilée":"", n>1?n+" journées en tout":""].filter(Boolean).join(" · ");
-  return `<div class="jcard ${filled?"filled":""}" id="jcard" onclick="openJournal()">
+  /* on ne dit pas deux fois la même chose : tant que la série couvre tout le
+     journal, le total n'apprend rien. */
+  const pied=[str>1?str+" jours d'affilée":"", n>str?n+" journées en tout":""].filter(Boolean).join(" · ");
+  return `<div class="jcard ${filled?"filled":""} ${jEpaisseur()}" id="jcard" onclick="openJournal()">
     <div class="jrub"><b>Ma journée</b><i>${esc(jDateLabel(t,true))}</i><span class="go">›</span></div>
     ${filled?`<div class="jprev">${esc(e.txt)}</div>`:`<div class="jvide">${esc(jPrompt())}</div>`}
     ${tags?`<div class="jtagrow">${tags}</div>`:""}
@@ -3961,7 +3989,7 @@ function openJournalHistory(){
       const e=jGet(d), first=(e.txt||"").trim().split("\n")[0];
       const tg=(e.tags||[]).map(id=>{const T=J_TAGS.find(x=>x.id===id);return T?T.lbl.split(" ")[0]:"";}).join("");
       return `<div class="jday" data-day="${d}">
-        <div class="d">${jDateLabel(d)}</div>
+        <div class="d">${jIndexDate(d)}</div>
         <div class="p">${esc(first)}</div>
         <div class="n">${tg}</div></div>`;
     }).join("")}</div>
