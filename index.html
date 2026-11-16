@@ -611,6 +611,21 @@
   .cst.refus{opacity:.6;text-decoration:line-through}
   .cst.rel{background:var(--accent-soft);color:var(--accent)}
   .cvide{color:var(--muted);font-size:13px;font-style:italic;padding:12px 2px 4px}
+
+  /* 📓 le cahier unifié : barre de recherche, entrées, source sous l'entrée */
+  .cahq{position:relative;margin:8px 0 10px}
+  .cahq input{width:100%;background:var(--card2);border:2px solid transparent;border-radius:13px;color:var(--ink);
+    padding:13px 38px 13px 13px;font-size:16px;font-family:inherit}
+  .cahq input:focus{outline:none;border-color:var(--accent);background:var(--card)}
+  .cahq button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:none;
+    border-radius:50%;background:var(--line2);color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit}
+  .cahent{position:relative}
+  .cahent .txrow{margin-bottom:0}
+  .cahsrc{display:block;width:100%;text-align:left;border:none;background:none;cursor:pointer;font-family:inherit;
+    color:var(--muted);font-size:12px;font-weight:650;padding:2px 0 10px 2px}
+  .cahsrc:hover{color:var(--accent)}
+  .cahsrc em{font-style:normal;color:var(--ink)}
+  .cahvide-n{display:block;margin-top:6px;font-style:normal;font-size:12.5px}
   .cgo{display:flex;align-items:center;justify-content:space-between;width:100%;margin:14px 0 4px;border:none;border-radius:15px;
     background:var(--accent);color:#fff;padding:14px 16px;font-size:14.5px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s}
   .cgo:active{transform:scale(.98)}
@@ -6745,17 +6760,110 @@ function txRow(x){ const ex=String(x.txt||"").replace(/\s+/g," ").trim(), corps=
   return `<button class="txrow velin" style="--pig:${TX_PIG[x.tag]||TX_PIG.libre}" onclick="texteEdit('${x.id}')">
     <span><em>${txTag(x)}</em>${txDate(x)}</span><b>${esc(txTitre(x))}</b>
     ${corps?`<p><i class="lettrine">${esc(l)}</i>${esc(reste.length>180?reste.slice(0,180)+"…":reste)}</p>`:""}</button>`; }
+/* ═══════════════════════════════════════════════════════════════════
+   📓 LE CAHIER UNIFIÉ (16/11)
+   Avant : il écrivait dans trois tiroirs séparés et sans lien entre eux —
+   lir().textes (ses textes), lir().idees (le carnet d'idées, caché dans la
+   feuille « Lire ») et lir().notes (« ce que j'en retiens », qu'on ne pouvait
+   rouvrir que depuis l'essai ou le livre concerné). Aucun n'était cherchable.
+   On ne crée PAS un quatrième tiroir : on lit les trois, on les affiche
+   ensemble avec leur source, et on les rend cherchables. Rien n'est migré,
+   rien n'est réécrit — donc rien ne peut être perdu au passage.
+   ═══════════════════════════════════════════════════════════════════ */
+const CAH_KINDS=[["tout","Tout"],["texte","Textes"],["idee","Idées"],["note","Retenu"]];
+const CAH_IC={texte:"✎", idee:"💭", note:"✍️"};
+let cahQ="", cahKind="tout", cahTag="";
+function cahCourt(t,n){ const v=String(t==null?"":t).replace(/\s+/g," ").trim(); return v.length>n?v.slice(0,n).trim()+"…":v; }
+function cahNorm(s){ return String(s==null?"":s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""); }
+
+/* les trois tiroirs, ramenés à une seule forme */
+function cahEntrees(){
+  const L=lir(), out=[];
+  L.textes.filter(x=>!x.del).forEach(x=>{ const a=x.lec?lecs().find(l=>l.id===x.lec):null;
+    out.push({id:x.id, kind:"texte", d:x.d||today(), mod:x.mod||0, titre:txTitre(x), txt:String(x.txt||""),
+      tag:x.tag||"libre", label:txTag(x), src:a?a.titre:"", srcq:a?"relire":""}); });
+  L.idees.filter(x=>!x.del).forEach(x=>{
+    out.push({id:x.id, kind:"idee", d:x.d||today(), mod:x.mod||0, tag:"idee", label:x.env?"Idée · envoyée":"Idée",
+      titre:cahCourt(String(x.txt||""),220)||"Idée", txt:String(x.txt||""),
+      src:x.src||"", srcq:""}); });
+  L.notes.filter(n=>!n.del).forEach(n=>{
+    const quoi=n.kind==="texte"?"Texte du Pointage":n.kind==="aeon"?"Essai Aeon":"Livre";
+    out.push({id:n.id, kind:"note", d:n.dm||n.d||today(), mod:n.mod||0, tag:"lecture", label:"Retenu",
+      titre:n.titre||retTitre(n.kind,n.ref), txt:String(n.txt||""),
+      src:quoi+" : "+(n.titre||retTitre(n.kind,n.ref))+(n.p?" — p. "+n.p:""),
+      srcq:n.kind==="texte"?"Relire ce texte":n.kind==="aeon"?"Rouvrir l'essai":"Ouvrir le livre"}); });
+  return out.sort((a,b)=>(b.mod||0)-(a.mod||0)||(a.d<b.d?1:-1));
+}
+/* ouvrir une entrée : chacune retourne dans SON éditeur d'origine */
+function cahOuvrir(kind,id){
+  if(kind==="texte") return texteEdit(id);
+  if(kind==="idee") return ideeAdd(id);
+  return retEditId(id);
+}
+/* remonter à la source d'une entrée : la lecture, l'essai, le livre */
+function cahSource(kind,id){
+  if(kind==="texte"){ const x=lir().textes.find(t=>t.id===id); if(x&&x.lec) lireOpen(x.lec); return; }
+  const n=lir().notes.find(x=>x.id===id); if(!n) return;
+  if(n.kind==="texte") lireOpen(n.ref); else if(n.kind==="aeon") aeonOpen(n.ref); else livreEdit(n.ref);
+}
+function cahFiltrees(){
+  const mots=cahNorm(cahQ).trim().split(/\s+/).filter(Boolean);
+  return cahEntrees().filter(e=>{
+    if(cahKind!=="tout"&&e.kind!==cahKind) return false;
+    if(cahTag&&!(e.kind==="texte"&&e.tag===cahTag)) return false;
+    if(!mots.length) return true;
+    const h=cahNorm(e.titre+" "+e.txt+" "+e.src);
+    return mots.every(m=>h.indexOf(m)>=0); });
+}
+function cahRow(e){
+  const corps=e.txt.replace(/\s+/g," ").trim();
+  const repete=cahNorm(corps).indexOf(cahNorm(e.titre).slice(0,40))===0;
+  const ex=corps&&!repete?corps:"", l=(ex||e.titre).charAt(0)||"·";
+  return `<div class="cahent">
+    <button class="txrow velin" style="--pig:${TX_PIG[e.tag]||TX_PIG.libre}" onclick="cahOuvrir('${e.kind}','${e.id}')">
+      <span><em>${CAH_IC[e.kind]} ${esc(e.label)}</em>${txDate({d:e.d})}</span><b>${esc(e.titre)}</b>
+      ${ex?`<p><i class="lettrine">${esc(l)}</i>${esc(ex.length>180?ex.slice(0,180)+"…":ex)}</p>`:""}</button>
+    ${e.src?(e.srcq?`<button class="cahsrc" onclick="cahSource('${e.kind}','${e.id}')">↳ <em>${esc(e.src)}</em> · ${esc(e.srcq)} ›</button>`
+      :`<div class="cahsrc">↳ <em>${esc(e.src)}</em></div>`):""}</div>`;
+}
+function cahListeHtml(){
+  const F=cahFiltrees();
+  if(F.length) return F.map(cahRow).join("");
+  const filtre=cahQ.trim()||cahKind!=="tout"||cahTag;
+  return `<div class="cvide">${filtre?`Rien qui corresponde.<span class="cahvide-n">Essaie un autre mot, ou touche « Tout » pour enlever les filtres.</span>`
+    :`Rien d'écrit pour l'instant. Une question qui te résiste, une lecture qui t'a fait réagir : commence là.`}</div>`;
+}
+/* on ne repasse PAS par render() : ça détruirait le champ et le curseur pendant la frappe */
+function cahMaj(){
+  const el=document.getElementById("cahListe"); if(el) el.innerHTML=cahListeHtml();
+  const E=cahEntrees(), kb=document.getElementById("cahK");
+  if(kb) Array.prototype.forEach.call(kb.children,c=>{ const k=c.dataset.k;
+    c.className=cahKind===k?"on":""; c.textContent=(CAH_KINDS.find(x=>x[0]===k)[1])+" "+(k==="tout"?E.length:E.filter(e=>e.kind===k).length); });
+  const tb=document.getElementById("cahT");
+  if(tb){ tb.style.display=(cahKind==="tout"||cahKind==="texte")?"":"none";
+    Array.prototype.forEach.call(tb.children,c=>c.classList.toggle("on",c.dataset.t===cahTag)); }
+  const x=document.getElementById("cahX"); if(x) x.style.display=cahQ?"":"none";
+}
+function cahBarreHtml(){
+  const E=cahEntrees(), n=k=>k==="tout"?E.length:E.filter(e=>e.kind===k).length;
+  return `<div class="cahq"><input id="cahQ" type="search" autocomplete="off" value="${esc(cahQ)}"
+      placeholder="Chercher dans tout ce que tu as écrit…"><button id="cahX" style="display:${cahQ?"":"none"}" aria-label="Effacer">✕</button></div>
+    <div class="agpills" id="cahK">${CAH_KINDS.map(([k,l])=>`<span data-k="${k}" class="${cahKind===k?"on":""}">${l} ${n(k)}</span>`).join("")}</div>
+    <div class="agpills" id="cahT" style="display:${(cahKind==="tout"||cahKind==="texte")?"":"none"};margin-top:-8px">${TX_TAGS.map(([k,l])=>`<span data-t="${k}" class="${cahTag===k?"on":""}">${l}</span>`).join("")}</div>`;
+}
 function cahierHtml(){
   const k=S.cahSeg||"auj", seg=(id,l)=>`<button class="${k===id?"on":""}" onclick="cahSeg('${id}')">${l}</button>`;
-  let h=`<div class="cahseg">${seg("auj","Aujourd'hui")}${seg("textes","Mes textes")}${seg("lire","À lire")}${typeof BIBLIO!=="undefined"?seg("biblio","Bibliothèque"):""}</div>`;
+  let h=`<div class="cahseg">${seg("auj","Aujourd'hui")}${seg("textes","Cahier")}${seg("lire","À lire")}${typeof BIBLIO!=="undefined"?seg("biblio","Bibliothèque"):""}</div>`;
   if(k==="biblio"&&typeof biblioHtml==="function") return `<div class="cahier">${h+biblioHtml()}</div>`;
   if(k==="textes"){
-    const T=textes(), I=lir().idees.filter(x=>!x.del);
-    h+=`<button class="btn" onclick="texteEdit('')">✎ Nouveau texte</button>
-      <div class="txliste">${T.length?T.map(txRow).join(""):`<div class="cvide">Rien d'écrit pour l'instant. Une question qui te résiste, une lecture qui t'a fait réagir : commence là.</div>`}</div>
-      <div class="cahbloc"><div class="cahbloc-h"><b>💭 Carnet d'idées</b><span>${I.length} idée${I.length>1?"s":""}</span></div>
-        <p>Les idées à creuser deviennent tes prochaines lectures : Claude les développe en textes.</p>
-        <div style="display:flex;gap:8px"><button class="btn ghost" style="margin:0" onclick="ideeAdd()">✎ Noter une idée</button><button class="btn ghost" style="margin:0" onclick="lireSheet()">Tout le carnet ›</button></div></div>`;
+    const I=lir().idees.filter(x=>!x.del);
+    h+=cahBarreHtml()+`
+      <div class="txliste" id="cahListe">${cahListeHtml()}</div>
+      <div class="cahbloc"><div class="cahbloc-h"><b>✎ Écrire</b><span>${cahEntrees().length} entrée${cahEntrees().length>1?"s":""}</span></div>
+        <p>Un texte quand tu veux développer, une idée quand tu veux seulement garder la trace. Ce que tu retiens d'une lecture s'écrit depuis le texte lui-même et se retrouve ici.</p>
+        <div style="display:flex;gap:8px"><button class="btn ghost" style="margin:0" onclick="texteEdit('')">✎ Nouveau texte</button><button class="btn ghost" style="margin:0" onclick="ideeAdd()">💭 Noter une idée</button></div>
+        ${I.length?`<button class="btn ghost" onclick="ideesClaude()">✳️ Envoyer ${I.filter(x=>!x.env).length?I.filter(x=>!x.env).length+" idée"+(I.filter(x=>!x.env).length>1?"s":"")+" nouvelle"+(I.filter(x=>!x.env).length>1?"s":""):"le carnet"} à Claude</button>`:""}
+        <button class="btn ghost" onclick="lecBilanEnvoyer()">📤 Envoyer tout le cahier à Claude</button></div>`;
   }else if(k==="lire"){
     const L=lir(), A=lecs(), b=livreCourant();
     h+=`<div class="cahbloc"><div class="cahbloc-h"><b>📖 Mes lectures</b><span>${A.filter(a=>L.lus[a.id]).length} sur ${A.length} lues</span></div>
@@ -6781,6 +6889,16 @@ function cahierHtml(){
 }
 let cahT=null;
 function cahBind(){
+  const q=document.getElementById("cahQ");
+  if(q){ let qT; q.addEventListener("input",()=>{ cahQ=q.value; clearTimeout(qT); qT=setTimeout(cahMaj,120); });
+    const x=document.getElementById("cahX"); if(x) x.addEventListener("click",()=>{ cahQ=""; q.value=""; q.focus(); cahMaj(); }); }
+  const kb=document.getElementById("cahK");
+  if(kb) kb.addEventListener("click",ev=>{ const el=ev.target.closest("[data-k]"); if(!el) return;
+    cahKind=el.dataset.k; cahTag=""; cahMaj(); });
+  const tb=document.getElementById("cahT");
+  if(tb) tb.addEventListener("click",ev=>{ const el=ev.target.closest("[data-t]"); if(!el) return;
+    cahTag=cahTag===el.dataset.t?"":el.dataset.t;
+    Array.prototype.forEach.call(tb.children,c=>c.classList.toggle("on",c.dataset.t===cahTag)); cahMaj(); });
   const ta=document.getElementById("cahIn"); if(!ta) return;
   const flush=()=>{ const v=ta.value, L=lir(); let x=txDuJour();
     if(!x){ if(!v.trim()) return; const lec=lecDuJour();
@@ -6797,6 +6915,11 @@ function texteEdit(id){
   sheet(`<h3>${id?"Mon texte":"Nouveau texte"}</h3>
     <div class="fld"><label>Titre</label><input id="txT" value="${esc(x.titre||"")}" placeholder="Une question, une thèse…"></div>
     <div class="agpills" id="txG" style="margin:0 0 12px">${TX_TAGS.map(([k,l])=>`<span data-c="${k}" class="${txTagCur===k?"on":""}">${l}</span>`).join("")}</div>
+    <div class="fld"><label>Lié à une lecture (facultatif)</label>
+      <select id="txL" style="width:100%;background:var(--card2);border:2px solid transparent;border-radius:13px;color:var(--ink);padding:13px;font-size:16px;font-family:inherit">
+        <option value="">— aucune —</option>
+        ${lecs().map(a=>`<option value="${esc(a.id)}"${x.lec===a.id?" selected":""}>${esc(a.titre)}</option>`).join("")}
+      </select></div>
     <textarea id="txX" class="txzone" placeholder="Écris.">${esc(x.txt||"")}</textarea>
     <button class="btn" onclick="texteSave('${id||""}')">Enregistrer</button>
     ${id?`<button class="btn danger" onclick="texteDel('${id}')">Supprimer ce texte</button>`:""}
@@ -6811,6 +6934,7 @@ function texteSave(id){
   if(!titre&&!txt.trim()) return toast("Écris d'abord quelque chose.");
   const L=lir(); let x=id?L.textes.find(t=>t.id===id):null;
   if(!x){ x={id:lireId(), d:today()}; L.textes.push(x); }
+  const sl=document.getElementById("txL"); if(sl) x.lec=sl.value||"";
   x.titre=titre; x.txt=txt; x.tag=txTagCur; x.mod=Date.now();
   save(); closeOv(); render(); toast("✓ Texte enregistré");
 }
