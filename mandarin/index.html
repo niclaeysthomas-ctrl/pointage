@@ -482,6 +482,19 @@ body.lesson-open{overflow:hidden}
 /* Pratique */
 .step.locked{opacity:.55}
 .step.locked .st-min svg{width:18px;height:18px;color:var(--ink2)}
+.step.later{opacity:.62}
+.steps li{display:flex;gap:6px;align-items:stretch}
+.steps li .step{flex:1;min-width:0}
+.skip{flex:none;width:42px;border:1px dashed var(--line);background:var(--surface);border-radius:var(--r);color:var(--ink2);display:grid;place-items:center;font-size:1.25rem;line-height:1}
+.skip:hover{border-color:var(--jade);color:var(--jade)}
+.skip.on{border-style:solid;border-color:var(--jade-soft);background:var(--jade-soft);color:var(--jade)}
+.fault{margin:16px auto 0;width:min(100% - 32px,980px);background:var(--bad-soft);border:1px solid var(--bad);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.fault b{color:var(--bad)}
+body.mute .say,body.mute .big-say{display:none}
+.ta{width:100%;min-height:92px;font:inherit;font-size:1.15rem;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);resize:vertical}
+.ta[lang]{font-family:var(--f-hz)}
+.imp-res{display:flex;flex-direction:column;gap:3px;font-size:.9rem}
+.imp-res b{font-variant-numeric:tabular-nums;color:var(--jade)}
 .fb-again{display:block;font-weight:500;font-size:.85rem;opacity:.85;margin-top:2px}
 .cloze{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
 .cz-hz{font-size:1.7rem;line-height:1.5;font-family:var(--f-hz)}
@@ -518,6 +531,7 @@ body.lesson-open{overflow:hidden}
   <div class="top-r"><span class="streak" id="streak"></span><button class="icon-btn" id="gear" type="button" aria-label="Réglages"></button></div>
 </div></header>
 <nav class="nav" id="nav" aria-label="Sections"></nav>
+<div class="fault" id="fault" hidden role="alert"></div>
 <main id="main"></main>
 
 <div class="lesson" id="lesson" hidden role="dialog" aria-modal="true" aria-labelledby="lTitle">
@@ -1259,11 +1273,21 @@ const ttsText = s => String(s).replace(/[（(][^)）]*[)）]/g, "").replace(/…
 
 // ---------- état ----------
 const KEY = "mandarin-entre-amis-v1";
-const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, settings: { pinyin: "auto", rate: 0.8, tones: true } };
+const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, settings: { pinyin: "auto", rate: 0.8, tones: true, son: "auto" } };
+// Trois états au chargement : NEUF (rien d'enregistré), OK, ou CASSÉ.
+// Cassé = illisible, ou stockage interdit. Dans ce cas on n'écrit plus rien :
+// un save() par-dessus un profil vierge effacerait la vraie progression pour de bon.
+let FAULT = null; // { kind: "illisible" | "bloque" | "plein", raw }
+const fresh = () => JSON.parse(JSON.stringify(DEFAULT));
 let S = load();
 function load() {
-  try { const raw = localStorage.getItem(KEY); if (raw) { const o = JSON.parse(raw); return Object.assign({}, DEFAULT, o, { settings: Object.assign({}, DEFAULT.settings, o.settings || {}) }); } } catch (e) {}
-  return JSON.parse(JSON.stringify(DEFAULT));
+  let raw;
+  try { raw = localStorage.getItem(KEY); } catch (e) { FAULT = { kind: "bloque" }; return fresh(); }
+  if (raw === null || raw === "") return fresh(); // vraiment neuf : on peut écrire
+  let o;
+  try { o = JSON.parse(raw); } catch (e) { FAULT = { kind: "illisible", raw }; return fresh(); }
+  if (!o || typeof o !== "object" || typeof o.done !== "object" || typeof o.words !== "object") { FAULT = { kind: "illisible", raw }; return fresh(); }
+  return Object.assign({}, DEFAULT, o, { settings: Object.assign({}, DEFAULT.settings, o.settings || {}) });
 }
 function migrate() {
   if (!S.chars) S.chars = {};
@@ -1273,7 +1297,47 @@ function migrate() {
   Object.keys(S.words).forEach(h => [...h].forEach(c => { if (CHARS[c] && !S.chars[c]) S.chars[c] = Date.now(); }));
   if (!S.cw) { S.cw = {}; Object.keys(S.chars).forEach(c => charAdd(c)); }
 }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save() {
+  if (FAULT && FAULT.kind !== "plein") return false; // profil non fiable : on refuse d'écrire par-dessus
+  try {
+    localStorage.setItem(KEY, JSON.stringify(S));
+    if (FAULT) { FAULT = null; renderFault(); }
+    return true;
+  } catch (e) {
+    if (!FAULT) { FAULT = { kind: "plein" }; renderFault(); }
+    return false;
+  }
+}
+function renderFault() {
+  const el = $("#fault"); if (!el) return;
+  if (!FAULT) { el.hidden = true; el.innerHTML = ""; return; }
+  const txt = FAULT.kind === "illisible"
+    ? "<b>Ta progression enregistrée est illisible.</b> Tant que c'est le cas, l'application n'écrit plus rien : sinon la première séance effacerait définitivement ce qui reste. Récupère le fichier d'abord, puis repars de zéro si tu veux continuer."
+    : FAULT.kind === "bloque"
+    ? "<b>Ce navigateur interdit le stockage local.</b> Rien ne sera enregistré : navigation privée, ou cookies bloqués pour ce site."
+    : "<b>Rien n'est enregistré : le stockage est plein.</b> Toutes tes applications partagent les mêmes 5 Mo. Fais de la place, puis touche Réessayer — ce que tu viens de faire n'est pas encore sauvegardé.";
+  el.innerHTML = `<p class="small">${txt}</p><div class="row">${FAULT.kind === "illisible"
+    ? `<button class="btn ghost sm" id="faultDl">Télécharger ce qui reste</button><button class="btn danger sm" id="faultReset">Repartir de zéro</button>`
+    : `<button class="btn ghost sm" id="faultRetry">Réessayer</button>`}</div>`;
+  el.hidden = false;
+  const dl = $("#faultDl");
+  if (dl) dl.onclick = () => {
+    try {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([FAULT.raw || ""], { type: "application/json" }));
+      a.download = "mandarin-illisible-" + dayStr(Date.now()) + ".json"; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch (e) { toast("Téléchargement impossible sur cet appareil."); }
+  };
+  const rs = $("#faultReset");
+  if (rs) { let armed = false; rs.onclick = () => {
+    if (!armed) { armed = true; rs.textContent = "Confirmer : effacer et repartir"; rs.classList.add("armed"); return; }
+    FAULT = null; S = fresh();
+    if (save()) { renderFault(); render(); toast("Profil remis à neuf."); } else renderFault();
+  }; }
+  const rt = $("#faultRetry");
+  if (rt) rt.onclick = () => { FAULT = null; const ok = save(); renderFault(); toast(ok ? "C'est bon : ta progression est enregistrée." : "Toujours impossible d'enregistrer."); };
+}
 function markActivity() {
   const t = dayStr(Date.now()), y = dayStr(Date.now() - DAY);
   if (S.streak.last === t) return;
@@ -1296,6 +1360,9 @@ function srsAnswer(h, ok) {
   else { w.b = 1; w.d = Date.now() + 10 * 60000; }
   save();
 }
+// « Je sais déjà » : on place direct dans une boîte haute au lieu de repartir de 1.
+function knowWord(h, box) { const w = S.words[h]; if (w && w.b < box) { w.b = box; w.d = Date.now() + INTERVALS[box] * DAY; } }
+function knowChar(c, box) { const w = S.cw && S.cw[c]; if (w && w.b < box) { w.b = box; w.d = Date.now() + INTERVALS[box] * DAY; } }
 const dueWords = () => Object.keys(S.words).filter(h => S.words[h].d <= Date.now() && WMAP[h]).sort((a, b) => S.words[a].d - S.words[b].d);
 const knownCount = () => Object.keys(S.words).filter(h => S.words[h].b >= 4).length;
 
@@ -1391,8 +1458,11 @@ function pickVoice() {
   VOICE = v.find(x => /zh[-_]CN/i.test(x.lang)) || v.find(x => /cmn/i.test(x.lang)) || v.find(x => /^zh/i.test(x.lang)) || null;
 }
 if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = () => { pickVoice(); if ($("#settings") && !$("#settings").hidden) renderSettings(); }; }
+const soundOn = () => S.settings.son !== "off" && ("speechSynthesis" in window);
 function speak(text, opt = {}) {
-  if (!("speechSynthesis" in window)) { toast("Ce navigateur ne propose pas de synthèse vocale."); return; }
+  // Son coupé : on ne parle pas, mais on laisse avancer ce qui s'enchaîne sur la fin de la voix.
+  if (S.settings.son === "off") { if (opt.onend) setTimeout(opt.onend, 900); return; }
+  if (!("speechSynthesis" in window)) { toast("Ce navigateur ne propose pas de synthèse vocale."); if (opt.onend) setTimeout(opt.onend, 900); return; }
   try {
     if (!opt.queue) speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(ttsText(text));
@@ -1417,7 +1487,7 @@ const ICON = {
 };
 
 // ---------- toast ----------
-let toastT;
+let toastT, mutedWarned = false;
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (t.hidden = true), 4200); }
 
 // ---------- clics globaux ----------
@@ -1427,7 +1497,10 @@ document.addEventListener("click", e => {
   const veil = e.target.closest(".py.m-veil");
   if (veil && !e.target.closest(".tile")) { veil.classList.toggle("shown"); e.stopPropagation(); return; }
   const say = e.target.closest("[data-say]");
-  if (say) { speak(say.dataset.say, { pitch: +say.dataset.pitch || 1 }); }
+  if (say) {
+    if (S.settings.son === "off") { if (!mutedWarned) { mutedWarned = true; toast("Le son est coupé. Tu peux le rallumer dans les Réglages."); } return; }
+    speak(say.dataset.say, { pitch: +say.dataset.pitch || 1 });
+  }
 }, true);
 document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && e.target.matches(".py.m-veil")) { e.preventDefault(); e.target.classList.toggle("shown"); }
@@ -1457,6 +1530,7 @@ function renderNav() {
 }
 function render() {
   document.body.classList.toggle("no-tones", !S.settings.tones);
+  document.body.classList.toggle("mute", !soundOn());
   renderNav();
   const m = $("#main");
   if (VIEW.tab === "parcours") m.innerHTML = VIEW.unit ? (VIEW.unit === "u0" ? viewU0() : viewUnit(unitById(VIEW.unit))) : viewHome();
@@ -1523,7 +1597,7 @@ function viewHome() {
       }).join("")}</div>
     </section>`).join("");
   return `<div class="home">${hero}<div class="side">${goal}${review}${phraseCard()}${stats}</div></div>${path}
-  <p class="foot-note muted small">Chaque unité se fait en petites étapes de 2 à 5 minutes, avec 3 ou 4 mots nouveaux à la fois. Tu peux les faire dans n'importe quel ordre, mais l'ordre proposé est le plus progressif.</p>`;
+  <p class="foot-note muted small">Chaque unité se fait en petites étapes de 2 à 5 minutes, avec 3 ou 4 mots nouveaux à la fois. Tu peux les faire dans n'importe quel ordre : rien n'est verrouillé. Une étape déjà sue se coche avec le ✓ à côté d'elle.</p>`;
 }
 
 // ---------- unité ----------
@@ -1538,11 +1612,11 @@ function viewUnit(u) {
   </section>
   <ol class="steps">${stepsOf(u).map((s, si) => {
     const d = isDone(u, s.k), lk = stepLocked(u, si);
-    return `<li><button class="step${d ? " done" : ""}${lk ? " locked" : ""}" data-start="${u.id}:${s.k}"${lk ? ' data-locked="1"' : ""}>
+    return `<li><button class="step${d ? " done" : ""}${lk && !d ? " later" : ""}" data-start="${u.id}:${s.k}">
       <span class="st-ic" lang="zh-CN">${s.words ? s.words[0][0][0] : s.ic}</span>
       <span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d"${s.words ? ' lang="zh-CN"' : ""}>${s.words ? s.d : s.k === "sons" ? esc(u.pron.title) : s.k === "gram" ? esc(u.gram.title) : s.k === "gram2" ? esc(u.gram2.title) : s.k === "dlg" ? esc(u.dlg.title) : s.k === "cult" ? esc(u.cult.title) : s.d}</span></span>
-      <span class="st-min">${d ? ICON.check : lk ? ICON.lock : s.min + " min"}</span>
-    </button></li>`;
+      <span class="st-min">${d ? ICON.check : s.min + " min"}</span>
+    </button><button type="button" class="skip${d ? " on" : ""}" data-skip="${u.id}:${s.k}" title="${d ? "Décocher cette étape" : "Je le sais déjà"}" aria-label="${d ? "Décocher cette étape" : "Marquer cette étape comme déjà sue"}">${d ? "↺" : "✓"}</button></li>`;
   }).join("")}</ol>
   <section class="panel">
     <p class="eyebrow">Les mots de l'unité</p>
@@ -1606,6 +1680,7 @@ function viewSons() {
   </section>`;
 }
 function gameHTML() {
+  if (!soundOn()) return `<div class="game-intro"><div><h3>Entraîne ton oreille</h3><p class="muted small">Ce jeu se joue à l'oreille, et le son est coupé. Il reste facultatif : rien ne le compte dans ta journée.</p></div><button class="btn ghost" data-game="son">Rallumer le son</button></div>`;
   if (!game) return `<div class="game-intro"><div><h3>Entraîne ton oreille</h3><p class="muted small">10 syllabes, à toi de reconnaître le ton. ${S.best ? `Ton record : ${S.best}/10.` : ""}</p></div><button class="btn primary" data-game="start">Jouer</button></div>`;
   if (game.i >= 10) return `<div class="game-intro"><div><h3>${game.score}/10</h3><p class="muted small">${game.score >= 8 ? "Excellente oreille !" : game.score >= 5 ? "Bien ! Les tons 2 et 3 sont les plus souvent confondus." : "C'est normal au début : réécoute les courbes au-dessus, puis retente."}</p></div><button class="btn primary" data-game="start">Rejouer</button></div>`;
   const q = game.q;
@@ -1621,6 +1696,7 @@ function refreshGame() { const g = $("#game"); if (g) { g.innerHTML = gameHTML()
 function bindGame() {
   const g = $("#game"); if (!g) return;
   g.querySelectorAll("[data-game]").forEach(b => b.onclick = () => {
+    if (b.dataset.game === "son") { S.settings.son = "auto"; save(); render(); return; }
     if (b.dataset.game === "start") { game = { i: 0, score: 0, q: newGameQ(), ans: 0 }; refreshGame(); speak(game.q.hz); }
     else { game.i++; game.ans = 0; if (game.i < 10) { game.q = newGameQ(); refreshGame(); speak(game.q.hz); } else { if (game.score > S.best) { S.best = game.score; save(); } refreshGame(); } }
   });
@@ -1705,8 +1781,19 @@ function bindMain() {
   m.querySelectorAll("[data-unit]").forEach(b => b.onclick = () => go("parcours", b.dataset.unit));
   m.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
   m.querySelectorAll("[data-start]").forEach(b => b.onclick = () => {
-    if (b.dataset.locked) { toast("Termine d'abord l'étape précédente : chaque étape prépare la suivante."); return; }
     const [id, k] = b.dataset.start.split(":"); startStep(unitById(id), k);
+  });
+  m.querySelectorAll("[data-skip]").forEach(b => b.onclick = () => {
+    const [id, k] = b.dataset.skip.split(":"), u = unitById(id);
+    if (isDone(u, k)) { delete S.done[u.id + ":" + k]; save(); render(); toast("Étape décochée."); return; }
+    const st = stepsOf(u).find(x => x.k === k);
+    S.done[u.id + ":" + k] = true;
+    if (st && st.words) st.words.forEach(w => {
+      srsAdd(w[0]); knowWord(w[0], 3);
+      [...w[0]].forEach(c => { if (CHARS[c]) { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); knowChar(c, 3); } });
+    });
+    markActivity(); save(); render();
+    toast(st && st.words ? "Étape cochée : ses mots entrent en révision dans 7 jours." : "Étape cochée.");
   });
   m.querySelectorAll("[data-review]").forEach(b => b.onclick = startReview);
   bindPhrase(m);
@@ -1802,6 +1889,8 @@ function distractors(w, n, field) {
 }
 function wordMCQ(w, type, opt = {}) {
   type = type || pick(["hz2f", "f2hz", "au2f"]);
+  // Sans son, une question d'écoute devient une question de lecture — jamais un blocage.
+  if (!soundOn() && type === "au2f") type = "hz2f";
   const lvl = w.lvl;
   let kicker, prompt, options, auto = false;
   if (type === "hz2f") {
@@ -1818,7 +1907,7 @@ function wordMCQ(w, type, opt = {}) {
     options = shuffle([w, ...distractors(w, 3, "f")]).map(x => ({ html: esc(x.f), ok: x.h === w.h }));
     auto = true;
   } else { // ton : quel pinyin ?
-    kicker = "Écoute : quel est le bon pinyin ?";
+    kicker = soundOn() ? "Écoute : quel est le bon pinyin ?" : "Quel est le bon pinyin ?";
     prompt = `<div class="qp-hz"><span lang="zh-CN">${w.h}</span></div><button class="big-say sm" data-say="${esc(w.tts)}" aria-label="Réécouter">${ICON.sound}</button>`;
     const vars = tonedVariants(w.p, 3);
     options = shuffle([w.p, ...vars]).map(p => ({ html: py(p, "A1", "show"), ok: p === w.p }));
@@ -1930,8 +2019,12 @@ function startStep(u, k) {
       const others = shuffle(p.ex.filter(x => x !== e).map(x => x[1]));
       const opts = shuffle([e[1], ...tonedVariants(e[1], 1), ...others].filter((v, i, a) => a.indexOf(v) === i).slice(0, 4));
       if (!opts.includes(e[1])) opts[0] = e[1];
-      return scrMCQ({ kicker: "Écoute : quel pinyin entends-tu ?", prompt: `<button class="big-say" data-say="${esc(e[3] || e[0])}" aria-label="Réécouter">${ICON.sound}</button>`,
-        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: e[3] || e[0], answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` });
+      const mute = !soundOn();
+      const gl = String(e[2]).replace(/\s*·\s*\d\s*e?r?e?\s*ton.*$/i, "").trim();
+      return scrMCQ({ kicker: mute ? "Quel est le bon pinyin ?" : "Écoute : quel pinyin entends-tu ?",
+        prompt: mute ? `<div class="qp-hz"><span lang="zh-CN">${e[0]}</span></div>${/ton/i.test(gl) ? "" : `<p class="small muted">${esc(gl)}</p>`}`
+                     : `<button class="big-say" data-say="${esc(e[3] || e[0])}" aria-label="Réécouter">${ICON.sound}</button>`,
+        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: mute ? null : (e[3] || e[0]), answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` });
     })));
     onDone = (sc, tot) => gate(sc, tot, () => sealIfComplete(done({ title: "Oreille affûtée", text: "Pense à répéter les exemples à voix haute, même seul." })));
   }
@@ -2006,7 +2099,8 @@ function startReview() {
   const mkc = c => (STROKES[c] && STROKES[c][0].length <= 12 && Math.random() < 0.7)
     ? scrTrace(c, { guide: false, onAnswer: ok => { if (!practice || !ok) charAnswer(c, ok); } })
     : charRecogMCQ(c, ok => { if (!practice || !ok) charAnswer(c, ok); });
-  const mk = h => wordMCQ(WMAP[h], pick(["hz2f", "f2hz", "au2f", "hz2f", "tone"]), {
+  const types = soundOn() ? ["hz2f", "f2hz", "au2f", "hz2f", "tone"] : ["hz2f", "f2hz", "tone", "f2hz", "tone"];
+  const mk = h => wordMCQ(WMAP[h], pick(types), {
     onAnswer: ok => {
       if (!practice || !ok) srsAnswer(h, ok);
       if (!ok && !requeued.has(h)) { requeued.add(h); L.screens.push(mk(h)); }
@@ -2021,8 +2115,29 @@ function startReview() {
   } });
 }
 
+// ---------- passerelle : ce que tu sais déjà lire ----------
+// Un import n'ajoute que du connu : il ne retire jamais rien, ne remet jamais une boîte en arrière.
+function scanKnown(txt) {
+  const set = new Set([...String(txt)].filter(c => /[一-鿿]/.test(c)));
+  const chars = [...set].filter(c => CHARS[c]);
+  const hors = [...set].filter(c => !CHARS[c]);
+  const words = ALLW.filter(w => !/…/.test(w.h) && [...w.h].every(c => set.has(c)));
+  const wset = new Set(words.map(w => w.h));
+  const steps = [];
+  UNITS.forEach(u => stepsOf(u).forEach(st => { if (st.words && !isDone(u, st.k) && st.words.every(w => wset.has(w[0]))) steps.push([u, st]); }));
+  return { chars, hors, words, steps };
+}
+function applyKnown(r) {
+  r.chars.forEach(c => { if (!S.chars[c]) S.chars[c] = Date.now(); charAdd(c); knowChar(c, 4); });
+  r.words.forEach(w => { srsAdd(w.h); knowWord(w.h, 3); });
+  r.steps.forEach(([u, st]) => (S.done[u.id + ":" + st.k] = true));
+  return save();
+}
+
 // ---------- réglages ----------
+let knownTxt = "", knownScan = null;
 function renderSettings() {
+  knownScan = null; // le bouton repart toujours sur « Analyser » quand le panneau se redessine
   const st = S.settings;
   const vtxt = !("speechSynthesis" in window) ? "Ce navigateur ne propose pas de synthèse vocale : l'application fonctionne, mais sans le son."
     : VOICE ? `Voix chinoise utilisée : ${esc(VOICE.name)}. C'est une voix de synthèse : bonne pour les tons, moins naturelle qu'un locuteur natif.`
@@ -2035,10 +2150,17 @@ function renderSettings() {
     <div class="set-group"><h3>Couleurs des tons</h3>
       <label class="switch"><input type="checkbox" id="sTones" ${st.tones ? "checked" : ""}> <span>Colorer le pinyin selon le ton</span></label>
       <div class="legend"><span class="t1">1</span><span class="t2">2</span><span class="t3">3</span><span class="t4">4</span><span class="t5">neutre</span></div></div>
-    <div class="set-group"><h3>Voix</h3>
-      <div class="seg wide" role="group">${[[0.6, "Très lente"], [0.8, "Lente"], [1, "Normale"]].map(([k, n]) => `<button type="button" class="${st.rate === k ? "on" : ""}" data-rate="${k}">${n}</button>`).join("")}</div>
+    <div class="set-group"><h3>Son</h3>
+      <label class="switch"><input type="checkbox" id="sSon" ${st.son !== "off" ? "checked" : ""}> <span>Voix et questions d'écoute</span></label>
+      <p class="small muted">Coupé, tout reste jouable : les questions d'écoute deviennent des questions de lecture, et aucune étape ne te bloque. Le jeu d'oreille de l'onglet Sons, lui, reste facultatif.</p>
+      ${st.son !== "off" ? `<div class="seg wide" role="group">${[[0.6, "Très lente"], [0.8, "Lente"], [1, "Normale"]].map(([k, n]) => `<button type="button" class="${st.rate === k ? "on" : ""}" data-rate="${k}">${n}</button>`).join("")}</div>
       <p class="small muted">${vtxt}</p>
-      <button class="btn ghost sm" data-say="你好，很高兴认识你！">${ICON.sound} Tester la voix</button></div>
+      <button class="btn ghost sm" data-say="你好，很高兴认识你！">${ICON.sound} Tester la voix</button>` : ""}</div>
+    <div class="set-group"><h3>Je sais déjà lire des caractères</h3>
+      <p class="small muted">Colle ici ce que tu sais déjà lire : ta liste Hanly, un texte, n'importe quel chinois. Les caractères reconnus partent à 16 jours de révision, les mots dont tu as toutes les pièces à 7 jours, et les étapes correspondantes se cochent. Un import n'ajoute que du connu, il n'efface jamais rien.</p>
+      <textarea class="ta" id="knownIn" lang="zh-CN" placeholder="你好我是法国人…" aria-label="Caractères que tu connais déjà"></textarea>
+      <button class="btn ghost sm" id="knownBtn">Analyser</button>
+      <div class="imp-res" id="knownOut"></div></div>
     <div class="set-group"><h3>Sources des caractères</h3>
       <p class="small muted">Décompositions et ordre des traits : projet libre Make Me a Hanzi (données sous licence Arphic Public License et LGPL). Les formes anciennes sont des dessins simplifiés, refaits pour l'application d'après les écritures sur os et sur bronze : ce ne sont pas des reproductions exactes. Les étymologies suivent les explications les plus admises ; quand l'origine est discutée, la fiche le dit. Les moyens mnémotechniques, eux, sont des images pour retenir, pas de l'histoire.</p></div>
     <div class="set-group"><h3>Progression</h3>
@@ -2047,6 +2169,26 @@ function renderSettings() {
   $("#setBody").querySelectorAll("[data-pinyin]").forEach(b => b.onclick = () => { S.settings.pinyin = b.dataset.pinyin; save(); renderSettings(); render(); });
   $("#setBody").querySelectorAll("[data-rate]").forEach(b => b.onclick = () => { S.settings.rate = +b.dataset.rate; save(); renderSettings(); speak("你好"); });
   $("#sTones").onchange = e => { S.settings.tones = e.target.checked; save(); render(); };
+  $("#sSon").onchange = e => { S.settings.son = e.target.checked ? "auto" : "off"; save(); renderSettings(); render(); };
+  const ki = $("#knownIn"), kb = $("#knownBtn"), ko = $("#knownOut");
+  if (ki) { ki.value = knownTxt; ki.oninput = () => { knownTxt = ki.value; if (knownScan) { knownScan = null; kb.textContent = "Analyser"; kb.classList.add("ghost"); kb.classList.remove("primary"); ko.innerHTML = ""; } }; }
+  if (kb) kb.onclick = () => {
+    const n = (x, s1, s2) => `<span><b>${x}</b> ${x > 1 ? s2 : s1}</span>`;
+    if (!knownScan) {
+      const r = scanKnown(ki.value); knownTxt = ki.value;
+      if (!r.chars.length && !r.words.length) { ko.innerHTML = `<span class="muted">Aucun caractère de l'application là-dedans${r.hors.length ? `, et ${r.hors.length} que l'application ne couvre pas encore` : ""}.</span>`; return; }
+      knownScan = r;
+      ko.innerHTML = n(r.chars.length, "caractère reconnu", "caractères reconnus") + ` <span class="muted">sur ${CHAR_LIST.length}</span>`
+        + n(r.words.length, "mot marqué comme su", "mots marqués comme sus") + n(r.steps.length, "étape cochée", "étapes cochées")
+        + (r.hors.length ? `<span class="muted">${r.hors.length} caractère${r.hors.length > 1 ? "s" : ""} que tu connais ${r.hors.length > 1 ? "ne sont" : "n'est"} pas encore dans l'application.</span>` : "");
+      kb.textContent = "Confirmer : marquer comme connus"; kb.classList.remove("ghost"); kb.classList.add("primary");
+      return;
+    }
+    const r = knownScan; knownScan = null; knownTxt = "";
+    const ok = applyKnown(r);
+    closeSettings(); render();
+    toast(ok ? `${r.chars.length} caractères et ${r.words.length} mots marqués comme connus.` : "Impossible d'enregistrer : rien n'a été marqué.");
+  };
   const rb = $("#resetBtn"); let armed = false;
   rb.onclick = () => {
     if (!armed) { armed = true; rb.textContent = "Confirmer : tout effacer"; rb.classList.add("armed"); return; }
@@ -2058,7 +2200,7 @@ function closeSettings() { $("#settings").hidden = true; }
 
 // ---------- démarrage ----------
 function init() {
-  migrate(); save();
+  migrate(); save(); renderFault();
   $("#gear").innerHTML = ICON.gear;
   $("#lClose").innerHTML = ICON.close;
   $("#setClose").innerHTML = ICON.close;
@@ -2507,7 +2649,7 @@ function startU0Step(k) {
 function viewU0() {
   return `<button class="back" data-go="parcours">${ICON.back}Parcours</button>
   <section class="unit-head"><div class="uh-hz" lang="zh-CN">${U0.hz}</div><div class="uh-body"><p class="eyebrow">Pour commencer</p><h2>${U0.title}</h2><p class="muted">${U0.sub}</p></div>${seal(U0, unitDone(U0), true)}</section>
-  <ol class="steps">${U0_STEPS.map((s, si) => { const d = isDone(U0, s.k), lk = stepLocked(U0, si); return `<li><button class="step${d ? " done" : ""}${lk ? " locked" : ""}" data-start="u0:${s.k}"${lk ? ' data-locked="1"' : ""}><span class="st-ic" lang="zh-CN">${s.ic}</span><span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d">${s.d}</span></span><span class="st-min">${d ? ICON.check : lk ? ICON.lock : s.min + " min"}</span></button></li>`; }).join("")}</ol>
+  <ol class="steps">${U0_STEPS.map((s, si) => { const d = isDone(U0, s.k), lk = stepLocked(U0, si); return `<li><button class="step${d ? " done" : ""}${lk && !d ? " later" : ""}" data-start="u0:${s.k}"><span class="st-ic" lang="zh-CN">${s.ic}</span><span class="st-txt"><span class="st-n">${s.n}</span><span class="st-d">${s.d}</span></span><span class="st-min">${d ? ICON.check : s.min + " min"}</span></button><button type="button" class="skip${d ? " on" : ""}" data-skip="u0:${s.k}" title="${d ? "Décocher cette étape" : "Je le sais déjà"}" aria-label="${d ? "Décocher cette étape" : "Marquer cette étape comme déjà sue"}">${d ? "↺" : "✓"}</button></li>`; }).join("")}</ol>
   <section class="panel"><p class="eyebrow">Conseils pour écrire</p>
     <ul class="tips">
       <li><b>Écris peu, mais de mémoire.</b> 3 à 5 fois en disant le son et le sens, puis le lendemain essaie sans regarder.</li>
@@ -2690,8 +2832,11 @@ function scrCloze(s, word, pool, lvl) {
 // Compréhension orale d'une phrase
 function scrListen(s, others) {
   const opts = shuffle([s, ...shuffle(others.filter(x => x.fr !== s.fr)).slice(0, 2)]);
-  return scrMCQ({ kicker: "Écoute : que veut dire cette phrase ?", prompt: `<button class="big-say" data-say="${esc(s.hz)}" aria-label="Réécouter">${ICON.sound}</button><p class="small muted">Touche pour réécouter, autant que tu veux.</p>`,
-    options: opts.map(x => ({ html: esc(x.fr), ok: x === s })), auto: s.hz,
+  const mute = !soundOn();
+  return scrMCQ({ kicker: mute ? "Que veut dire cette phrase ?" : "Écoute : que veut dire cette phrase ?",
+    prompt: mute ? `<div class="cz-hz" lang="zh-CN">${s.hz}</div>`
+                 : `<button class="big-say" data-say="${esc(s.hz)}" aria-label="Réécouter">${ICON.sound}</button><p class="small muted">Touche pour réécouter, autant que tu veux.</p>`,
+    options: opts.map(x => ({ html: esc(x.fr), ok: x === s })), auto: mute ? null : s.hz,
     answer: `<span lang="zh-CN">${s.hz}</span> · ${esc(s.fr)}` });
 }
 // Que répondre ? (suite logique d'un dialogue)
@@ -2746,7 +2891,7 @@ function warmupScreens(exclude = []) {
   if (pool.length < 2) return [];
   const due = dueWords().filter(h => pool.includes(h));
   const picks = [...due, ...shuffle(pool.filter(h => !due.includes(h)))].slice(0, 3);
-  const types = ["au2f", "f2hz", "hz2f"];
+  const types = soundOn() ? ["au2f", "f2hz", "hz2f"] : ["f2hz", "hz2f", "f2hz"];
   const scr = picks.map((h, i) => warm(() => wordMCQ(WMAP[h], types[i % 3], { kicker: "Échauffement", onAnswer: ok => srsAnswer(h, ok) })));
   return scr;
 }
