@@ -493,6 +493,25 @@ body.lesson-open{overflow:hidden}
 body.mute .say,body.mute .big-say{display:none}
 .ta{width:100%;min-height:92px;font:inherit;font-size:1.15rem;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);resize:vertical}
 .ta[lang]{font-family:var(--f-hz)}
+.tp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;margin-top:4px}
+.tp-cell{border:1px solid var(--line);border-radius:10px;padding:7px 4px;text-align:center;font-size:.78rem;color:var(--ink2);background:var(--surface)}
+.tp-cell b{display:block;font-size:1.1rem;font-variant-numeric:tabular-nums;letter-spacing:.12em}
+.tp-cell.good{border-color:var(--good);background:var(--good-soft);color:var(--ink)}
+.tp-cell.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--ink)}
+.tp-cell.none{opacity:.5}
+.tpo{display:flex;gap:8px;justify-content:center;font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.tpo i{font-style:normal}
+.ts-line{font-family:var(--f-hz);font-size:1.7rem;line-height:1.6;display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center;min-height:2.4em;align-items:center}
+.ts-slot{color:var(--ink2);opacity:.45}
+.ts-slot.cur{color:var(--jade);opacity:1}
+.ts-ok{color:var(--ink)}
+.ts-miss{color:var(--bad)}
+.ts-tip{display:block;margin-top:8px;min-height:1.4em}
+.ts-tip.bad{color:var(--bad)}
+.ex-tally{display:flex;flex-direction:column;gap:5px;font-size:.88rem}
+.ex-tally div{display:flex;align-items:baseline;gap:8px}
+.ex-tally i{flex:1;border-bottom:1px dotted var(--line)}
+.ex-tally b{font-variant-numeric:tabular-nums;color:var(--jade)}
 .imp-res{display:flex;flex-direction:column;gap:3px;font-size:.9rem}
 .imp-res b{font-variant-numeric:tabular-nums;color:var(--jade)}
 .fb-again{display:block;font-weight:500;font-size:.85rem;opacity:.85;margin-top:2px}
@@ -1273,7 +1292,7 @@ const ttsText = s => String(s).replace(/[（(][^)）]*[)）]/g, "").replace(/…
 
 // ---------- état ----------
 const KEY = "mandarin-entre-amis-v1";
-const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, settings: { pinyin: "auto", rate: 0.8, tones: true, son: "auto" } };
+const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, ex: {}, tp: {}, settings: { pinyin: "auto", rate: 0.8, tones: true, son: "auto" } };
 // Trois états au chargement : NEUF (rien d'enregistré), OK, ou CASSÉ.
 // Cassé = illisible, ou stockage interdit. Dans ce cas on n'écrit plus rien :
 // un save() par-dessus un profil vierge effacerait la vraie progression pour de bon.
@@ -1670,6 +1689,7 @@ function viewSons() {
     <div class="legend"><span class="t1">1er ton · haut et plat</span><span class="t2">2e · montant</span><span class="t3">3e · bas</span><span class="t4">4e · descendant</span><span class="t5">neutre · léger</span></div>
   </section>
   <section class="panel game" id="game">${gameHTML()}</section>
+  ${tonePairPanel()}
   <section class="panel">
     <h3>Les sons pour une oreille française</h3>
     <div class="sounds">${SOUNDS.map(s => `<div class="snd"><div class="snd-k">${esc(s[0])}</div><p class="small">${esc(s[1])}</p><div class="snd-ex"><button class="mini" data-say="${s[2]}"><span lang="zh-CN">${s[2]}</span>${py(s[3], "A1", "show")}</button><button class="mini" data-say="${s[4]}"><span lang="zh-CN">${s[4]}</span>${py(s[5], "A1", "show")}</button></div></div>`).join("")}</div>
@@ -1796,6 +1816,7 @@ function bindMain() {
     toast(st && st.words ? "Étape cochée : ses mots entrent en révision dans 7 jours." : "Étape cochée.");
   });
   m.querySelectorAll("[data-review]").forEach(b => b.onclick = startReview);
+  m.querySelectorAll("[data-tonepair]").forEach(b => b.onclick = startTonePairs);
   bindPhrase(m);
   m.querySelectorAll("[data-mview]").forEach(b => b.onclick = () => { motsView = b.dataset.mview; render(); });
   m.querySelectorAll("[data-char]").forEach(b => b.onclick = () => openChar(b.dataset.char));
@@ -1820,6 +1841,7 @@ const api = {
   setNext(label, fn) { $("#lNext").textContent = label; L.handler = fn || null; },
   result(ok, msg) {
     const cur = L.screens[L.i];
+    noteEx(cur.kind);
     if (!cur.isRedo && !cur.noScore) { L.total++; if (ok) L.score++; }
     if (!ok && cur.make && (cur.tries || 0) < 2) {
       const again = cur.make(); again.make = cur.make; again.tries = (cur.tries || 0) + 1; again.isRedo = true; again.noScore = cur.noScore;
@@ -1889,8 +1911,9 @@ function distractors(w, n, field) {
 }
 function wordMCQ(w, type, opt = {}) {
   type = type || pick(["hz2f", "f2hz", "au2f"]);
-  // Sans son, une question d'écoute devient une question de lecture — jamais un blocage.
-  if (!soundOn() && type === "au2f") type = "hz2f";
+  // Sans son, une question d'écoute devient une question de production — jamais un blocage,
+  // et jamais un doublon de la carte de Hanly.
+  if (!soundOn() && type === "au2f") type = "f2hz";
   const lvl = w.lvl;
   let kicker, prompt, options, auto = false;
   if (type === "hz2f") {
@@ -1914,7 +1937,7 @@ function wordMCQ(w, type, opt = {}) {
     auto = true;
   }
   if (opt.kicker) kicker = opt.kicker + " · " + kicker;
-  return scrMCQ({ kicker, prompt, options, auto: auto ? w.tts : null, answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}`, onAnswer: ok => opt.onAnswer && opt.onAnswer(ok) });
+  return tag("mot:" + type, scrMCQ({ kicker, prompt, options, auto: auto ? w.tts : null, answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}`, onAnswer: ok => opt.onAnswer && opt.onAnswer(ok) }));
 }
 function scrMCQ(q) {
   return (el, api) => {
@@ -2021,10 +2044,10 @@ function startStep(u, k) {
       if (!opts.includes(e[1])) opts[0] = e[1];
       const mute = !soundOn();
       const gl = String(e[2]).replace(/\s*·\s*\d\s*e?r?e?\s*ton.*$/i, "").trim();
-      return scrMCQ({ kicker: mute ? "Quel est le bon pinyin ?" : "Écoute : quel pinyin entends-tu ?",
+      return tag("son:pinyin", scrMCQ({ kicker: mute ? "Quel est le bon pinyin ?" : "Écoute : quel pinyin entends-tu ?",
         prompt: mute ? `<div class="qp-hz"><span lang="zh-CN">${e[0]}</span></div>${/ton/i.test(gl) ? "" : `<p class="small muted">${esc(gl)}</p>`}`
                      : `<button class="big-say" data-say="${esc(e[3] || e[0])}" aria-label="Réécouter">${ICON.sound}</button>`,
-        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: mute ? null : (e[3] || e[0]), answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` });
+        options: shuffle(opts).map(o => ({ html: py(o, "A1", "show"), ok: o === e[1] })), auto: mute ? null : (e[3] || e[0]), answer: `<span lang="zh-CN">${e[0]}</span> ${py(e[1], "A1", "show")}` }));
     })));
     onDone = (sc, tot) => gate(sc, tot, () => sealIfComplete(done({ title: "Oreille affûtée", text: "Pense à répéter les exemples à voix haute, même seul." })));
   }
@@ -2092,22 +2115,32 @@ function startStep(u, k) {
 
 // --- révision ---
 function startReview() {
-  let list = dueWords().slice(0, 8), clist = dueChars().slice(0, 4), practice = false;
+  // 6 mots + 3 caractères : la séance garde sa longueur d'avant malgré les paires de tons
+  // et la phrase à écrire ajoutées plus bas. La charge quotidienne ne doit pas monter.
+  let list = dueWords().slice(0, 6), clist = dueChars().slice(0, 3), practice = false;
   if (!list.length && !clist.length) { practice = true; list = shuffle(Object.keys(S.words).filter(h => WMAP[h])).slice(0, 6); clist = shuffle(Object.keys(S.cw || {})).slice(0, 2); }
   if (!list.length && !clist.length) return;
   const screens = []; const requeued = new Set();
+  // Règle de partage avec Hanly : il fait reconnaître (字 → sens), ici on fait PRODUIRE (sens → 字).
+  // Aucune question de révision ne part du caractère pour demander le sens.
   const mkc = c => (STROKES[c] && STROKES[c][0].length <= 12 && Math.random() < 0.7)
     ? scrTrace(c, { guide: false, onAnswer: ok => { if (!practice || !ok) charAnswer(c, ok); } })
-    : charRecogMCQ(c, ok => { if (!practice || !ok) charAnswer(c, ok); });
-  const types = soundOn() ? ["hz2f", "f2hz", "au2f", "hz2f", "tone"] : ["hz2f", "f2hz", "tone", "f2hz", "tone"];
-  const mk = h => wordMCQ(WMAP[h], pick(types), {
-    onAnswer: ok => {
+    : charProdMCQ(c, ok => { if (!practice || !ok) charAnswer(c, ok); });
+  const types = soundOn() ? ["f2hz", "au2f", "clavier", "f2hz", "tone"] : ["f2hz", "clavier", "tone", "f2hz", "tone"];
+  const mk = h => {
+    const w = WMAP[h], t = pick(types);
+    const onAnswer = ok => {
       if (!practice || !ok) srsAnswer(h, ok);
       if (!ok && !requeued.has(h)) { requeued.add(h); L.screens.push(mk(h)); }
-    }
-  });
+    };
+    return t === "clavier" ? scrType(w, { onAnswer }) : wordMCQ(w, t, { onAnswer });
+  };
   list.forEach(h => screens.push(mk(h)));
   clist.forEach((c, i) => screens.splice(Math.min(screens.length, 2 + i * 3), 0, mkc(c)));
+  tonePairScreens(2).forEach((sc, i) => screens.splice(Math.min(screens.length, 1 + i * 4), 0, sc));
+  // Et pour finir, produire pour de vrai : une phrase entière, de tête, au clavier.
+  const wsent = writableSentences();
+  if (wsent.length) screens.push(scrTypeSentence(pick(wsent)));
   startLesson({ title: practice ? "Entraînement libre" : "Révision", screens, onDone: (s, t) => {
     markActivity(); dayLog("rev"); save();
     const left = dueWords().length + dueChars().length;
@@ -2161,6 +2194,9 @@ function renderSettings() {
       <textarea class="ta" id="knownIn" lang="zh-CN" placeholder="你好我是法国人…" aria-label="Caractères que tu connais déjà"></textarea>
       <button class="btn ghost sm" id="knownBtn">Analyser</button>
       <div class="imp-res" id="knownOut"></div></div>
+    <div class="set-group"><h3>Ce que tu as réellement travaillé</h3>
+      <p class="small muted">Sept derniers jours, par type de question. La variété se mesure, elle ne se suppose pas.</p>
+      ${exTally()}</div>
     <div class="set-group"><h3>Sources des caractères</h3>
       <p class="small muted">Décompositions et ordre des traits : projet libre Make Me a Hanzi (données sous licence Arphic Public License et LGPL). Les formes anciennes sont des dessins simplifiés, refaits pour l'application d'après les écritures sur os et sur bronze : ce ne sont pas des reproductions exactes. Les étymologies suivent les explications les plus admises ; quand l'origine est discutée, la fiche le dit. Les moyens mnémotechniques, eux, sont des images pour retenir, pas de l'histoire.</p></div>
     <div class="set-group"><h3>Progression</h3>
@@ -2667,11 +2703,9 @@ function charAnswer(c, ok) {
   save();
 }
 const dueChars = () => Object.keys(S.cw || {}).filter(c => S.cw[c].d <= Date.now() && STROKES[c]).sort((a, b) => S.cw[a].d - S.cw[b].d);
-function charRecogMCQ(c, onAnswer) {
-  const ch = parseChar(c), others = shuffle(CHAR_LIST.filter(x => x !== c)).slice(0, 3);
-  return scrMCQ({ kicker: "Que veut dire ce caractère ?", prompt: `<div class="qp-hz"><span lang="zh-CN">${c}</span></div>${sayBtn(c)}`,
-    options: shuffle([c, ...others]).map(x => ({ html: esc(parseChar(x).f), ok: x === c })), answer: `<span lang="zh-CN">${c}</span> ${py(ch.p, "A1", "show")} · ${esc(ch.f)}`, onAnswer });
-}
+// (La carte « caractère -> sens » a été retirée le 2026-11-23 : c'est exactement ce que
+// Hanly fait toute la journée, avec un meilleur ordonnanceur. Ici on demande l'inverse,
+// voir charProdMCQ.)
 
 // ---------- journée : objectif, Pointage ----------
 function dayLog(kind) {
@@ -2891,7 +2925,8 @@ function warmupScreens(exclude = []) {
   if (pool.length < 2) return [];
   const due = dueWords().filter(h => pool.includes(h));
   const picks = [...due, ...shuffle(pool.filter(h => !due.includes(h)))].slice(0, 3);
-  const types = soundOn() ? ["au2f", "f2hz", "hz2f"] : ["f2hz", "hz2f", "f2hz"];
+  // L'échauffement révise : donc on produit. 字 → sens est la carte de Hanly, elle n'a rien à faire ici.
+  const types = soundOn() ? ["f2hz", "au2f", "f2hz"] : ["f2hz", "tone", "f2hz"];
   const scr = picks.map((h, i) => warm(() => wordMCQ(WMAP[h], types[i % 3], { kicker: "Échauffement", onAnswer: ok => srsAnswer(h, ok) })));
   return scr;
 }
@@ -2973,6 +3008,225 @@ function buildPhraseSession(u) {
   shuffle(list).sort((a, b) => rank[a[0]] - rank[b[0]]).forEach(([, f]) => screens.push(rq(f)));
   return screens;
 }
+
+// ===== Produire, pas reconnaître : paires de tons, sens -> caractère, compteur =====
+
+function tag(kind, fn) { if (fn && !fn.kind) fn.kind = kind; return fn; }
+function wrapKind(fn, kind) { return function () { return tag(kind, fn.apply(null, arguments)); }; }
+
+// ---------- compteur de types d'exercices ----------
+const EX_LABEL = {
+  "mot:hz2f": "Caractères → sens (le travail de Hanly)",
+  "mot:f2hz": "Sens → caractères",
+  "mot:au2f": "Écoute → sens",
+  "mot:tone": "Pinyin et tons d'un mot",
+  "mot:clavier": "Écrire un mot au clavier pinyin",
+  "mot:paires": "Associer mots et sens",
+  "car:ecrire": "Tracer un caractère",
+  "car:prod": "Sens → caractère",
+  "car:pieces": "Assembler les pièces d'un caractère",
+  "ton:paire": "Paires de tons",
+  "son:pinyin": "Quel pinyin ? (étape Sons)",
+  "phr:trou": "Phrase à trous",
+  "phr:ordre": "Remettre une phrase en ordre",
+  "phr:ecoute": "Comprendre une phrase",
+  "phr:reponse": "Que répondre ?",
+  "phr:clavier": "Écrire une phrase entière au clavier",
+  "autre": "Autres questions"
+};
+function noteEx(kind) {
+  if (!S.ex) S.ex = {};
+  const t = dayStr(Date.now()), d = S.ex[t] || (S.ex[t] = {});
+  const k = kind || "autre";
+  d[k] = (d[k] || 0) + 1;
+  const all = Object.keys(S.ex);
+  if (all.length > 14) { const keep = all.sort().slice(-14), n = {}; keep.forEach(x => (n[x] = S.ex[x])); S.ex = n; }
+  save();
+}
+function exTally() {
+  const days = Object.keys(S.ex || {}).sort().slice(-7), t = {};
+  days.forEach(d => Object.keys(S.ex[d]).forEach(k => (t[k] = (t[k] || 0) + S.ex[d][k])));
+  const rows = Object.keys(t).map(k => [k, t[k]]).sort((a, b) => b[1] - a[1]);
+  if (!rows.length) return `<p class="small muted">Rien encore : la liste se remplit dès ta première séance.</p>`;
+  const tot = rows.reduce((n, r) => n + r[1], 0);
+  return `<div class="ex-tally">${rows.map(r => `<div><span>${esc(EX_LABEL[r[0]] || r[0])}</span><i></i><b>${r[1]}</b></div>`).join("")}</div>
+    <p class="small muted">${tot} question${tot > 1 ? "s" : ""} sur sept jours.</p>`;
+}
+
+// ---------- sens → caractère ----------
+// L'inverse exact de la carte de Hanly : on part du sens, on choisit le caractère.
+function charDistractors(c, n) {
+  const ch = parseChar(c), base = baseOf(ch.p), comps = new Set((ch.comps || []).map(x => x.g));
+  const score = x => {
+    const q = parseChar(x); let sc = 0;
+    if (baseOf(q.p) === base) sc += 2;
+    if ((q.comps || []).some(y => comps.has(y.g))) sc += 1;
+    if (S.chars[x]) sc += 1; // un caractère déjà vu est un piège plus sérieux qu'un inconnu
+    return sc;
+  };
+  return shuffle(CHAR_LIST.filter(x => x !== c && parseChar(x).f !== ch.f)).sort((a, b) => score(b) - score(a)).slice(0, n);
+}
+function charProdMCQ(c, onAnswer) {
+  const ch = parseChar(c);
+  return tag("car:prod", scrMCQ({
+    kicker: "Quel caractère pour ce sens ?",
+    prompt: `<div class="qp-f">« ${esc(ch.f)} »</div>${py(ch.p, "A1", "show")}`,
+    options: shuffle([c, ...charDistractors(c, 3)]).map(x => ({ html: `<span lang="zh-CN" class="o-hz">${x}</span>`, ok: x === c, say: x })),
+    answer: `<span lang="zh-CN">${c}</span> ${py(ch.p, "A1", "show")} · ${esc(ch.f)}`, onAnswer }));
+}
+
+// ---------- paires de tons ----------
+// Le trou que Hanly ne bouche pas : un mot de deux syllabes est une mélodie.
+// 2-3 et 2-4 ne sont pas le même mot. Répondable sans le son, et mesuré paire par paire.
+const TONE_NAME = { 1: "haut", 2: "montant", 3: "bas", 4: "descendant", 5: "neutre" };
+const toneOfSyl = syl => { for (const ch of syl) if (TONEOF[ch]) return TONEOF[ch]; return 5; };
+const tonePattern = p => sylls(p).map(toneOfSyl);
+const patKey = pat => pat.join("-");
+const tpDigit = t => `<i class="t${t}">${t === 5 ? "·" : t}</i>`;
+const TP_WORDS = ALLW.filter(w => !/…/.test(w.h) && tonePattern(w.p).length === 2);
+const TP_PATS = [...new Set(TP_WORDS.map(w => patKey(tonePattern(w.p))))].sort();
+function tpRate(k) { const r = (S.tp || {})[k]; return r && (r.o + r.x) ? r.o / (r.o + r.x) : -1; }
+function tpNote(k, ok) { if (!S.tp) S.tp = {}; const r = S.tp[k] || (S.tp[k] = { o: 0, x: 0 }); if (ok) r.o++; else r.x++; save(); }
+function tpPool() {
+  const known = TP_WORDS.filter(w => S.words[w.h]);
+  return known.length >= 6 ? known : TP_WORDS.filter(w => w.ui <= 4);
+}
+function scrTonePair(w) {
+  const pat = tonePattern(w.p), key = patKey(pat), vars = [];
+  for (let i = 0; i < 2; i++) for (let t = 1; t <= 5; t++) {
+    if (t === pat[i]) continue;
+    const v = pat.slice(); v[i] = t;
+    if (!vars.some(x => patKey(x) === patKey(v))) vars.push(v);
+  }
+  const opts = shuffle([pat].concat(shuffle(vars).slice(0, 3)));
+  const note = key === "3-3" ? "Deux 3<sup>e</sup> tons de suite : on écrit 3-3, on prononce 2-3."
+    : /^5/.test(key) ? "" : key.endsWith("-5") ? "Deuxième syllabe neutre : courte et légère, posée après la première." : "";
+  return tag("ton:paire", scrMCQ({
+    kicker: "Quelle est la mélodie de ce mot ?",
+    prompt: `<div class="qp-hz"><span lang="zh-CN">${w.h}</span></div><p class="small muted">${esc(w.f)}</p>`,
+    options: opts.map(o => ({ html: `<span class="tpo">${o.map(tpDigit).join("")}</span><span class="small muted">${o.map(t => TONE_NAME[t]).join(" + ")}</span>`, ok: patKey(o) === key })),
+    answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}${note ? `<span class="fb-again">${note}</span>` : ""}`,
+    onAnswer: ok => tpNote(key, ok)
+  }));
+}
+// Les paires les plus ratées passent en premier ; celles jamais vues avant tout le reste.
+function tonePairScreens(n) {
+  const pool = tpPool(); if (pool.length < 4) return [];
+  const by = {};
+  pool.forEach(w => { const k = patKey(tonePattern(w.p)); (by[k] = by[k] || []).push(w); });
+  const pats = Object.keys(by).sort((a, b) => tpRate(a) - tpRate(b));
+  const out = []; let last = null;
+  for (let i = 0; out.length < n && i < n * 4; i++) {
+    const cands = by[pats[i % pats.length]].filter(w => w.h !== last);
+    if (!cands.length) continue;
+    const w = pick(cands); last = w.h;
+    out.push(rq(() => scrTonePair(w)));
+  }
+  return out;
+}
+function startTonePairs() {
+  const screens = tonePairScreens(10);
+  if (!screens.length) { toast("Apprends d'abord quelques mots : le drill se sert de ton vocabulaire."); return; }
+  // Volontairement hors de l'objectif du jour : c'est un bonus, pas une corvée de plus.
+  startLesson({ title: "Paires de tons", screens, onDone: (sc, tot) => {
+    markActivity(); save();
+    return { title: `${sc} / ${tot}`, text: sc === tot ? "Sans faute. Les paires les plus ratées reviennent toujours en premier." : "Les paires que tu rates reviennent en premier la prochaine fois." };
+  } });
+}
+function tonePairPanel() {
+  const vus = TP_PATS.filter(k => tpRate(k) >= 0);
+  const pires = vus.slice().sort((a, b) => tpRate(a) - tpRate(b)).filter(k => tpRate(k) < 0.8).slice(0, 3);
+  return `<section class="panel">
+    <div class="row between"><div style="flex:1;min-width:220px">
+      <h3>Les paires de tons</h3>
+      <p class="muted small">Un mot de deux syllabes est une mélodie : 2-3 ne se dit pas comme 2-4. Ça se répond sans le son, et chaque paire garde son score.</p>
+    </div><button class="btn primary" type="button" data-tonepair>10 paires</button></div>
+    <div class="tp-grid">${TP_PATS.map(k => {
+      const r = (S.tp || {})[k], n = r ? r.o + r.x : 0, pc = n ? Math.round(100 * r.o / n) : null;
+      return `<div class="tp-cell ${pc === null ? "none" : pc >= 80 ? "good" : pc < 60 ? "bad" : ""}" title="${esc(k.split("-").map(t => TONE_NAME[t]).join(" + "))}"><b>${k.split("-").map(tpDigit).join("")}</b>${pc === null ? "—" : pc + " %"}</div>`;
+    }).join("")}</div>
+    ${pires.length ? `<p class="small muted">À travailler en priorité : ${pires.join(", ")}.</p>` : vus.length ? `<p class="small muted">Toutes les paires vues sont au-dessus de 80 %.</p>` : ""}
+  </section>`;
+}
+
+// ---------- écrire une phrase entière ----------
+// Le seul exercice qui ressemble à envoyer un vrai message : rien à cliquer parmi des tuiles,
+// il faut sortir les mots de sa tête, dans l'ordre, avec le clavier d'un téléphone chinois.
+function writableSentences() {
+  return SENT.filter(s => s.toks && s.toks.length >= 2 && s.toks.length <= 7
+    && s.toks.every(t => S.words[t[0]] || (t[0].length === 1 && S.chars[t[0]])));
+}
+function scrTypeSentence(s) {
+  const scr = (el, api) => {
+    const toks = s.toks, state = toks.map(() => null);
+    el.innerHTML = `<p class="q-kicker">Écris la phrase en chinois</p>
+      <div class="q-prompt"><div class="qp-f">« ${esc(s.fr)} »</div></div>
+      <div class="ts-line" lang="zh-CN"></div>
+      <div class="ime">
+        <label class="sr" for="imeIn">Pinyin sans les tons</label>
+        <input id="imeIn" class="ime-in" type="text" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Le mot suivant, en pinyin sans les tons">
+        <div class="ime-cands" role="listbox" aria-label="Propositions"></div>
+        <p class="muted small ts-tip">Un mot à la fois, dans l'ordre de la phrase. Pour ü, tape v.</p>
+        <button type="button" class="btn ghost sm" data-ts="help">Je sèche, montre-moi le mot</button>
+      </div>`;
+    api.lock();
+    let i = 0, miss = 0, tries = 0, done = false;
+    const line = el.querySelector(".ts-line"), inp = el.querySelector(".ime-in"),
+          bar = el.querySelector(".ime-cands"), tip = el.querySelector(".ts-tip");
+    const draw = () => {
+      line.innerHTML = toks.map((t, k) => k < i
+        ? `<span class="${state[k] === "bad" ? "ts-miss" : "ts-ok"}">${t[0]}</span>`
+        : `<span class="ts-slot${k === i ? " cur" : ""}">${"▭".repeat(t[0].length)}</span>`).join("");
+    };
+    const cands = () => {
+      const c = imeCandidates(inp.value);
+      bar.innerHTML = c.length ? c.map((x, k) => `<button type="button" class="cand" data-h="${esc(x.h)}"><span class="cand-n">${k + 1}</span><span lang="zh-CN">${x.h}</span></button>`).join("")
+        : inp.value ? `<span class="muted small">Aucune proposition : vérifie l'orthographe.</span>` : "";
+      bar.querySelectorAll(".cand").forEach(b => b.onclick = () => choose(b.dataset.h));
+    };
+    const advance = bad => {
+      state[i] = bad ? "bad" : "ok"; if (bad) miss++;
+      i++; tries = 0; inp.value = ""; bar.innerHTML = ""; draw();
+      if (i >= toks.length) finish(); else inp.focus({ preventScroll: true });
+    };
+    const choose = h => {
+      if (done) return;
+      if (h === toks[i][0]) { tip.className = "muted small ts-tip"; tip.textContent = "Bien. Mot suivant."; advance(false); return; }
+      tries++;
+      if (tries >= 2) { tip.className = "muted small ts-tip bad"; tip.innerHTML = `C'était <span lang="zh-CN">${toks[i][0]}</span> ${py(toks[i][1], "A1", "show")}.`; advance(true); return; }
+      tip.className = "muted small ts-tip bad"; tip.textContent = "Pas ce mot-là. Relis la phrase française, il te reste un essai.";
+    };
+    const finish = () => {
+      done = true; inp.disabled = true;
+      const ok = miss === 0;
+      api.result(ok, `${ok ? "Phrase écrite sans aide." : `Phrase finie, ${miss} mot${miss > 1 ? "s" : ""} soufflé${miss > 1 ? "s" : ""}.`} <span lang="zh-CN">${s.hz}</span> ${py(s.p, "A1", "show")} · ${esc(s.fr)}`);
+    };
+    el.querySelector('[data-ts="help"]').onclick = () => {
+      if (done) return;
+      tip.className = "muted small ts-tip bad";
+      tip.innerHTML = `C'était <span lang="zh-CN">${toks[i][0]}</span> ${py(toks[i][1], "A1", "show")}.`;
+      advance(true);
+    };
+    inp.addEventListener("input", cands);
+    inp.addEventListener("keydown", e => {
+      if (/^[1-8]$/.test(e.key)) { const c = imeCandidates(inp.value)[+e.key - 1]; if (c) { e.preventDefault(); choose(c.h); } }
+      if (e.key === " " || e.key === "Enter") { const c = imeCandidates(inp.value)[0]; if (c) { e.preventDefault(); e.stopPropagation(); choose(c.h); } }
+    });
+    draw();
+    setTimeout(() => { try { inp.focus({ preventScroll: true }); } catch (e) {} }, 250);
+  };
+  return tag("phr:clavier", scr);
+}
+
+// Chaque écran dit de quel type il est, une fois pour toutes.
+scrCloze = wrapKind(scrCloze, "phr:trou");
+scrOrder = wrapKind(scrOrder, "phr:ordre");
+scrMatch = wrapKind(scrMatch, "mot:paires");
+scrType = wrapKind(scrType, "mot:clavier");
+scrTrace = wrapKind(scrTrace, "car:ecrire");
+scrListen = wrapKind(scrListen, "phr:ecoute");
+scrReply = wrapKind(scrReply, "phr:reponse");
+buildMCQ = wrapKind(buildMCQ, "car:pieces");
 
 // ---------- verrouillage des étapes ----------
 function stepLocked(u, si) {
