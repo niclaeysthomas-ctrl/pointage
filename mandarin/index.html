@@ -3272,7 +3272,7 @@ function writableSentences() {
 function scrTypeSentence(s) {
   const scr = (el, api) => {
     const toks = s.toks, state = toks.map(() => null);
-    el.innerHTML = `<p class="q-kicker">Écris la phrase en chinois</p>
+    el.innerHTML = `<p class="q-kicker">${s.kicker || "Écris la phrase en chinois"}</p>
       <div class="q-prompt"><div class="qp-f">« ${esc(s.fr)} »</div></div>
       <div class="ts-line" lang="zh-CN"></div>
       <div class="ime">
@@ -3313,7 +3313,7 @@ function scrTypeSentence(s) {
     const finish = () => {
       done = true; inp.disabled = true;
       const ok = miss === 0;
-      api.result(ok, `${ok ? "Phrase écrite sans aide." : `Phrase finie, ${miss} mot${miss > 1 ? "s" : ""} soufflé${miss > 1 ? "s" : ""}.`} <span lang="zh-CN">${s.hz}</span> ${py(s.p, "A1", "show")} · ${esc(s.fr)}`);
+      api.result(ok, `${ok ? "Écrit sans aide." : `${miss} mot${miss > 1 ? "s" : ""} soufflé${miss > 1 ? "s" : ""}.`} <span lang="zh-CN">${s.hz}</span> ${py(s.p, "A1", "show")} · ${esc(s.fr)}`);
     };
     el.querySelector('[data-ts="help"]').onclick = () => {
       if (done) return;
@@ -3510,7 +3510,7 @@ function nbMCQ(it, sens) {
 // (Les mauvaises lectures sont désormais fabriquées par chaque générateur, dans son champ
 // « lire » : une heure se confond avec une autre heure, un prix avec un autre prix.)
 function nbClavier(it) {
-  const sc = scrTypeSentence({ hz: it.bon, p: nbPinyin(it.bon), fr: it.q + (it.sous ? " — " + it.sous : ""), toks: nbToks(it.bon) });
+  const sc = scrTypeSentence({ hz: it.bon, p: nbPinyin(it.bon), fr: it.q + (it.sous ? " — " + it.sous : ""), toks: nbToks(it.bon), kicker: "Écris-le en chinois, caractère par caractère" });
   sc.kind = "nb:clavier";
   return sc;
 }
