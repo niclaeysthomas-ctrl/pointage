@@ -1954,7 +1954,8 @@ function scrMCQ(q) {
       if (!o.ok) b.classList.add("wrong");
       if (o.say) speak(o.say);
       if (q.onAnswer) q.onAnswer(o.ok);
-      api.result(o.ok, o.ok ? pick(["Bien joué !", "Exact !", "Parfait !", "对！C'est ça !"]) : `Réponse : ${q.answer}`);
+      // q.note : ce qu'il faut retenir même quand on a bon (la règle derrière la réponse).
+      api.result(o.ok, (o.ok ? pick(["Bien joué !", "Exact !", "Parfait !", "对！C'est ça !"]) : `Réponse : ${q.answer}`) + (q.note ? `<span class="fb-again">${q.note}</span>` : ""));
     });
   };
 }
@@ -3105,7 +3106,8 @@ function scrTonePair(w) {
     kicker: "Quelle est la mélodie de ce mot ?",
     prompt: `<div class="qp-hz"><span lang="zh-CN">${w.h}</span></div><p class="small muted">${esc(w.f)}</p>`,
     options: opts.map(o => ({ html: `<span class="tpo">${o.map(tpDigit).join("")}</span><span class="small muted">${o.map(t => TONE_NAME[t]).join(" + ")}</span>`, ok: patKey(o) === key })),
-    answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}${note ? `<span class="fb-again">${note}</span>` : ""}`,
+    answer: `<span lang="zh-CN">${w.h}</span> ${py(w.p, "A1", "show")} · ${esc(w.f)}`,
+    note,
     onAnswer: ok => tpNote(key, ok)
   }));
 }
@@ -3195,6 +3197,7 @@ function scrTypeSentence(s) {
       tries++;
       if (tries >= 2) { tip.className = "muted small ts-tip bad"; tip.innerHTML = `C'était <span lang="zh-CN">${toks[i][0]}</span> ${py(toks[i][1], "A1", "show")}.`; advance(true); return; }
       tip.className = "muted small ts-tip bad"; tip.textContent = "Pas ce mot-là. Relis la phrase française, il te reste un essai.";
+      inp.value = ""; bar.innerHTML = ""; inp.focus({ preventScroll: true }); // sinon le pinyin raté reste à effacer à la main
     };
     const finish = () => {
       done = true; inp.disabled = true;
