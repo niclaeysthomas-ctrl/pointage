@@ -499,6 +499,21 @@ body.mute .say,body.mute .big-say{display:none}
 .tp-cell.good{border-color:var(--good);background:var(--good-soft);color:var(--ink)}
 .tp-cell.bad{border-color:var(--bad);background:var(--bad-soft);color:var(--ink)}
 .tp-cell.none{opacity:.5}
+.tp-cell.wide b{font-size:.95rem;letter-spacing:0;line-height:1.25;min-height:2.4em;display:flex;align-items:center;justify-content:center}
+.nb-q{font-size:2rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.02em}
+.nb-q small{display:block;font-size:.82rem;font-weight:400;color:var(--ink2);letter-spacing:0;margin-top:2px}
+.nb-chars{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.nb-ch{border:1px solid var(--line);border-radius:10px;padding:8px 6px;text-align:center;background:var(--surface)}
+.nb-ch b{font-family:var(--f-hz);font-size:1.4rem;font-weight:500;display:block}
+.nb-ch small{display:block;color:var(--ink2);font-size:.78rem}
+.nb-ch.extra{border-style:dashed}
+.fc{display:flex;gap:5px;align-items:flex-end;margin-top:12px}
+.fc-d{flex:1;text-align:center;font-size:.68rem;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+.fc-d i{display:block;background:var(--jade-soft);border-radius:5px 5px 0 0;margin-bottom:4px}
+.fc-d.now i{background:var(--jade)}
+.fc-d.zero i{background:var(--sunk)}
+.fc-d b{display:block;font-variant-numeric:tabular-nums;font-size:.82rem;color:var(--ink);font-weight:600}
+.review .row{margin-top:2px}
 .tpo{display:flex;gap:8px;justify-content:center;font-size:1.6rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
 .tpo i{font-style:normal}
 .ts-line{font-family:var(--f-hz);font-size:1.7rem;line-height:1.6;display:flex;flex-wrap:wrap;gap:4px 8px;justify-content:center;min-height:2.4em;align-items:center}
@@ -1295,7 +1310,7 @@ const ttsText = s => String(s).replace(/[（(][^)）]*[)）]/g, "").replace(/…
 
 // ---------- état ----------
 const KEY = "mandarin-entre-amis-v1";
-const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, ex: {}, tp: {}, settings: { pinyin: "auto", rate: 0.8, tones: true, son: "auto" } };
+const DEFAULT = { done: {}, words: {}, chars: {}, cw: {}, days: {}, streak: { n: 0, last: null }, best: 0, ex: {}, tp: {}, nb: {}, settings: { pinyin: "auto", rate: 0.8, tones: true, son: "auto" } };
 // Trois états au chargement : NEUF (rien d'enregistré), OK, ou CASSÉ.
 // Cassé = illisible, ou stockage interdit. Dans ce cas on n'écrit plus rien :
 // un save() par-dessus un profil vierge effacerait la vraie progression pour de bon.
@@ -1597,7 +1612,9 @@ function viewHome() {
       <div><p class="eyebrow">Révision</p>
         <h3>${due ? [dw ? `${dw} mot${dw > 1 ? "s" : ""}` : "", dc ? `${dc} caractère${dc > 1 ? "s" : ""}` : ""].filter(Boolean).join(" et ") + " à revoir" : seen ? "Rien à revoir pour l'instant" : "Tes mots apparaîtront ici"}</h3>
         <p class="muted small">${seen ? "Les mots ratés reviennent plus vite, les mots sus s'espacent." : "Termine une séance de mots pour les ajouter."}</p></div>
-      <button class="btn ${due ? "primary" : "ghost"}" data-review ${seen ? "" : "disabled"}>${due ? "Réviser" : "S'entraîner"}</button>
+      <div class="row"><button class="btn ${due ? "primary" : "ghost"}" data-review ${seen ? "" : "disabled"}>${due ? "Réviser" : "S'entraîner"}</button>
+      ${seen ? `<button class="btn ghost sm" type="button" data-sprint>Sprint de 2 min</button>` : ""}</div>
+      ${seen ? forecastHTML() : ""}
     </section>`;
   const g = todayGoal();
   const goal = `<section class="panel goal${g.step && g.rev ? " met" : ""}"><p class="eyebrow">Objectif du jour</p>
@@ -1625,6 +1642,24 @@ function viewHome() {
     </section>`).join("");
   return `<div class="home">${hero}<div class="side">${goal}${review}${phraseCard()}${stats}</div></div>${path}
   <p class="foot-note muted small">Chaque unité se fait en petites étapes de 2 à 5 minutes, avec 3 ou 4 mots nouveaux à la fois. Tu peux les faire dans n'importe quel ordre : rien n'est verrouillé. Une étape déjà sue se coche avec le ✓ à côté d'elle.</p>`;
+}
+
+// Ce qui arrive dans les sept prochains jours : voir le mur avant de s'y cogner.
+// Le retard s'affiche sur aujourd'hui, pas réparti dans le futur.
+function forecastHTML() {
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const ech = Object.keys(S.words).filter(h => WMAP[h]).map(h => S.words[h].d)
+    .concat(Object.keys(S.cw || {}).filter(c => STROKES[c]).map(c => S.cw[c].d));
+  const jours = [];
+  for (let i = 0; i < 7; i++) {
+    const a = t0.getTime() + i * DAY, b = a + DAY;
+    jours.push({ a, n: ech.filter(d => (i === 0 ? d < b : d >= a && d < b)).length });
+  }
+  const max = Math.max(1, ...jours.map(j => j.n));
+  const L = ["D", "L", "M", "M", "J", "V", "S"];
+  return `<div class="fc" role="img" aria-label="Révisions prévues sur sept jours : ${jours.map(j => j.n).join(", ")}">
+    ${jours.map((j, i) => `<div class="fc-d${i === 0 ? " now" : ""}${j.n ? "" : " zero"}"><b>${j.n || ""}</b><i style="height:${Math.round(4 + 30 * j.n / max)}px"></i>${L[new Date(j.a).getDay()]}</div>`).join("")}
+  </div>`;
 }
 
 // ---------- unité ----------
@@ -1743,8 +1778,8 @@ function viewMots() {
   const due = dueWords().length, seen = Object.keys(S.words).length;
   return `
   <header class="page-h"><p class="eyebrow">Vocabulaire</p><h2>Ton dictionnaire</h2><p class="muted">${ALLW.length} mots et ${CHAR_LIST.length} caractères, du A1 au B1.</p></header>
-  <div class="seg wide big" role="group" aria-label="Affichage"><button type="button" class="${motsView === "mots" ? "on" : ""}" data-mview="mots">Mots</button><button type="button" class="${motsView === "chars" ? "on" : ""}" data-mview="chars">Caractères</button></div>
-  ${motsView === "chars" ? viewChars() : `
+  <div class="seg wide big" role="group" aria-label="Affichage"><button type="button" class="${motsView === "mots" ? "on" : ""}" data-mview="mots">Mots</button><button type="button" class="${motsView === "chars" ? "on" : ""}" data-mview="chars">Caractères</button><button type="button" class="${motsView === "nombres" ? "on" : ""}" data-mview="nombres">Nombres</button></div>
+  ${motsView === "nombres" ? viewNums() : motsView === "chars" ? viewChars() : `
   <section class="panel review">
     <div><h3>${due ? `${due} mot${due > 1 ? "s" : ""} à revoir` : "Révision espacée"}</h3><p class="muted small">${seen} mot${seen > 1 ? "s" : ""} en cours d'apprentissage, ${knownCount()} acquis.</p></div>
     <button class="btn ${due ? "primary" : "ghost"}" data-review ${seen ? "" : "disabled"}>${due ? "Réviser" : "S'entraîner"}</button>
@@ -1823,8 +1858,10 @@ function bindMain() {
     markActivity(); save(); render();
     toast(st && st.words ? "Étape cochée : ses mots entrent en révision dans 7 jours." : "Étape cochée.");
   });
-  m.querySelectorAll("[data-review]").forEach(b => b.onclick = startReview);
+  m.querySelectorAll("[data-review]").forEach(b => b.onclick = () => startReview());
+  m.querySelectorAll("[data-sprint]").forEach(b => b.onclick = () => startReview({ court: true }));
   m.querySelectorAll("[data-tonepair]").forEach(b => b.onclick = startTonePairs);
+  m.querySelectorAll("[data-numbers]").forEach(b => b.onclick = startNumbers);
   bindPhrase(m);
   m.querySelectorAll("[data-mview]").forEach(b => b.onclick = () => { motsView = b.dataset.mview; render(); });
   m.querySelectorAll("[data-char]").forEach(b => b.onclick = () => openChar(b.dataset.char));
@@ -2123,11 +2160,13 @@ function startStep(u, k) {
 }
 
 // --- révision ---
-function startReview() {
+function startReview(opt) {
   // 6 mots + 3 caractères : la séance garde sa longueur d'avant malgré les paires de tons
   // et la phrase à écrire ajoutées plus bas. La charge quotidienne ne doit pas monter.
-  let list = dueWords().slice(0, 6), clist = dueChars().slice(0, 3), practice = false;
-  if (!list.length && !clist.length) { practice = true; list = shuffle(Object.keys(S.words).filter(h => WMAP[h])).slice(0, 6); clist = shuffle(Object.keys(S.cw || {})).slice(0, 2); }
+  opt = opt || {};
+  const nMots = opt.court ? 5 : 6, nCar = opt.court ? 0 : 3;
+  let list = dueWords().slice(0, nMots), clist = dueChars().slice(0, nCar), practice = false;
+  if (!list.length && !clist.length) { practice = true; list = shuffle(Object.keys(S.words).filter(h => WMAP[h])).slice(0, nMots); clist = shuffle(Object.keys(S.cw || {})).slice(0, opt.court ? 0 : 2); }
   if (!list.length && !clist.length) return;
   const screens = []; const requeued = new Set();
   // Règle de partage avec Hanly : il fait reconnaître (字 → sens), ici on fait PRODUIRE (sens → 字).
@@ -2146,14 +2185,20 @@ function startReview() {
   };
   list.forEach(h => screens.push(mk(h)));
   clist.forEach((c, i) => screens.splice(Math.min(screens.length, 2 + i * 3), 0, mkc(c)));
-  tonePairScreens(2).forEach((sc, i) => screens.splice(Math.min(screens.length, 1 + i * 4), 0, sc));
-  // Et pour finir, produire pour de vrai : une phrase entière, de tête, au clavier.
-  const wsent = writableSentences();
-  if (wsent.length) screens.push(scrTypeSentence(pick(wsent)));
-  startLesson({ title: practice ? "Entraînement libre" : "Révision", screens, onDone: (s, t) => {
-    markActivity(); dayLog("rev"); save();
+  if (!opt.court) {
+    tonePairScreens(2).forEach((sc, i) => screens.splice(Math.min(screens.length, 1 + i * 4), 0, sc));
+    // Et pour finir, produire pour de vrai : une phrase entière, de tête, au clavier.
+    const wsent = writableSentences();
+    if (wsent.length) screens.push(scrTypeSentence(pick(wsent)));
+  }
+  startLesson({ title: opt.court ? "Sprint" : practice ? "Entraînement libre" : "Révision", screens, onDone: (s, t) => {
+    markActivity();
     const left = dueWords().length + dueChars().length;
-    return { title: practice ? "Entraînement terminé" : "Révision terminée", text: left ? `Encore ${left} élément${left > 1 ? "s" : ""} à revoir : tu peux relancer une révision.` : "Tout est à jour. Les prochains mots reviendront au bon moment." };
+    // Un sprint ne déclare « révisions à jour » que s'il ne reste vraiment rien.
+    if (!opt.court || !left) dayLog("rev");
+    save();
+    return { title: opt.court ? "Sprint fini" : practice ? "Entraînement terminé" : "Révision terminée",
+      text: left ? `Encore ${left} élément${left > 1 ? "s" : ""} à revoir : tu peux enchaîner.` : "Tout est à jour. Les prochains mots reviendront au bon moment." };
   } });
 }
 
@@ -3096,6 +3141,9 @@ const EX_LABEL = {
   "phr:ecoute": "Comprendre une phrase",
   "phr:reponse": "Que répondre ?",
   "phr:clavier": "Écrire une phrase entière au clavier",
+  "nb:lecture": "Lire un nombre, une heure, une date",
+  "nb:ecriture": "Dire un nombre, une heure, une date",
+  "nb:clavier": "Écrire un nombre au clavier",
   "autre": "Autres questions"
 };
 function noteEx(kind) {
@@ -3293,6 +3341,237 @@ scrTrace = wrapKind(scrTrace, "car:ecrire");
 scrListen = wrapKind(scrListen, "phr:ecoute");
 scrReply = wrapKind(scrReply, "phr:reponse");
 buildMCQ = wrapKind(buildMCQ, "car:pieces");
+
+// ===== Nombres, prix, heures, dates =====
+// Un générateur qui ne changerait que les nombres n'apprendrait rien : ce qui tourne ici,
+// ce sont les PIÈGES (两 ou 二, la place de 十, le 零 du milieu, 半 et 刻, l'année chiffre
+// par chiffre) et la forme de la question. Le score est tenu par piège, pas par nombre.
+
+// Caractères nécessaires aux nombres que le parcours n'enseigne pas encore : pas de fiche,
+// pas d'ordre des traits, mais ils entrent dans le clavier pinyin et dans le tableau.
+const NUM_EXTRA = [["零", "líng", "zéro"], ["百", "bǎi", "cent"], ["千", "qiān", "mille"],
+  ["块", "kuài", "yuan (à l'oral)"], ["毛", "máo", "dixième de yuan"], ["刻", "kè", "quart d'heure"],
+  ["月", "yuè", "mois"], ["日", "rì", "jour (à l'écrit)"]];
+NUM_EXTRA.forEach(x => { if (!IME.some(y => y.h === x[0])) IME.push({ h: x[0], p: x[1], k: pyKey(x[1]), k2: pyKeyU(x[1]) }); });
+
+const NB_PY = { "零": "líng", "一": "yī", "二": "èr", "三": "sān", "四": "sì", "五": "wǔ", "六": "liù", "七": "qī",
+  "八": "bā", "九": "jiǔ", "十": "shí", "百": "bǎi", "千": "qiān", "两": "liǎng", "点": "diǎn", "半": "bàn",
+  "分": "fēn", "刻": "kè", "块": "kuài", "毛": "máo", "岁": "suì", "个": "gè", "号": "hào", "年": "nián",
+  "月": "yuè", "日": "rì", "星": "xīng", "期": "qī", "天": "tiān", "多": "duō", "少": "shǎo", "几": "jǐ" };
+const DIG = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+
+// 105 -> 一百零五 (零 au milieu), 110 -> 一百一十 (十 ne reste pas seul après 百), 150 -> 一百五十
+function numToHan(n) {
+  if (n < 10) return DIG[n];
+  if (n < 20) return "十" + (n % 10 ? DIG[n % 10] : "");
+  if (n < 100) return DIG[Math.floor(n / 10)] + "十" + (n % 10 ? DIG[n % 10] : "");
+  const c = Math.floor(n / 100), r = n % 100;
+  if (!r) return DIG[c] + "百";
+  if (r < 10) return DIG[c] + "百零" + DIG[r];
+  return DIG[c] + "百" + numToHan(r).replace(/^十/, "一十");
+}
+// 一 se dit yì devant 百/千/十, yí devant un 4e ton, yī sinon : l'application écrit ce qui se prononce.
+function nbPinyin(hz) {
+  const cs = [...hz];
+  return cs.map((c, i) => {
+    let p = NB_PY[c] || "";
+    if (c === "一") {
+      const nx = cs[i + 1];
+      if (nx === "百" || nx === "千" || nx === "十") p = "yì";
+      else if (nx && /[àèìòùǜ]/.test(NB_PY[nx] || "")) p = "yí";
+    }
+    return p;
+  }).join(" ");
+}
+const nbToks = hz => [...hz].map(c => [c, NB_PY[c] || ""]);
+
+// ---------- les pièges ----------
+const NB_TRAPS = { liang: "两 ou 二", dix: "la place de 十", zero: "le 零 du milieu",
+  annee: "l'année chiffre par chiffre", quart: "半, 刻 et les minutes", simple: "lecture simple" };
+function nbNote(t, ok) { if (!S.nb) S.nb = {}; const r = S.nb[t] || (S.nb[t] = { o: 0, x: 0 }); if (ok) r.o++; else r.x++; save(); }
+function nbRate(t) { const r = (S.nb || {})[t]; return r && (r.o + r.x) ? r.o / (r.o + r.x) : -1; }
+
+// ---------- les générateurs ----------
+// Chacun rend { q, sous, bon, faux[], trap, expl }. q = ce qu'on montre, bon = le chinois attendu.
+const NB_GEN = {
+  // écrire : des chiffres vers le chinois
+  nombre() {
+    const n = pick([12, 15, 18, 20, 21, 34, 47, 60, 78, 95, 101, 105, 108, 110, 115, 130, 160, 305, 408, 540, 615, 780, 903]);
+    const bon = numToHan(n), faux = [];
+    if (n > 100 && n % 100 && n % 100 < 10) { faux.push(numToHan(Math.floor(n / 100)) + "百" + DIG[n % 10]); faux.push(numToHan(Math.floor(n / 100)) + "百" + DIG[n % 10] + "十"); }
+    if (n >= 10 && n < 20) { faux.push("一" + bon); faux.push(DIG[n % 10] + "十"); }
+    if (n >= 20 && n < 100) faux.push(DIG[n % 10 || 1] + "十" + DIG[Math.floor(n / 10)]);
+    if (n >= 100 && n % 100 >= 10) faux.push(numToHan(Math.floor(n / 100)) + "百" + numToHan(n % 100));
+    faux.push(numToHan(n + 10), numToHan(n < 100 ? n + 1 : n + 100));
+    if (n >= 100 && n % 100 >= 10 && n % 100 < 20) faux.push(numToHan(Math.floor(n / 100)) + "百" + numToHan(n % 100));
+    const zero = n > 100 && n % 100 && n % 100 < 10, dixCent = n >= 100 && n % 100 >= 10 && n % 100 < 20;
+    return { q: String(n), sous: "", bon, faux, lire: [n + 10, n * 10, n + 1, n >= 20 ? (n % 10) * 10 + Math.floor(n / 10) : n + 2].map(String),
+      trap: zero ? "zero" : (n < 20 || dixCent) ? "dix" : "simple",
+      expl: zero ? "Un zéro au milieu se dit, un zéro à la fin ne se dit pas : 105 一百零五, mais 150 一百五十."
+        : dixCent ? "Après 百, 十 ne reste plus seul : 110 se dit 一百一十, pas 一百十."
+        : n >= 10 && n < 20 ? "De 11 à 19, 十 part seul : 十二, jamais 一十二. C'est à partir de 100 qu'il lui faut un chiffre devant." : "" };
+  },
+  heure() {
+    const h = 1 + Math.floor(Math.random() * 12), m = pick([0, 0, 15, 30, 45, 5, 10, 20, 40, 50]);
+    const hh = h === 2 ? "两" : numToHan(h);
+    const mm = m === 0 ? "" : m === 30 ? "半" : m === 15 ? "一刻" : m === 45 ? "三刻" : (m < 10 ? "零" + DIG[m] : numToHan(m)) + "分";
+    const bon = hh + "点" + mm, faux = [];
+    if (h === 2) faux.push("二点" + mm);
+    if (m === 30) faux.push(hh + "点三十分", hh + "点半分");
+    if (m === 15) faux.push(hh + "点一刻分", hh + "点十五刻");
+    if (m === 45) faux.push(hh + "点四十五刻", hh + "点三刻分");
+    if (m && m < 10) faux.push(hh + "点" + DIG[m] + "分");
+    faux.push((h === 12 ? "一" : h === 1 ? "两" : numToHan(h + 1)) + "点" + mm, hh + "点" + (m === 30 ? "一刻" : "半"));
+    const hm = (a, b) => (a < 10 ? "0" : "") + a + ":" + (b < 10 ? "0" : "") + b;
+    return { q: hm(h, m), sous: "l'heure, comme on la dit", bon, faux,
+      lire: [hm(h === 12 ? 1 : h + 1, m), hm(h, m === 30 ? 15 : 30), hm(h, m === 45 ? 15 : 45), hm(h + 12 > 23 ? 1 : h + 12, m)],
+      trap: h === 2 ? "liang" : (m === 30 || m === 15 || m === 45 || (m && m < 10)) ? "quart" : "simple",
+      expl: h === 2 ? "Devant un classificateur — et 点 en est un — c'est 两, pas 二 : 两点, deux heures."
+        : m === 30 ? "La demie, c'est 半, et rien d'autre après." : m === 15 ? "Un quart, c'est 一刻 ; trois quarts, 三刻."
+        : m && m < 10 ? "Moins de dix minutes : on dit le zéro. 两点零五分." : "" };
+  },
+  prix() {
+    const y = pick([2, 3, 5, 8, 12, 15, 20, 25, 38, 50, 99, 120]), j = pick([0, 0, 5, 2, 8]);
+    const bon = (y === 2 ? "两" : numToHan(y)) + "块" + (j ? DIG[j] : ""), faux = [];
+    if (y === 2) faux.push("二块" + (j ? DIG[j] : ""));
+    if (j) faux.push((y === 2 ? "两" : numToHan(y)) + "块" + DIG[j] + "十", (y === 2 ? "两" : numToHan(y)) + "毛" + DIG[j]);
+    faux.push(numToHan(y) + "块" + (j ? DIG[j] : "") + "分", (y === 2 ? "两" : numToHan(y + 1)) + "块" + (j ? DIG[j] : ""));
+    const pq = (a, b) => a + (b ? "," + b : "") + " ¥";
+    return { q: pq(y, j), sous: "au marché, pas à la banque", bon, faux,
+      lire: [pq(y + 1, j), pq(y, j ? 0 : 5), pq(y * 10, j), pq(y, j ? j + 1 : 1)], trap: y === 2 ? "liang" : "simple",
+      expl: y === 2 ? "两块, jamais 二块 : 块 est un classificateur."
+        : j ? "La décimale se dit toute seule : 五块八 suffit, le 毛 est facultatif." : "" };
+  },
+  age() {
+    const n = pick([2, 2, 7, 11, 12, 18, 20, 21, 30, 45]);
+    const bon = (n === 2 ? "两" : numToHan(n)) + "岁", faux = [];
+    if (n === 2) faux.push("二岁");
+    if (n >= 10 && n < 20) faux.push("一" + numToHan(n) + "岁");
+    faux.push(numToHan(n + 1) + "岁", numToHan(n) + "年", numToHan(n) + "个岁");
+    return { q: n + " ans", sous: "", bon, faux, lire: [n + 1, n + 10, n * 10, n - 1].map(x => x + " ans"), trap: n === 2 ? "liang" : n < 20 && n >= 10 ? "dix" : "simple",
+      expl: n === 2 ? "两岁 : 岁 compte, donc 两." : "" };
+  },
+  quantite() {
+    const n = pick([2, 2, 3, 6, 9, 11, 15, 22]);
+    const bon = (n === 2 ? "两" : numToHan(n)) + "个", faux = [];
+    if (n === 2) faux.push("二个");
+    faux.push(numToHan(n) + "个个", numToHan(n + 1) + "个", (n === 2 ? "两" : numToHan(n)) + "块");
+    return { q: n + " (objets)", sous: "avec le classificateur 个", bon, faux, lire: [n + 1, n + 10, n * 10, n + 2].map(x => x + " (objets)"), trap: n === 2 ? "liang" : "simple",
+      expl: n === 2 ? "两个, jamais 二个." : "" };
+  },
+  annee() {
+    const y = pick([2026, 2027, 1998, 2001, 2010, 2024]);
+    const bon = [...String(y)].map(d => DIG[+d]).join("") + "年";
+    const faux = [numToHan(Math.floor(y / 1000)) + "千" + (y % 1000 ? "零" + numToHan(y % 1000) : "") + "年",
+      [...String(y)].map(d => DIG[+d]).join("") + "月", numToHan(y % 100) + "年"];
+    return { q: "en " + y, sous: "une année", bon, faux, lire: [y + 1, y - 10, y % 100, y + 100].map(x => "en " + x), trap: "annee",
+      expl: "Une année se lit chiffre par chiffre : 二零二六年, et surtout pas « deux mille vingt-six »." };
+  },
+  jour() {
+    const d = 1 + Math.floor(Math.random() * 31);
+    const bon = numToHan(d) + "号", faux = [];
+    if (d >= 10 && d < 20) faux.push("一" + numToHan(d) + "号");
+    if (d >= 20) faux.push(DIG[d % 10 || 1] + "十" + DIG[Math.floor(d / 10)] + "号");
+    faux.push(numToHan(d) + "月", numToHan(d) + "日号", numToHan(d + 1) + "号");
+    return { q: "le " + d, sous: "un jour du mois, à l'oral", bon, faux, lire: [d + 1, d + 10 > 31 ? d - 10 : d + 10, d >= 20 ? (d % 10) * 10 + Math.floor(d / 10) : d + 2, d - 1].filter(x => x > 0 && x <= 31).map(x => "le " + x), trap: d < 20 && d >= 10 ? "dix" : "simple",
+      expl: d >= 10 && d < 20 ? "十一号, pas 一十一号." : "À l'oral on dit 号 ; 日 s'écrit mais se dit peu." };
+  }
+};
+const NB_KEYS = Object.keys(NB_GEN);
+
+// ---------- les formes de question ----------
+function nbMCQ(it, sens) {
+  const bon = it.bon;
+  // Une question à deux options n'est pas une question : on complète avec d'autres tirages
+  // du même générateur, donc toujours de la même famille.
+  const faux = [...new Set(it.faux.filter(f => f && f !== bon))];
+  for (let k = 0; faux.length < 3 && k < 15 && NB_GEN[it.gen]; k++) {
+    const alt = NB_GEN[it.gen]().bon;
+    if (alt !== bon && faux.indexOf(alt) < 0) faux.push(alt);
+  }
+  const lire = [...new Set((it.lire || []).filter(x => x && x !== it.q))];
+  if (sens === "lire" && lire.length >= 3) {
+    return tag("nb:lecture", scrMCQ({
+      kicker: "Qu'est-ce que ça dit ?",
+      prompt: `<div class="qp-hz"><span lang="zh-CN">${bon}</span></div>${py(nbPinyin(bon), "A1", "show")}`,
+      options: shuffle([{ html: `<b>${esc(it.q)}</b>`, ok: true }, ...shuffle(lire).slice(0, 3).map(x => ({ html: `<b>${esc(x)}</b>`, ok: false }))]),
+      answer: `<span lang="zh-CN">${bon}</span> ${py(nbPinyin(bon), "A1", "show")} · ${esc(it.q)}`,
+      note: it.expl, onAnswer: ok => nbNote(it.trap, ok)
+    }));
+  }
+  return tag("nb:ecriture", scrMCQ({
+    kicker: "Comment on le dit ?",
+    prompt: `<div class="nb-q">${esc(it.q)}${it.sous ? `<small>${esc(it.sous)}</small>` : ""}</div>`,
+    options: shuffle([bon, ...shuffle(faux).slice(0, 3)]).map(o => ({ html: `<span lang="zh-CN" class="o-hz sm">${o}</span>`, ok: o === bon, say: o })),
+    answer: `<span lang="zh-CN">${bon}</span> ${py(nbPinyin(bon), "A1", "show")}`,
+    note: it.expl, onAnswer: ok => nbNote(it.trap, ok)
+  }));
+}
+// (Les mauvaises lectures sont désormais fabriquées par chaque générateur, dans son champ
+// « lire » : une heure se confond avec une autre heure, un prix avec un autre prix.)
+function nbClavier(it) {
+  const sc = scrTypeSentence({ hz: it.bon, p: nbPinyin(it.bon), fr: it.q + (it.sous ? " — " + it.sous : ""), toks: nbToks(it.bon) });
+  sc.kind = "nb:clavier";
+  return sc;
+}
+
+// ---------- la séance ----------
+function nbScreens(n) {
+  const traps = Object.keys(NB_TRAPS).sort((a, b) => nbRate(a) - nbRate(b));
+  const out = []; let gi = Math.floor(Math.random() * NB_KEYS.length);
+  // on tourne sur les générateurs, et on garde en priorité ce qui touche un piège faible
+  for (let i = 0; out.length < n && i < n * 8; i++) {
+    const g = NB_KEYS[(gi + i) % NB_KEYS.length];
+    const it = NB_GEN[g](); it.gen = g;
+    const faible = traps.indexOf(it.trap) < 3;
+    if (it.trap === "simple" && !faible && Math.random() < 0.5) continue;
+    const forme = out.length % 4;
+    out.push(rq(forme === 3 && [...it.bon].every(c => NB_PY[c]) ? () => nbClavier(it)
+      : forme === 2 ? () => nbMCQ(it, "lire") : () => nbMCQ(it, "dire")));
+  }
+  return out;
+}
+function startNumbers() {
+  const screens = nbScreens(12);
+  // Hors objectif du jour, comme les paires de tons : un bonus, pas une corvée de plus.
+  startLesson({ title: "Nombres, heures, prix", screens, onDone: (sc, tot) => {
+    markActivity(); save();
+    const faibles = Object.keys(NB_TRAPS).filter(t => nbRate(t) >= 0 && nbRate(t) < 0.8);
+    return { title: `${sc} / ${tot}`, text: faibles.length ? `À retravailler : ${faibles.map(t => NB_TRAPS[t]).join(", ")}.` : "Les pièges sont tenus. Reviens dans quelques jours pour vérifier." };
+  } });
+}
+function viewNums() {
+  const chars = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "百", "千", "两", "点", "半", "刻", "分", "块", "毛", "岁", "个", "号", "年"];
+  const extra = new Set(NUM_EXTRA.map(x => x[0]));
+  const sens = { "零": "zéro", "一": "un", "二": "deux", "三": "trois", "四": "quatre", "五": "cinq", "六": "six", "七": "sept", "八": "huit", "九": "neuf", "十": "dix", "百": "cent", "千": "mille", "两": "deux (+ classif.)", "点": "heure", "半": "et demie", "刻": "quart", "分": "minute", "块": "yuan", "毛": "dixième", "岁": "an (âge)", "个": "classificateur", "号": "jour du mois", "年": "année" };
+  return `
+  <section class="panel">
+    <div class="row between"><div style="flex:1;min-width:220px">
+      <h3>Les nombres, les prix, les heures</h3>
+      <p class="muted small">C'est là qu'on se bloque en vrai : un prix annoncé, un rendez-vous à midi et demi, une date. Cinq pièges reviennent sans arrêt, et chacun garde son score.</p>
+    </div><button class="btn primary" type="button" data-numbers>12 questions</button></div>
+    <div class="tp-grid">${Object.keys(NB_TRAPS).map(t => {
+      const r = (S.nb || {})[t], n = r ? r.o + r.x : 0, pc = n ? Math.round(100 * r.o / n) : null;
+      return `<div class="tp-cell wide ${pc === null ? "none" : pc >= 80 ? "good" : pc < 60 ? "bad" : ""}"><b lang="zh-CN">${NB_TRAPS[t]}</b>${pc === null ? "—" : pc + " %"}</div>`;
+    }).join("")}</div>
+  </section>
+  <section class="panel">
+    <h3>Les cinq pièges</h3>
+    <ul class="tips">
+      <li><b>两 ou 二 ?</b> Devant un classificateur, c'est 两 : <span lang="zh-CN">两点</span> deux heures, <span lang="zh-CN">两块</span> deux yuans, <span lang="zh-CN">两个</span> deux unités. Pour compter ou dans un nombre composé, c'est 二 : <span lang="zh-CN">十二</span>, <span lang="zh-CN">二十</span>.</li>
+      <li><b>La place de 十.</b> De 11 à 19, 十 part tout seul : <span lang="zh-CN">十二</span>, pas 一十二. Mais après 百, il lui faut un chiffre : 110 = <span lang="zh-CN">一百一十</span>.</li>
+      <li><b>Le 零 du milieu.</b> Un zéro au milieu se dit, un zéro à la fin ne se dit pas : 105 = <span lang="zh-CN">一百零五</span>, 150 = <span lang="zh-CN">一百五十</span>.</li>
+      <li><b>半, 刻 et les minutes.</b> 7 h 30 = <span lang="zh-CN">七点半</span>, 7 h 15 = <span lang="zh-CN">七点一刻</span>, 7 h 05 = <span lang="zh-CN">七点零五分</span> — le zéro se dit là aussi.</li>
+      <li><b>L'année, chiffre par chiffre.</b> 2026 = <span lang="zh-CN">二零二六年</span>, jamais « deux mille vingt-six ».</li>
+    </ul>
+    <p class="small muted">Deux cas volontairement laissés de côté : 200 se dit 二百 au nord et 两百 ailleurs, et à l'oral un numéro de téléphone dit 幺 au lieu de 一.</p>
+  </section>
+  <section class="panel">
+    <h3>Les caractères des nombres</h3>
+    <div class="nb-chars">${chars.map(c => `<div class="nb-ch${extra.has(c) ? " extra" : ""}"><b lang="zh-CN">${c}</b>${py(NB_PY[c], "A1", "show")}<small>${esc(sens[c] || "")}</small></div>`).join("")}</div>
+    <p class="small muted">Les cadres en pointillés ne sont pas encore dans le parcours : pas de fiche ni d'ordre des traits pour eux, mais le clavier pinyin les connaît.</p>
+  </section>`;
+}
 
 // ---------- verrouillage des étapes ----------
 function stepLocked(u, si) {
