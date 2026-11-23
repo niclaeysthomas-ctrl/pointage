@@ -1280,7 +1280,10 @@ function stepsOf(u) {
   const by = k => STEPS.find(x => x.k === k);
   return (_steps[u.id] = [by("sons"), ...mots, by("gram"), ...(u.gram2 ? [STEP_EXTRA[0]] : []), STEP_EXTRA[1], by("dlg"), by("cult"), by("defi")]);
 }
-const INTERVALS = [0, 1, 3, 7, 16, 35]; // jours par boîte
+// Jours par boîte. La 6e à 90 jours : sans elle, un mot su depuis des mois revenait
+// tous les 35 jours et mangeait le budget quotidien pour rien.
+const INTERVALS = [0, 1, 3, 7, 16, 35, 90];
+const BOXMAX = 6;
 
 // ---------- utilitaires ----------
 const $ = (s, r = document) => r.querySelector(s);
@@ -1373,10 +1376,15 @@ const unitById = id => id === "u0" ? U0 : UNITS.find(u => u.id === id);
 
 // SRS
 function srsAdd(h) { if (!S.words[h]) S.words[h] = { b: 1, d: Date.now() + DAY }; }
+// Une erreur fait reculer de deux boîtes, pas tout perdre : rater 谢谢 une fois ne doit pas
+// effacer trois semaines de travail. En revanche la reprise dans la foulée ne rend pas les
+// boîtes perdues (w.lapse) — sinon il suffirait de se tromper puis de répondre juste.
 function srsAnswer(h, ok) {
   const w = S.words[h]; if (!w) return;
-  if (ok) { w.b = Math.min(5, w.b + 1); w.d = Date.now() + INTERVALS[w.b] * DAY; }
-  else { w.b = 1; w.d = Date.now() + 10 * 60000; }
+  if (ok) {
+    if (w.lapse && Date.now() - w.lapse < DAY) { delete w.lapse; w.d = Date.now() + INTERVALS[w.b] * DAY; }
+    else { w.b = Math.min(BOXMAX, w.b + 1); w.d = Date.now() + INTERVALS[w.b] * DAY; }
+  } else { w.b = Math.max(1, w.b - 2); w.lapse = Date.now(); w.d = Date.now() + 10 * 60000; }
   save();
 }
 // « Je sais déjà » : on place direct dans une boîte haute au lieu de repartir de 1.
@@ -1729,7 +1737,7 @@ function wordStatus(h) {
   const w = S.words[h];
   if (!w) return `<span class="wst new">nouveau</span>`;
   if (w.b >= 4) return `<span class="wst ok">acquis</span>`;
-  return `<span class="wst mid" aria-label="niveau ${w.b} sur 5">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= w.b ? "on" : ""}"></i>`).join("")}</span>`;
+  return `<span class="wst mid" aria-label="niveau ${w.b} sur 6">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= w.b ? "on" : ""}"></i>`).join("")}</span>`;
 }
 function viewMots() {
   const due = dueWords().length, seen = Object.keys(S.words).length;
@@ -2149,6 +2157,46 @@ function startReview() {
   } });
 }
 
+// ---------- sauvegarde : sortir et rentrer ----------
+function exportProgress() {
+  try {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(S)], { type: "application/json" }));
+    a.download = "mandarin-" + dayStr(Date.now()) + ".json"; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast("Fichier téléchargé. Range-le avec tes autres sauvegardes.");
+  } catch (e) { toast("Téléchargement impossible sur cet appareil."); }
+}
+// Fusion : on prend le meilleur des deux côtés. Un import ne peut donc jamais faire reculer.
+function importProgress(txt) {
+  let o;
+  try { o = JSON.parse(txt); } catch (e) { return "Ce fichier n'est pas une sauvegarde lisible."; }
+  if (!o || typeof o !== "object" || typeof o.words !== "object" || typeof o.done !== "object") return "Ce fichier n'est pas une sauvegarde de Mandarin entre amis.";
+  let nm = 0, nc = 0, ne = 0;
+  Object.keys(o.done || {}).forEach(k => { if (!S.done[k]) { S.done[k] = true; ne++; } });
+  Object.keys(o.chars || {}).forEach(c => { if (!S.chars[c]) S.chars[c] = o.chars[c]; });
+  const fuse = (mine, theirs) => {
+    Object.keys(theirs || {}).forEach(k => {
+      const t = theirs[k]; if (!t || typeof t.b !== "number") return;
+      const m = mine[k];
+      if (!m) { mine[k] = { b: t.b, d: t.d }; return 1; }
+      if (t.b > m.b) { m.b = t.b; m.d = t.d; }
+      else if (t.b === m.b && t.d < m.d) m.d = t.d;
+    });
+  };
+  const avant = Object.keys(S.words).length, avantC = Object.keys(S.cw || {}).length;
+  fuse(S.words, o.words); if (!S.cw) S.cw = {}; fuse(S.cw, o.cw);
+  nm = Object.keys(S.words).length - avant; nc = Object.keys(S.cw).length - avantC;
+  Object.keys(o.tp || {}).forEach(k => { const t = o.tp[k], m = (S.tp = S.tp || {})[k] || (S.tp[k] = { o: 0, x: 0 }); m.o = Math.max(m.o, t.o || 0); m.x = Math.max(m.x, t.x || 0); });
+  Object.keys(o.days || {}).forEach(d => { const t = o.days[d], m = (S.days = S.days || {})[d]; S.days[d] = m ? { steps: Math.max(m.steps || 0, t.steps || 0), rev: Math.max(m.rev || 0, t.rev || 0) } : t; });
+  Object.keys(o.ex || {}).forEach(d => { const t = o.ex[d], m = (S.ex = S.ex || {})[d] || (S.ex[d] = {}); Object.keys(t).forEach(k => (m[k] = Math.max(m[k] || 0, t[k]))); });
+  if (o.best > S.best) S.best = o.best;
+  if (o.streak && o.streak.last && (!S.streak.last || o.streak.last > S.streak.last)) S.streak = o.streak;
+  return save()
+    ? `Fusionné : ${nm} mot${nm > 1 ? "s" : ""} et ${nc} caractère${nc > 1 ? "s" : ""} en plus, ${ne} étape${ne > 1 ? "s" : ""} cochée${ne > 1 ? "s" : ""}.`
+    : "Fusion faite à l'écran, mais rien n'a pu être enregistré : regarde le bandeau rouge.";
+}
+
 // ---------- passerelle : ce que tu sais déjà lire ----------
 // Un import n'ajoute que du connu : il ne retire jamais rien, ne remet jamais une boîte en arrière.
 function scanKnown(txt) {
@@ -2201,7 +2249,10 @@ function renderSettings() {
     <div class="set-group"><h3>Sources des caractères</h3>
       <p class="small muted">Décompositions et ordre des traits : projet libre Make Me a Hanzi (données sous licence Arphic Public License et LGPL). Les formes anciennes sont des dessins simplifiés, refaits pour l'application d'après les écritures sur os et sur bronze : ce ne sont pas des reproductions exactes. Les étymologies suivent les explications les plus admises ; quand l'origine est discutée, la fiche le dit. Les moyens mnémotechniques, eux, sont des images pour retenir, pas de l'histoire.</p></div>
     <div class="set-group"><h3>Progression</h3>
-      <p class="small muted">Ta progression est enregistrée dans ce navigateur, sur cet appareil uniquement. Si tu changes d'appareil ou effaces les données du navigateur, elle repart de zéro.</p>
+      <p class="small muted">Elle est enregistrée dans ce navigateur, sur cet appareil seulement, et LE COFFRE ne la sauvegarde pas : elle a sa propre clé. Télécharge-la de temps en temps.</p>
+      <div class="row"><button class="btn ghost sm" id="expBtn">Télécharger ma progression</button><button class="btn ghost sm" id="impBtn">Charger un fichier</button></div>
+      <input type="file" id="impFile" accept="application/json,.json" hidden>
+      <p class="small muted">Charger un fichier <b>fusionne</b> : pour chaque mot on garde la boîte la plus haute et la révision la plus proche, et les étapes cochées des deux côtés. Rien n'est perdu, rien n'est écrasé.</p>
       <button class="btn danger sm" id="resetBtn">Réinitialiser ma progression</button></div>`;
   $("#setBody").querySelectorAll("[data-pinyin]").forEach(b => b.onclick = () => { S.settings.pinyin = b.dataset.pinyin; save(); renderSettings(); render(); });
   $("#setBody").querySelectorAll("[data-rate]").forEach(b => b.onclick = () => { S.settings.rate = +b.dataset.rate; save(); renderSettings(); speak("你好"); });
@@ -2225,6 +2276,15 @@ function renderSettings() {
     const ok = applyKnown(r);
     closeSettings(); render();
     toast(ok ? `${r.chars.length} caractères et ${r.words.length} mots marqués comme connus.` : "Impossible d'enregistrer : rien n'a été marqué.");
+  };
+  $("#expBtn").onclick = exportProgress;
+  $("#impBtn").onclick = () => $("#impFile").click();
+  $("#impFile").onchange = e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { const res = importProgress(r.result); toast(res); renderSettings(); render(); };
+    r.onerror = () => toast("Fichier illisible.");
+    r.readAsText(f);
   };
   const rb = $("#resetBtn"); let armed = false;
   rb.onclick = () => {
@@ -2700,7 +2760,10 @@ function viewU0() {
 function charAdd(c) { if (!S.cw) S.cw = {}; if (!S.cw[c] && STROKES[c]) S.cw[c] = { b: 1, d: Date.now() + DAY }; }
 function charAnswer(c, ok) {
   const w = S.cw && S.cw[c]; if (!w) return;
-  if (ok) { w.b = Math.min(5, w.b + 1); w.d = Date.now() + INTERVALS[w.b] * DAY; } else { w.b = 1; w.d = Date.now() + 10 * 60000; }
+  if (ok) {
+    if (w.lapse && Date.now() - w.lapse < DAY) { delete w.lapse; w.d = Date.now() + INTERVALS[w.b] * DAY; }
+    else { w.b = Math.min(BOXMAX, w.b + 1); w.d = Date.now() + INTERVALS[w.b] * DAY; }
+  } else { w.b = Math.max(1, w.b - 2); w.lapse = Date.now(); w.d = Date.now() + 10 * 60000; }
   save();
 }
 const dueChars = () => Object.keys(S.cw || {}).filter(c => S.cw[c].d <= Date.now() && STROKES[c]).sort((a, b) => S.cw[a].d - S.cw[b].d);
