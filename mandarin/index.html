@@ -2178,7 +2178,7 @@ function renderSettings() {
       const r = scanKnown(ki.value); knownTxt = ki.value;
       if (!r.chars.length && !r.words.length) { ko.innerHTML = `<span class="muted">Aucun caractère de l'application là-dedans${r.hors.length ? `, et ${r.hors.length} que l'application ne couvre pas encore` : ""}.</span>`; return; }
       knownScan = r;
-      ko.innerHTML = n(r.chars.length, "caractère reconnu", "caractères reconnus") + ` <span class="muted">sur ${CHAR_LIST.length}</span>`
+      ko.innerHTML = `<span><b>${r.chars.length}</b> caractère${r.chars.length > 1 ? "s" : ""} reconnu${r.chars.length > 1 ? "s" : ""} <span class="muted">sur ${CHAR_LIST.length}</span></span>`
         + n(r.words.length, "mot marqué comme su", "mots marqués comme sus") + n(r.steps.length, "étape cochée", "étapes cochées")
         + (r.hors.length ? `<span class="muted">${r.hors.length} caractère${r.hors.length > 1 ? "s" : ""} que tu connais ${r.hors.length > 1 ? "ne sont" : "n'est"} pas encore dans l'application.</span>` : "");
       kb.textContent = "Confirmer : marquer comme connus"; kb.classList.remove("ghost"); kb.classList.add("primary");
