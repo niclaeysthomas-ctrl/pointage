@@ -437,6 +437,364 @@ corps: `
 `,
 plus: "Pour creuser : Isabella Tree, <em>Wilding</em> (2018), le récit de Knepp par celle qui l'a fait · Daniel Pauly, « Anecdotes and the shifting baseline syndrome of fisheries » (1995), trois pages qui ont nommé le glissement des références · et pour l'envers du décor, les analyses des écologues de l'Oregon State University sur ce que les loups de Yellowstone ont réellement provoqué."
 }
+,
+
+{
+id: "allemand",
+titre: "Est-ce que l'allemand pense mieux ?",
+sous: "Plus de mots, donc moins de malentendus, donc plus de philosophie — vérifions chaque maillon",
+note: "Langue allemande : plus de mots, donc moins de problèmes, et plus de philo ?",
+src: "Mehdi",
+min: 12,
+corps: `
+<p>L'idée est séduisante et elle circule beaucoup : l'allemand aurait plus de mots, ces mots seraient plus précis, donc on s'y comprendrait mieux, et c'est pour ça que la philosophie y serait née si massivement. Trois affirmations enchaînées. Le plus utile est de les séparer, parce qu'elles sont fausses, vraies et intéressantes dans cet ordre-là.</p>
+
+<h4>1. « Plus de mots » est en grande partie une illusion typographique</h4>
+<p>L'allemand compose sans espace. Là où le français écrit « assurance maladie » en deux mots, l'allemand écrit <em>Krankenversicherung</em> en un seul. Les mêmes concepts, la même longueur, une convention orthographique différente — et un mot de plus au dictionnaire. Compter les entrées d'un dictionnaire allemand contre un dictionnaire français, c'est comparer deux manières d'utiliser la barre d'espace.</p>
+<p>Mais il reste un phénomène réel sous l'illusion, et il est plus intéressant que le décompte : la composition allemande est <em>productive</em>. Tu peux fabriquer un mot qui n'existe pas et être compris immédiatement. <em>Verschlimmbesserung</em> : une amélioration qui aggrave les choses. <em>Kummerspeck</em> : littéralement « lard de chagrin », les kilos pris en se consolant. <em>Treppenwitz</em> : la réplique parfaite qui te vient dans l'escalier, trop tard. <em>Fernweh</em> : le mal du pays à l'envers, la douleur d'être resté.</p>
+<p>Le français peut dire tout cela — je viens de le faire — mais en une phrase, pas en un mot. La différence n'est donc pas ce qu'on peut penser. C'est le <em>coût</em> de l'invoquer. Un concept qui tient dans un mot est gratuit à mobiliser ; un concept qui demande une périphrase se paie à chaque usage, et on finit par ne plus le payer. C'est la vraie thèse défendable, et elle est bien plus modeste que « l'allemand est plus précis » : l'allemand rend certaines distinctions <em>moins chères</em>.</p>
+
+<h4>2. Moins de mots manquants ne veut pas dire moins de malentendus</h4>
+<p>Ici le maillon casse. L'hypothèse selon laquelle la langue déterminerait la pensée — la version forte de Sapir-Whorf — a été abandonnée, et pas par idéologie : parce que les expériences ne la trouvent pas.</p>
+<p>Ce qu'on trouve est réel mais petit. Le russe a deux mots obligatoires pour le bleu, <em>goluboï</em> (clair) et <em>siniï</em> (foncé) ; des russophones distinguent deux nuances légèrement plus vite que des anglophones, un avantage de quelques dizaines de millisecondes qui disparaît si on leur occupe la bouche avec une tâche verbale. Les locuteurs du guugu yimithirr, en Australie, n'ont pas de « gauche » et « droite » et s'orientent par points cardinaux absolus, même dans une pièce aveugle — ils savent donc faire quelque chose que nous ne savons pas faire. Mais dans aucun de ces cas la langue n'empêche de concevoir : elle rend une opération plus rapide ou plus habituelle.</p>
+<p>Et surtout, la relation se retourne. Un mot disponible peut tout aussi bien <em>loger</em> une mauvaise idée et la rendre indiscutable. L'allemand en fournit le cas d'école : <em>Lebensraum</em>, « espace vital », n'est pas un mot précis, c'est une thèse géopolitique déguisée en substantif ; <em>Gleichschaltung</em>, la « mise au pas », a fait passer l'écrasement des institutions pour un réglage technique. Victor Klemperer, philologue juif resté à Dresde, a tenu pendant douze ans le journal de ce que le régime faisait à sa langue (<em>LTI</em>, 1947) : sa conclusion est qu'on n'a pas eu besoin de convaincre les gens, il a suffi de leur donner les mots. Un vocabulaire riche, c'est donc aussi un stock plus large de pensées préfabriquées qu'on n'a plus à formuler soi-même. « Plus de mots, donc moins de problèmes » n'est pas acquis du tout.</p>
+
+<h4>3. La philosophie allemande n'a pas de cause linguistique</h4>
+<p>Pourquoi, alors, autant de philosophie en allemand entre 1780 et 1930 ? L'explication est institutionnelle, et elle est datable.</p>
+<p>Jusqu'au début du XVIII<sup>e</sup> siècle, on philosophait en Europe en latin. C'est Christian Wolff qui entreprend délibérément d'écrire la philosophie en allemand, et pour cela il <em>fabrique</em> le vocabulaire : <em>Begriff</em> (concept), <em>Bewusstsein</em> (conscience), <em>Verhältnis</em> (rapport). Autrement dit, les mots philosophiques allemands n'ont pas permis la philosophie allemande : ils en sont le produit. Puis vient la réforme universitaire prussienne de Humboldt (1810), qui invente l'université de recherche moderne et salarie des professeurs de philosophie en nombre. Une discipline financée pendant un siècle produit beaucoup de textes. Cela n'a rien à voir avec la grammaire.</p>
+<p>Heidegger a soutenu que seuls le grec et l'allemand étaient capables de philosopher. Il faut voir la forme de cet énoncé : un philosophe nationaliste affirmant que sa propre langue est l'organe de la pensée. Ce n'est pas une observation, c'est une thèse — et qui demanderait une démonstration que personne n'a jamais fournie. Elle se heurte d'ailleurs à des contre-exemples écrasants : la <em>falsafa</em> arabe, et surtout le sanskrit, qui possède probablement l'appareil technique le plus raffiné jamais construit pour discuter de connaissance et d'inférence (la tradition nyāya), avec des termes dont l'allemand n'a pas d'équivalent.</p>
+
+<h4>Ce qui est vrai, et plus beau</h4>
+<p>Voici ce que je garderais de la note de Mehdi, en la déplaçant. Les intraduisibles ne montrent pas qu'une langue pense mieux. Ils montrent qu'une langue <em>se souvient</em> mieux de certaines choses. Un lexique est de l'attention sédimentée : une communauté qui s'est préoccupée longtemps d'un problème finit par avoir un mot court pour le dire. L'allemand a <em>Bildung</em>, <em>Rechtsstaat</em>, la distinction <em>Verstand</em>/<em>Vernunft</em> — parce que ces disputes ont eu lieu en allemand. Le français a <em>laïcité</em>, <em>dépaysement</em>, <em>terroir</em>, pour la même raison. Le vocabulaire n'est pas une limite de la pensée, c'est l'archive des obsessions d'un peuple.</p>
+<p>Et il existe un test décisif, qui tranche en une ligne : la traduction. Si une langue bornait la pensée, Kant serait illisible en français. Il est difficile en français — et exactement aussi difficile en allemand. La difficulté est dans la chose pensée, pas dans la langue qui la porte.</p>
+`,
+question: "Prends un mot allemand que tu trouves intraduisible et dis-le en français, en une phrase. Qu'est-ce que tu perds exactement : de la précision, ou seulement de la brièveté ?",
+plus: "Guy Deutscher, <em>Through the Language Glass</em> (2010), le livre le plus honnête sur ce que la langue fait et ne fait pas · Victor Klemperer, <em>LTI, la langue du III<sup>e</sup> Reich</em> (1947) · Barbara Cassin (dir.), <em>Dictionnaire des intraduisibles</em> (2004), mille cinq cents pages sur exactement cette question · et les articles de Lera Boroditsky pour les effets mesurés, petits et réels."
+},
+
+{
+id: "limites",
+titre: "Faut-il des limites à la liberté d'expression ?",
+sous: "Pourquoi la vraie question n'est jamais « quelles limites » mais « qui décide »",
+note: "Should there be limits to free speech ? Why ? Free speech comes at a cost, that's why it is so valuable to withhold.",
+src: "Podcast Konstantin Kisin / Alex O'Connor",
+min: 13,
+corps: `
+<p>Commençons par désamorcer le débat, parce qu'il est presque toujours mal posé. Personne ne défend l'absence de limites. Le parjure est puni, l'escroquerie est punie, le chantage, la menace de mort, la divulgation de secrets militaires, la publicité mensongère, l'appel au meurtre devant une foule armée. Même le partisan le plus absolutiste de la liberté d'expression accepte tout cela sans broncher.</p>
+<p>Donc la réponse à « faut-il des limites ? » est oui, et elle est sans intérêt. La question qui mord est ailleurs : <em>limites de quel type, tracées par qui, selon quelle procédure, et révisables comment ?</em> Presque chaque fois qu'on débat du « pour ou contre », on débat en réalité de l'attribution d'un pouvoir, sans le dire.</p>
+
+<h4>Deux justifications qui ne donnent pas la même réponse</h4>
+<p>Il y a deux grandes manières de défendre la liberté d'expression, et il est capital de ne pas les confondre, parce qu'elles résistent inégalement.</p>
+<p><strong>La première est épistémique</strong>, c'est celle de Mill : la vérité émerge de la confrontation, donc interdire une thèse nous prive de la correction qu'elle apportait, y compris quand elle est fausse — car une vérité qu'on n'a plus besoin de défendre se dégrade en préjugé. C'est une justification par les conséquences. Et comme toute justification par les conséquences, elle est attaquable par les faits. Si l'on montre que le mensonge circule plus vite que sa réfutation — ce que l'étude de Vosoughi, Roy et Aral dans <em>Science</em> (2018) a mesuré sur onze ans de Twitter, où le faux se diffusait plus loin et plus vite que le vrai dans toutes les catégories sauf une — alors le « marché des idées » ne converge pas vers le vrai, et l'argument de Mill vacille. C'est précisément là qu'appuie un interlocuteur du type d'Alex O'Connor : <em>si votre défense est empirique, elle peut être réfutée empiriquement.</em></p>
+<p><strong>La seconde justification est déontique</strong>, et on la cite trop peu : c'est celle de Thomas Scanlon (1972). Un État qui filtre ce que tu as le droit d'entendre, même avec raison, te traite comme incapable de juger par toi-même. Il obtient peut-être chez toi de meilleures croyances, mais il les obtient <em>en contournant ton jugement</em> — et une croyance juste imposée de cette façon n'est plus la tienne. Remarque l'asymétrie décisive : cet argument porte sur le droit de <em>l'auditeur</em>, pas sur celui de l'orateur. Et il survit à l'échec empirique du premier : même dans un monde où la censure améliorerait les croyances moyennes, elle resterait une offense faite à chacun. C'est la version solide.</p>
+
+<h4>La bonne limite ne porte pas sur le contenu, mais sur la proximité de l'acte</h4>
+<p>Mill lui-même donne l'exemple qui résout presque tout. L'opinion selon laquelle les marchands de grains affament le peuple, dit-il, doit pouvoir être imprimée librement. Mais hurlée devant la maison d'un marchand, à une foule en colère, la nuit, elle n'est plus une opinion : elle est le déclenchement d'un lynchage. <em>Les mêmes mots</em>, protégés dans un cas, punissables dans l'autre.</p>
+<p>Le droit américain a fini par formaliser exactement cela en 1969 (<em>Brandenburg v. Ohio</em>) : l'appel à la violence n'est punissable que s'il vise une action illégale <em>imminente</em> et qu'il est vraisemblable qu'elle suive. C'est, à mon avis, l'acquis technique le plus important du sujet : une bonne règle sur la parole ne classe pas les énoncés par leur fausseté ou leur laideur, mais par leur distance à un acte. On ne régule pas le contenu, on régule le mécanisme.</p>
+
+<h4>Pourquoi ne pas interdire le faux, pourtant ?</h4>
+<p>Trois raisons, et aucune n'est « parce que le faux est inoffensif ».</p>
+<p><strong>Parce qu'il faut nommer un arbitre.</strong> Dès qu'un organe décide du vrai, toutes les erreurs de cet organe deviennent simultanément les erreurs de tout le monde. Un système où chacun se trompe de son côté est robuste par désordre ; un système à arbitre unique centralise le risque d'erreur. Et l'histoire des arbitres est accablante : Galilée, Semmelweis moqué pour avoir demandé qu'on se lave les mains, les reversements successifs des autorités sanitaires au début de la pandémie. L'arbitre ne se trompe pas plus souvent qu'un autre — mais il se trompe pour tous à la fois.</p>
+<p><strong>Parce que l'arbitre n'est pas choisi par toi.</strong> Il est nommé par qui détient le pouvoir aujourd'hui, et conservé par qui le détiendra demain. Tout pouvoir de censure que tu crées est un outil que tu lègues à ton adversaire. C'est le point que martèle Konstantin Kisin, et il le tient de son histoire familiale soviétique : les restrictions ne protègent jamais les faibles, parce que le droit de définir ce qui est haineux atterrit toujours chez le plus fort. Ce n'est pas un argument moral, c'est une prédiction institutionnelle — et elle est, le plus souvent, vérifiée.</p>
+<p><strong>Parce que la frontière du faux n'est pas étanche.</strong> « La Terre a six mille ans » est faux ; « cette politique migratoire est un échec » est un jugement ; entre les deux il y a un continuum sur lequel aucune règle ne sait s'arrêter.</p>
+
+<h4>Le meilleur argument d'en face, qu'il faut prendre au sérieux</h4>
+<p>Un absolutisme qui ignore que la parole peut faire taire n'est pas sérieux. Le harcèlement coordonné, la menace répétée, la publication de l'adresse de quelqu'un : tout cela produit du silence, et le silence produit ainsi n'apparaît dans aucune statistique de censure. Catharine MacKinnon le formule brutalement : la parole de certains réduit celle des autres. On peut lui répondre que ces cas relèvent déjà de catégories existantes — menace, harcèlement, atteinte à la vie privée — et c'est juste. Mais cela confirme le principe au lieu de l'affaiblir : on punit l'acte accompli par la parole, pas l'opinion qu'elle véhicule.</p>
+
+<h4>Ta note : « free speech comes at a cost, that's why it is valuable »</h4>
+<p>C'est la phrase la plus juste de tes notes, et elle mérite d'être développée, parce qu'elle vaut pour tous les principes.</p>
+<p>Un droit ne se manifeste que là où il coûte. Tant qu'un principe recouvre exactement ce que tu voulais faire de toute façon, il ne fait rien : c'est une préférence déguisée. Il ne devient un principe qu'au moment où il te contraint contre ton intérêt — où il te force à protéger la parole que tu méprises, à défendre la publication qui te nuit. Le cas-test d'un droit n'est jamais le discours qu'on aime.</p>
+<p>Il faut donc renverser le réflexe habituel. Le coût de la liberté d'expression n'est pas un défaut qu'un bon aménagement réduirait : c'est le prix d'existence de la chose. C'est la même structure que la présomption d'innocence, qui laisse délibérément sortir des coupables, ou que l'interdiction de la torture, qui renonce délibérément à des informations. On a choisi de payer. Un droit sans coût n'est pas un droit : c'est une facilité, et elle sera retirée le jour où elle gênera.</p>
+<p>Ce qui donne, finalement, le seul test pratique que je connaisse, et qui tient en une question.</p>
+`,
+question: "La règle de limitation de la parole qui te semble raisonnable : imagine-la écrite dans les mêmes termes, mais appliquée par la personne ou le camp que tu redoutes le plus. Tu la gardes ?",
+plus: "John Stuart Mill, <em>De la liberté</em> (1859), chapitre II — et l'exemple du marchand de grains au chapitre III · Thomas Scanlon, « A Theory of Freedom of Expression » (1972), vingt pages qui changent la discussion · <em>Brandenburg v. Ohio</em> (1969) pour le critère d'imminence · Vosoughi, Roy & Aral, « The spread of true and false news online », <em>Science</em>, 2018 · à lire ensuite avec « La censure : symptôme ou cause de la tyrannie ? » et « La pente glissante est-elle un sophisme ? »"
+},
+
+{
+id: "psychique",
+titre: "Si l'esprit vient du cerveau, insulter est-il frapper ?",
+sous: "Un argument rapide, et pourquoi il prouve trop",
+note: "The mind is also from the « brain » so psychological violence is also a physical one no ? Difference in both ? Utility of it, désinformation…",
+src: "Tes notes, podcast Kisin / O'Connor",
+min: 12,
+corps: `
+<p>Ton argument, mis au propre, a cette forme :</p>
+<p>1. Les états mentaux sont des états du cerveau. 2. Les mots produisent des états mentaux. 3. Donc les mots produisent des modifications physiques du cerveau. 4. Or le cerveau fait partie du corps. 5. Et la violence physique, c'est la modification nuisible du corps. 6. Donc la violence psychologique est une violence physique.</p>
+<p>C'est serré, et la conclusion est de plus en plus défendue. Pourtant elle est fausse. Ce qui est intéressant, c'est <em>où</em> elle casse — parce que ce n'est pas là où on croit.</p>
+
+<h4>Le matérialisme n'est pas le problème : accorde-le entièrement</h4>
+<p>Inutile de contester la prémisse 1. Accorde-la sans réserve : il n'y a pas d'esprit flottant à côté du cerveau, et toute modification mentale est une modification matérielle. L'argument n'en devient pas meilleur, parce qu'il casse plus loin, au passage de « modification physique » à « violence ».</p>
+<p>Car si toute modification physique du cerveau induite par autrui est une violence, alors <em>tout</em> l'est. Lire ce texte modifie ton cerveau. Une bonne blague le modifie. Apprendre quelque chose le modifie physiquement de façon durable — c'est exactement la découverte pour laquelle Eric Kandel a eu le Nobel : apprendre, c'est changer ses synapses. Une déclaration d'amour est une intervention neurochimique considérable. Si l'argument était bon, enseigner serait une agression, et toute communication aussi.</p>
+<p>Un concept qui s'applique à tout ne distingue plus rien. L'argument ne se trompe pas en chemin : il prouve trop. Et un argument qui prouve trop ne prouve rien.</p>
+
+<h4>Ce qui est vrai, et qu'il faut concéder</h4>
+<p>Il ne s'agit pas de dire que les mots ne font pas de mal. Le dossier scientifique existe : l'exposition prolongée au stress social laisse des traces physiologiques mesurables — élévation chronique du cortisol, charge allostatique, et dans certaines études un raccourcissement des télomères chez des personnes soumises à des années de maltraitance. Lisa Feldman Barrett s'est appuyée là-dessus dans un article très discuté pour soutenir que certaines paroles peuvent nuire au corps.</p>
+<p>Mais regarde ce que montre exactement cette littérature : elle porte sur le <em>chronique</em>, pas sur l'offensant. Des années de harcèlement ou d'humiliation parentale abîment un organisme ; une phrase désagréable dans un débat, non. Barrett elle-même trace cette ligne. Confondre les deux, c'est faire glisser « certaines paroles nuisent durablement » vers « la parole est une violence », ce qui n'est pas une précision mais un changement de catégorie.</p>
+
+<h4>La différence réelle n'est pas matérielle, elle est structurelle</h4>
+<p>Trois différences, et aucune ne suppose un esprit immatériel.</p>
+<p><strong>La médiation par l'interprétation.</strong> Le coup agit quel que soit ce que tu en penses : un marteau fracture le crâne d'un croyant comme celui d'un sceptique, d'un francophone comme d'un sourd, d'un endormi. L'insulte, elle, n'agit que si tu la comprends — en d'autres termes, elle passe nécessairement par ton jugement. C'est pourquoi on peut devenir insensible à une insulte en changeant ce qu'on en fait, et jamais insensible à une fracture. La violence contourne l'agent ; la parole opère à travers lui. (C'est exactement l'argument de Scanlon dans l'autre texte : et c'est pour cette raison que traiter la parole comme un coup, c'est nier qu'il y ait quelqu'un qui interprète.)</p>
+<p><strong>La déterminabilité causale.</strong> Les mêmes mots détruisent une personne et ennuient la suivante. Le même coup de couteau, au même endroit, fait à peu près la même chose à tout le monde. Un système de règles a besoin de la seconde régularité : on peut écrire « ne pas rompre un os », on ne peut pas écrire « ne pas produire chez autrui un état qu'il déclarera insupportable ».</p>
+<p><strong>L'espace de réponse.</strong> On peut répondre à des mots par des mots, et la réponse est du même ordre que l'attaque. On ne répond pas à une fracture par un argument. Cette asymétrie n'est pas un détail rhétorique : c'est elle qui rend la parole gouvernable autrement que par la force.</p>
+
+<h4>L'utilité de l'équation — et c'est là que ça devient sérieux</h4>
+<p>Tu notes « utility of it ». Demandons-nous alors à quoi sert <em>pratiquement</em> d'affirmer que les mots sont une violence. La réponse est simple : si les mots sont une violence, alors la force devient une légitime défense. C'est tout le gain de l'opération, et c'est tout son danger.</p>
+<p>Ajoute un second effet. Le déclencheur du dommage, dans cette théorie, est le ressenti rapporté par celui qui écoute — une donnée que personne d'autre ne peut vérifier, contester ni mesurer. Un critère invérifiable et sans borne ne reste pas inemployé : il devient l'instrument de qui l'invoque le plus fort. Et par construction il profite au groupe le mieux placé pour faire reconnaître son ressenti, c'est-à-dire pas au plus faible.</p>
+
+<h4>La bonne formulation</h4>
+<p>Il existe pourtant une part de l'intuition adverse qui est irréductible, et il faut lui donner sa place. Certaines paroles ne <em>disent</em> rien, elles <em>font</em> quelque chose : « je te retrouve ce soir » adressé à quelqu'un qu'on traque, la menace, le harcèlement soutenu, l'humiliation quotidienne d'un enfant par son parent. J. L. Austin a donné le nom de cette classe : des énoncés performatifs, qui accomplissent au lieu de décrire. Les systèmes juridiques sérieux les traitent déjà à part — et c'est une confirmation, non une exception.</p>
+<p>D'où la reformulation que je garderais, et qui dit presque le contraire de la tienne tout en conservant ce qu'elle visait : <em>la parole n'est pas une violence, mais certains énoncés sont des actes</em> — et il faut les classer par ce qu'ils font, non par ce qu'ils font ressentir. L'utilité de maintenir la distinction est exactement là : c'est elle qui maintient la riposte proportionnée.</p>
+`,
+question: "Prends une phrase qui t'a vraiment blessé, et un coup que tu as reçu. Qu'est-ce que tu pouvais faire contre l'un que tu ne pouvais pas faire contre l'autre ? Ce que tu trouveras est la différence que le droit essaie d'écrire.",
+plus: "J. L. Austin, <em>Quand dire, c'est faire</em> (1962), pour les énoncés qui agissent · Lisa Feldman Barrett, « When Is Speech Violence? », <em>New York Times</em>, 14 juillet 2017, à lire avec sa distinction chronique/ponctuel · Eric Kandel sur l'apprentissage comme modification synaptique · et le texte « Faut-il des limites à la liberté d'expression ? » dont celui-ci est l'autre moitié."
+}
+,
+
+{
+id: "symptome",
+titre: "La censure : symptôme ou cause de la tyrannie ?",
+sous: "Ton intuition est juste, et elle laisse de côté le plus intéressant",
+note: "Societies with free speech restrictions : symptom or cause of tyranny ? Symptom because people who can do that already have power.",
+src: "Tes notes, podcast Kisin / O'Connor",
+min: 12,
+corps: `
+<p>Ton raisonnement est bon et il faut d'abord le dire clairement, parce qu'il a une forme logique propre. Interdire une parole suppose la capacité de l'interdire : des tribunaux, une police, une administration, ou au minimum une majorité sociale capable de faire taire. Donc la censure présuppose le pouvoir. Donc elle ne peut pas être l'origine du pouvoir qu'elle présuppose. Elle est un indice, pas une source.</p>
+<p>C'est juste. Et c'est insuffisant, pour une raison précise : prendre le pouvoir et le <em>garder</em> ne sont pas le même problème, et la censure ne sert pas au premier.</p>
+
+<h4>L'alternative est mal posée</h4>
+<p>« Symptôme ou cause » suppose qu'une chose ne peut pas être les deux. Prends la fièvre : elle est le signe d'une infection, et simultanément un mécanisme actif de la réponse de l'organisme. Signe de X et cause du maintien de X : il n'y a aucune contradiction là-dedans, seulement une boucle. La censure a cette forme. Elle est le symptôme d'un pouvoir déjà acquis, et le mécanisme de sa <em>consolidation</em>.</p>
+
+<h4>Le mécanisme : la censure résout le problème d'information des régimes</h4>
+<p>Voici pourquoi elle n'est pas décorative mais porteuse. Timur Kuran a donné le modèle le plus éclairant dans <em>Private Truths, Public Lies</em> (1995) : ce qui tient un régime impopulaire debout, ce n'est pas que les gens l'approuvent, c'est qu'ils ignorent combien d'autres le désapprouvent. Chacun dissimule sa préférence parce que parler coûte cher quand on se croit seul. L'État n'a donc pas besoin de convaincre : il a besoin que l'opposition reste inobservable à elle-même.</p>
+<p>La censure est exactement la machine qui entretient cette ignorance mutuelle. Et son caractère porteur se voit au moment où elle lâche : 1989. En quelques semaines, sans changement de rapport de forces militaire, des régimes considérés comme solides s'effondrent — parce que chacun découvre, dans la rue, le nombre des autres. Ce qui s'est effondré n'était pas la force : c'était le monopole de l'information sur l'état des opinions. Donc la restriction de parole n'est pas un simple ornement du pouvoir : elle en est un organe. Elle est bien un symptôme, et ce symptôme fait tenir la maladie.</p>
+
+<h4>Première correction à ta prémisse : le pouvoir requis a changé de nature</h4>
+<p>Guriev et Treisman ont décrit les régimes contemporains comme des « autocraties informationnelles » : ils interdisent moins qu'ils ne saturent. Plutôt que de supprimer une information, on la noie — par le volume, la propagande bon marché, la polémique de diversion. Le travail de Gary King sur la censure chinoise va dans le même sens : l'appareil supprime moins la critique du régime que les appels à <em>se rassembler</em>. Ce n'est pas le contenu qui est visé, c'est la coordination.</p>
+<p>Conséquence directe pour ta note : si restreindre la parole ne demande plus l'appareil d'un État policier mais seulement une capacité d'amplification, alors « ceux qui peuvent le faire ont déjà le pouvoir » reste vrai mais change complètement de sens. Le pouvoir en question devient privé, distribué, et surtout : il n'a pas eu à être conquis politiquement.</p>
+
+<h4>Deuxième correction : l'État n'est pas le seul censeur</h4>
+<p>Font aussi taire : les employeurs, les comités de recrutement, les annonceurs, les foules. Et ici ta prémisse est à son plus fort — le pouvoir d'une meute de faire perdre son emploi à quelqu'un est bien le signe d'un pouvoir social qu'elle détient déjà. Mais elle est aussi, par un autre bout, à son plus faible : cette forme de restriction peut être <em>cause</em> de tyrannie politique, parce qu'elle sélectionne à l'avance qui a le droit d'avoir une carrière publique, et ne laisse donc subsister aucune contre-élite capable de parler le jour où il faudrait.</p>
+<p>Tocqueville avait vu cette variante, et il la jugeait plus complète que celle d'un roi : la tyrannie de l'opinion majoritaire n'a pas besoin de police, parce qu'elle obtient le silence sans jamais avoir à l'ordonner. Aucun décret, aucune archive, aucun martyr — donc aucune trace. C'est d'ailleurs ce qui la rend si difficile à mesurer : les restrictions étatiques se comptent, l'autocensure non.</p>
+
+<h4>L'honnêteté exige une concession</h4>
+<p>« Restriction, donc tyrannie » n'est pas une loi, et il faut le dire franchement. Presque toutes les démocraties libérales ont eu des délits de blasphème, d'obscénité, de sédition, sans devenir des tyrannies. Et dans l'autre sens : la République de Weimar avait une presse d'une vitalité remarquable, et cela ne l'a pas sauvée — ce qui l'a tuée est passé par l'article 48 de sa constitution, c'est-à-dire par ses propres procédures d'exception. Donc ni la restriction ne suffit à annoncer la tyrannie, ni la liberté de presse ne suffit à l'empêcher. Si l'on veut tenir l'enchaînement, il faut l'argumenter à part — c'est précisément le travail de la pente glissante, qui a son propre texte.</p>
+
+<h4>Ce que ça change pratiquement : regarde la procédure, pas la liste</h4>
+<p>Si la censure est un symptôme fiable, alors elle a une valeur d'indicateur avancé, et il vaut la peine de savoir quoi observer. Or l'erreur habituelle est de regarder <em>ce qui</em> est interdit — la liste des contenus. Cette liste est peu informative : toutes les sociétés en ont une, et la comparer d'un pays à l'autre revient à comparer des tabous.</p>
+<p>Le bon indicateur est la <strong>procédure</strong> de restriction, et elle se lit en quatre questions : la limite est-elle décidée par une règle écrite à l'avance ou par une décision au cas par cas ? S'applique-t-elle aussi à ceux qui l'ont écrite ? Existe-t-il un recours devant un organe qui ne dépend pas d'eux ? Et est-elle réversible — a-t-on déjà vu une telle restriction être levée ?</p>
+<p>Une société qui interdit beaucoup de choses par des règles générales, contestables et symétriques est en meilleure santé qu'une société qui n'interdit presque rien mais le fait par décision discrétionnaire et sans appel. Ce n'est pas le volume qui compte, c'est la symétrie.</p>
+`,
+question: "Dans ton pays, prends une limite à l'expression qui existe réellement. Qui l'a décidée, qui peut la contester devant qui, et s'applique-t-elle à ceux qui l'ont écrite ?",
+plus: "Timur Kuran, <em>Private Truths, Public Lies</em> (1995), le livre qui explique 1989 · Sergei Guriev & Daniel Treisman, <em>Spin Dictators</em> (2022) · Gary King, Jennifer Pan & Margaret Roberts sur la censure chinoise (2013) : ce qui est supprimé, c'est la coordination · Tocqueville, <em>De la démocratie en Amérique</em>, I, 2<sup>e</sup> partie, sur la tyrannie de la majorité."
+},
+
+{
+id: "gratuit",
+titre: "« Quand c'est gratuit, c'est toi le produit »",
+sous: "Masterclass : ce que la formule attrape, et les quatre choses qu'elle rate",
+note: "Réfléchis sur la quote « quand c'est gratuit c'est toi le produit » — masterclass complète mais intéressante, avec des exemples niches, pas seulement « les sites internet vendent vos données ».",
+src: "Ta demande, 14 novembre",
+min: 16,
+corps: `
+<p>La formule est excellente comme réveil et médiocre comme analyse. Elle est juste sur un point : il y a un payeur, et ce n'est pas toi. Elle se trompe sur ce qui est vendu, sur qui est exposé, sur la nature du dommage, et sur la monnaie employée. Prenons-la au sérieux au point de la casser.</p>
+
+<h4>Elle a été dite d'abord de la télévision, en 1973</h4>
+<p>On l'attribue en général à la Silicon Valley. En réalité, sa formulation la plus pure est un film de huit minutes de Richard Serra et Carlota Fay Schoolman, <em>Television Delivers People</em> (1973) : du texte blanc défilant sur fond bleu, avec une musique d'ascenseur, affirmant que le produit de la télévision commerciale, c'est le public. Quatre ans plus tard, l'économiste des médias Dallas Smythe théorise la même chose sous le nom de « marchandise-audience » : ce que vendent les chaînes, ce ne sont pas des programmes aux spectateurs, c'est des spectateurs aux annonceurs ; les programmes sont le coût d'acquisition.</p>
+<p>Cela repositionne tout le débat. Internet n'a pas inventé le modèle, il l'a <em>instrumenté</em>. Avant, on vendait une audience estimée par sondage, floue, collective. Maintenant on vend une audience mesurée, individuée, et surtout : vérifiée après coup. La nouveauté n'est pas la marchandisation du public, c'est l'apparition de la mesure.</p>
+
+<h4>Correction n° 1 : ce qui est vendu n'est pas toi, c'est ta prévisibilité</h4>
+<p>Personne n'achète « toi ». Ce qui s'échange est un <em>pronostic</em> : la probabilité que tu cliques, que tu achètes, que tu restes, que tu t'abonnes, que tu votes. La marchandise réelle est de l'incertitude en moins.</p>
+<p>Et c'est une thèse bien plus dure que « ils connaissent tout de vous », parce qu'elle a une conséquence que la formule ne voit pas. Si ce qui se vend est la justesse d'une prédiction, alors le modèle économique ne récompense pas le fait de bien t'observer : il récompense le fait de te rendre <em>plus régulier</em>. Un utilisateur imprévisible vaut moins cher qu'un utilisateur habitué. Shoshana Zuboff appelle cela les marchés de contrats à terme comportementaux, et la notification quotidienne à heure fixe, la série qui s'enchaîne automatiquement, la récompense journalière de Duolingo ne sont pas des services : ce sont des dispositifs de réduction de variance. L'objectif n'est pas de te connaître. Il est de te stabiliser.</p>
+
+<h4>Exemple niche 1 : la carte de fidélité du supermarché</h4>
+<p>Tesco lance la Clubcard en 1995 et confie l'analyse à une petite société, dunnhumby. Vingt ans plus tard, Tesco cherche à vendre cette filiale, valorisée dans la presse autour de deux milliards de livres : l'analyse du comportement d'achat avait pris une valeur comparable à celle de rayons entiers. Ce que paie le client n'est pas de l'argent — la carte est gratuite et lui <em>rend</em> de l'argent. Il paie en historique d'achats, revendu sous forme d'analyses aux industriels qui remplissent les rayons.</p>
+<p>Le cas le plus célèbre du genre reste celui de Target, raconté par Charles Duhigg en 2012 : à partir de changements subtils d'achats — lotions non parfumées, compléments de calcium et magnésium, grands sacs de coton — le statisticien Andrew Pole était capable d'identifier une grossesse et d'en estimer le terme, avant que la famille ne soit au courant. Aucune donnée « sensible » n'avait été collectée. Tout était inféré. Retiens ce point, il revient plus loin.</p>
+<p>Et note l'essentiel : rien là-dedans n'est numérique par nature, ni récent, ni lié à internet.</p>
+
+<h4>Exemple niche 2 : tes ordonnances, et la Cour suprême</h4>
+<p>Aux États-Unis, la société IMS Health (aujourd'hui IQVIA) achetait aux pharmacies les données de prescription et les revendait aux laboratoires sous forme de profils <em>par médecin</em> : voici ce que le docteur untel prescrit, voici l'évolution depuis la dernière visite de votre représentant. Le Vermont a tenté de l'interdire. En 2011, dans <em>Sorrell v. IMS Health</em>, la Cour suprême a invalidé cette loi — au motif que la vente de données est une forme d'expression protégée par le Premier amendement.</p>
+<p>Garde cet arrêt en tête : il relie directement ce texte à tes notes sur la liberté d'expression, et il montre que le marché des données a su se faire protéger par l'argument même qui protège la dissidence. C'est un détournement remarquable, et presque personne ne le connaît.</p>
+
+<h4>Exemple niche 3 : le gratuit comme arme, pas comme modèle</h4>
+<p>Tous les gratuits ne vendent rien de toi. Il y a au moins trois autres fonctions.</p>
+<p><strong>Le péage d'entrée.</strong> Free Basics, l'offre d'accès internet gratuit mais limité de Facebook en Inde, a été interdite par le régulateur indien en 2016 : le gratuit n'y finançait rien par la publicité, il définissait ce qu'« internet » voudrait dire pour des centaines de millions de nouveaux arrivants. Le produit n'était pas l'utilisateur, c'était la position de portier.</p>
+<p><strong>L'appât et la cartouche.</strong> L'imprimante vendue à perte est le cas canonique, et il est plus ancien que le numérique : Gillette donnait le manche, pas les lames. Ici le gratuit ne t'exploite pas, il te verrouille.</p>
+<p><strong>Le décor.</strong> Dans les jeux free-to-play, l'essentiel du revenu vient d'une fraction très faible des joueurs, souvent bien inférieure à 1 %, qu'on appelle les « baleines ». Les 99 % restants ne sont ni clients ni produit : ils sont le <em>monde</em> que les baleines paient pour dominer. Il existe donc une troisième position, que la formule ne prévoit pas du tout — tu n'es pas la marchandise, tu es le mobilier.</p>
+
+<h4>Exemple niche 4 : l'application de rencontre, où le problème n'est pas la donnée</h4>
+<p>Une application de rencontre payante n'a aucun besoin de revendre quoi que ce soit. Son problème est ailleurs et il est plus grave : son revenu dépend de ta rétention, alors que son service promis est ton départ. Un utilisateur parfaitement bien apparié est un abonnement perdu. Aucune donnée vendue, aucun annonceur, et pourtant un désalignement structurel entre ce que tu veux et ce qui la nourrit. La formule ne voit rien de ce cas, qui est pourtant le plus répandu dans l'économie des abonnements.</p>
+
+<h4>Correction n° 2 : payer ne protège pas</h4>
+<p>C'est le plus dangereux dans la formule, parce qu'elle rassure à tort : si gratuit veut dire exposé, alors payant devrait vouloir dire tranquille. Or non.</p>
+<p>Vizio a payé une transaction avec la FTC en 2017 pour avoir collecté, seconde par seconde, ce qui s'affichait sur des téléviseurs <em>achetés</em>, par reconnaissance automatique de contenu, et l'avoir associé à l'adresse IP du foyer. En 2024, plusieurs constructeurs automobiles ont été pris à transmettre les données de conduite — freinages brusques, accélérations — de voitures achetées à des courtiers qui les revendaient aux assureurs, qui ajustaient les primes. Dans les deux cas le client avait payé le produit, au prix fort, et il était quand même la source.</p>
+<p>La bonne variable n'est donc pas le prix. C'est : <em>est-ce que cet objet a un intérêt à mon comportement, et peut-il l'observer ?</em> Une imprimante connectée a cet intérêt ; un marteau non.</p>
+
+<h4>Correction n° 3 : le dommage n'est pas une transaction, et il n'est pas individuel</h4>
+<p>« C'est toi le produit » suggère un échange : tu as donné tes données contre un service, donc tu as consenti, donc le dommage est le tien. Deux raisons de rejeter cette lecture.</p>
+<p>D'abord, l'essentiel de ce qui est su de toi n'a pas été donné mais <em>inféré</em> — le cas Target le montre, et les profils fantômes que Facebook a longtemps constitués sur des personnes n'ayant jamais ouvert de compte, à partir des carnets d'adresses de leurs amis, le montrent mieux encore. On ne consent pas à une déduction faite par d'autres à partir des données d'autrui.</p>
+<p>Ensuite, et c'est le point que je trouve le plus fort : le dommage est collectif et statistique. Tes données ne servent presque jamais contre toi ; elles servent à rendre <em>classables</em> les gens qui te ressemblent. Ton historique alimente un modèle qui fixera la prime d'assurance, le score de crédit ou l'« audience similaire » de milliers d'inconnus qui n'ont rien signé. C'est l'argument de la juriste Salomé Viljoen : la donnée est relationnelle, sa valeur vient de la mise en rapport, et aucun individu ne peut consentir au nom de la classe à laquelle il ressemble.</p>
+<p>D'où une conclusion qui tranche beaucoup de débats : le consentement individuel — la bannière de cookies, la case à cocher — n'échoue pas parce qu'il est mal fait. Il échoue parce qu'il porte sur la mauvaise unité. On demande à un individu d'autoriser quelque chose dont les effets ne le concernent pas principalement.</p>
+
+<h4>Correction n° 4 : la monnaie n'est pas la donnée, c'est le temps et la volonté</h4>
+<p>Herbert Simon l'a dit dès 1971, bien avant qu'il y ait quoi que ce soit à vendre en ligne : une abondance d'information crée une pénurie d'attention. La ressource rare n'a jamais été l'information, c'est ce qui la consomme.</p>
+<p>Ce que prélève un service gratuit, en dernière analyse, ce ne sont pas des octets — ils sont inépuisables et leur copie ne te prive de rien. C'est du temps vécu, et de la régularité d'habitude. Et contrairement à l'argent, tu ne peux pas en tenir le budget, parce qu'il n'y a aucun relevé : personne ne t'envoie à la fin du mois le total de ce que tu as payé.</p>
+
+<h4>La formule, réécrite</h4>
+<p>« Quand c'est gratuit, c'est toi le produit » dit : méfie-toi de ce qui ne coûte rien. La version que je garderais dit autre chose : <em>tout service a un bénéficiaire, demande lequel, demande ce qu'il achète, et demande si tu l'aurais vendu.</em></p>
+<p>Ce qui donne trois questions utilisables sur n'importe quoi, gratuit ou non. Qui paie — et pour obtenir quoi de moi ? Quel comportement de ma part fait monter son chiffre ? Et si je cessais demain, qu'est-ce que ça lui coûterait ? La troisième est la plus révélatrice : elle te dit à quel point tu es tenu.</p>
+`,
+question: "Prends l'application où tu passes le plus de temps. Quel comportement précis de ta part fait monter son chiffre d'affaires ? Et quand l'as-tu adopté ?",
+plus: "Richard Serra & Carlota Fay Schoolman, <em>Television Delivers People</em> (1973), huit minutes à voir en ligne · Dallas Smythe, « Communications: Blindspot of Western Marxism » (1977) · Herbert Simon, « Designing Organizations for an Information-Rich World » (1971) · Shoshana Zuboff, <em>L'Âge du capitalisme de surveillance</em> (2019), long et répétitif mais la thèse des marchés comportementaux vaut le détour · Salomé Viljoen, « A Relational Theory of Data Governance », <em>Yale Law Journal</em> (2021), le texte le plus utile de la liste · <em>Sorrell v. IMS Health</em> (2011)."
+}
+,
+
+{
+id: "psyche",
+titre: "Prendre, ne pas prendre",
+sous: "La « règle des tiers », l'aveugle impossible, et pourquoi les psychédéliques sont un cas d'école pour la théorie de la connaissance",
+note: "Chaîne de Za sur YouTube. Règle des 1/3 : prends des médics, prends pas, et autre ? Commencer à m'intéresser aux psychédéliques.",
+src: "Tes notes, novembre",
+min: 14,
+corps: `
+<p>Ta note contient deux choses très différentes, et c'est une chance : la seconde éclaire la première. Il y a d'abord une question de méthode — que vaut une statistique du genre « un tiers répond au médicament, un tiers au placebo, un tiers ne répond pas » ? Et il y a ensuite une curiosité pour une classe de substances qui se trouve être, pour des raisons structurelles, le pire cauchemar de cette méthode. Je ne vais pas te dire quoi prendre ; ce qui est intéressant ici est ailleurs, et c'est plus profond.</p>
+
+<h4>La règle des tiers ne dit pas ce qu'on croit qu'elle dit</h4>
+<p>Quels que soient les chiffres exacts selon la pathologie, la <em>forme</em> de l'énoncé se lit presque toujours de travers, de trois manières.</p>
+<p><strong>Les tiers ne sont pas trois populations de personnes.</strong> Ce sont des résultats de bras d'essai. Il est très tentant de conclure qu'il existe des gens « répondeurs au placebo » — et c'est faux : on a cherché longtemps un trait stable de répondeur au placebo, en personnalité, en génétique, et on n'a rien trouvé de robuste. La même personne peut répondre dans un essai et pas dans le suivant. Les tiers décrivent une procédure, pas des caractères.</p>
+<p><strong>« Un tiers s'est amélioré sous placebo » ne veut pas dire « grâce au placebo ».</strong> C'est l'erreur la plus coûteuse, et sa correction est le fait le plus utile de ce texte. On entre dans un essai au pire moment de sa maladie — c'est précisément quand on va mal qu'on consulte et qu'on accepte d'être inclus. Or ce qui suit un extrême est, en moyenne, moins extrême : c'est la régression vers la moyenne, un fait d'arithmétique, pas de pharmacologie. Ajoute la rémission spontanée, qui est considérable en psychiatrie, et l'effet de la seule prise en charge (quelqu'un t'écoute vingt minutes toutes les deux semaines). Hróbjartsson et Gøtzsche ont fait en 2001 dans le <em>New England Journal of Medicine</em> la seule comparaison qui tranche : placebo contre <em>absence de traitement</em>. Résultat : presque aucun effet du placebo sur les mesures objectives, un effet modeste sur les mesures subjectives comme la douleur. Autrement dit, la majorité de « l'effet placebo » dont tout le monde parle n'est pas un effet du placebo, c'est le temps qui passe.</p>
+<p><strong>Le tiers « qui ne répond pas » dépend de l'instrument.</strong> La réponse est définie par un seuil sur une échelle, et l'échelle choisie décide du résultat. L'échelle de Hamilton pour la dépression accorde un poids énorme au sommeil et à l'appétit : un médicament sédatif peut faire « répondre » quelqu'un dont la tristesse n'a pas bougé d'un millimètre. On ne mesure pas la guérison, on mesure ce que l'échelle sait voir.</p>
+
+<h4>Le vrai problème : avec les psychédéliques, l'aveugle n'existe pas</h4>
+<p>Tout l'édifice de l'essai contrôlé repose sur une idée simple : si ni le patient ni le médecin ne savent qui reçoit quoi, alors l'attente ne peut pas contaminer le résultat. On sépare ainsi l'effet de la molécule de l'effet de l'espoir.</p>
+<p>Dans un essai d'antidépresseur classique, cet aveugle est déjà poreux : les effets secondaires permettent de devenir à qui le sort. Avec la psilocybine ou le LSD, il n'est pas poreux, il est <em>inexistant</em>. Tout le monde sait, en vingt minutes, dans quel bras il se trouve — participants et accompagnants. Plusieurs auteurs, dont Muthukumaraswamy et ses collègues, l'ont documenté : la rupture d'aveugle est quasi totale dans ce champ.</p>
+<p>Prends la mesure de ce que cela signifie. Notre meilleur instrument de connaissance causale possède un angle mort structurel, et cet angle mort tombe exactement sur une classe de substances dont le mécanisme comprend l'attente. Ce n'est pas un défaut réparable par un meilleur protocole : c'est une limite de principe.</p>
+
+<h4>Et pire : ici le contexte n'est pas un biais, c'est le mécanisme</h4>
+<p>Norman Zinberg a formulé en 1984 la trilogie qui reste la plus juste : <em>drug, set, setting</em> — la molécule, l'état d'esprit, le cadre. En pharmacologie ordinaire, l'état d'esprit et le cadre sont des facteurs de confusion : on les neutralise pour isoler la molécule. Avec ces substances, ils sont sur le chemin causal. La même dose, seul la nuit dans un mauvais moment, ou allongé dans une pièce calme avec quelqu'un en qui on a confiance, ne produit pas des effets de magnitude différente : elle produit des événements différents.</p>
+<p>Donc il n'y a pas, à proprement parler, de « variable indépendante ». L'objet étudié n'est pas une molécule, c'est un rituel à composante pharmacologique. Et la question « quel est l'effet de ce produit ? » devient aussi mal posée que la question de la vitesse du café dans le train : il manque le « par rapport à quoi ». Tu reconnais la structure — c'est exactement le même piège, à vingt ans d'intervalle, dans un autre domaine.</p>
+
+<h4>Le point qui devrait vraiment t'intéresser</h4>
+<p>Tu as déjà un texte sur le sentiment que quelque chose est vrai. Les psychédéliques en sont le cas-test le plus pur disponible, et voici pourquoi.</p>
+<p>William James, dans <em>Les Formes multiples de l'expérience religieuse</em> (1902), décrit quatre marques des états mystiques, dont deux nous occupent : ils sont <em>ineffables</em> — on ne peut pas les rapporter — et <em>noétiques</em> : ils se présentent comme des états de <em>connaissance</em>, accompagnés d'une certitude écrasante. Ce n'est pas qu'on a une vision ; c'est qu'on a l'impression d'avoir compris.</p>
+<p>Or cette impression peut être produite chimiquement, à volonté, en laboratoire, en moins d'une heure — et <em>indépendamment de tout contenu particulier</em>. Deux personnes ressortent avec la même certitude inébranlable et des conclusions incompatibles : l'une que tout est un, l'autre qu'elle doit quitter son emploi, une troisième que la mort n'est rien. La sensation de certitude ne corrèle pas avec ce dont on est certain.</p>
+<p>La conclusion est sévère et elle vaut bien au-delà du sujet : si le sentiment de vérité peut être fabriqué, alors ce sentiment n'est pas une preuve. Et il ne l'était pas davantage à jeun — il provenait de la même machinerie. Ce qui ruine la certitude psychédélique ruine du même coup l'autorité de tes convictions les plus limpides, celles qui s'imposent « avec évidence ». Elles n'ont jamais eu d'autre garantie que cette sensation.</p>
+
+<h4>Pourquoi le cadre fait tant : l'hypothèse de la plasticité</h4>
+<p>Robin Carhart-Harris et Karl Friston ont proposé en 2019 un modèle (REBUS) qui donne une explication élégante : ces molécules réduisent le poids accordé aux attentes antérieures — les « a priori » par lesquels le cerveau interprète d'ordinaire ce qui lui arrive. D'où l'étrangeté, d'où la révision soudaine de croyances anciennes.</p>
+<p>Mais tire la conséquence honnêtement, parce qu'elle est rarement tirée. Un état où les croyances deviennent malléables n'est pas un état d'accès amélioré au vrai : c'est un état de <strong>suggestibilité</strong> accrue. On y acquiert plus facilement des convictions — justes ou fausses, indifféremment. Le risque épistémique principal n'est donc pas l'hallucination, qu'on sait reconnaître comme telle, mais la conviction durable et fausse acquise en état de haute plasticité. Et de l'intérieur, l'insight véritable et l'erreur greffée se ressentent exactement pareil. Cela explique aussi pourquoi ce qui se dit dans la pièce, et par qui, pèse tellement lourd.</p>
+
+<h4>Sur « prendre / prendre pas »</h4>
+<p>Je ne traiterai pas la question comme une question de fait, parce qu'elle n'en est pas une : c'est une décision sous incertitude, et les deux se répondent différemment. Trois remarques seulement.</p>
+<p>La première est que les essais ne mesurent pas ce que ferait un particulier : ils excluent les antécédents de psychose et les risques cardiaques, dosent précisément une substance de pureté connue, et placent quelqu'un dans la pièce pendant huit heures. Les résultats obtenus dans ces conditions ne se transportent pas hors de ces conditions, et les interactions médicamenteuses — lithium notamment — sont documentées comme sérieuses.</p>
+<p>La deuxième est que, pour une décision de ce genre, la bonne question n'est pas « est-ce que ça marche ? » mais : <em>de quel côté suis-je plus susceptible de me tromper, et que coûte chacune des deux erreurs ?</em> Les coûts sont asymétriques dans les deux sens, et il faut les écrire. Une dépression non traitée tue ; c'est un fait qu'on oublie dès qu'on discute des risques des traitements. Et un accident psychique mal entouré laisse des séquelles ; c'est un fait qu'on oublie dès qu'on s'enthousiasme.</p>
+<p>La troisième, qui est le seul conseil que je donnerai : décide d'avance ce qui te ferait changer d'avis. Une opinion qui ne précise pas ce qui la réfuterait n'est pas une opinion, c'est une appartenance.</p>
+`,
+question: "La dernière fois que tu as été absolument sûr de quelque chose : qu'est-ce qui produisait cette certitude ? Si on pouvait te la donner par voie chimique, en une heure, sans contenu particulier — qu'est-ce qu'elle prouve encore ?",
+plus: "William James, <em>Les Formes multiples de l'expérience religieuse</em> (1902), conférences XVI et XVII sur le mysticisme — la description du caractère noétique n'a jamais été dépassée · Hróbjartsson & Gøtzsche, « Is the placebo powerless? », <em>NEJM</em>, 2001 · Norman Zinberg, <em>Drug, Set, and Setting</em> (1984) · Carhart-Harris & Friston, « REBUS and the anarchic brain » (2019) · Michael Pollan, <em>Voyage aux confins de l'esprit</em> (2018), enthousiaste, à lire en gardant le présent texte sous la main · à lire avec « Le sentiment que c'est vrai »."
+},
+
+{
+id: "pente",
+titre: "La pente glissante est-elle un sophisme ?",
+sous: "Quand l'argument « ça va déraper » est valide — et le test en quatre questions",
+min: 11,
+corps: `
+<p>Ce texte-ci n'est pas parti d'une de tes notes : je te le propose parce que tes trois textes sur la parole tournent tous autour de lui sans le nommer. « Si on interdit ceci, demain on interdira cela » : c'est l'argument le plus utilisé du débat public, et le plus mal défendu, des deux côtés.</p>
+<p>Les manuels de logique le rangent parmi les sophismes. C'est une paresse. La pente glissante n'est pas une faute de logique : c'est une <em>prédiction empirique</em> habillée en logique. Elle peut donc être vraie ou fausse, et elle s'évalue comme toute prédiction — en examinant son mécanisme et ses antécédents. Une pente glissante sans mécanisme est effectivement un sophisme ; une pente glissante avec mécanisme nommé est un argument sérieux qu'il faut réfuter par des faits.</p>
+
+<h4>Trois pentes différentes, qu'on confond toujours</h4>
+<p><strong>La pente conceptuelle.</strong> C'est le paradoxe du tas : un grain ne fait pas un tas, et ajouter un grain ne transforme jamais un non-tas en tas ; donc il n'y a pas de tas. Le problème est celui du flou des concepts, et sa conclusion pratique est faible — l'absence de frontière nette n'empêche pas de distinguer un chauve d'un chevelu. Quand quelqu'un dit « où tracer la ligne ? », il fait souvent cette pente-là, et la bonne réponse est : nulle part précisément, et ce n'est pas grave.</p>
+<p><strong>La pente causale.</strong> Le premier pas produit des effets qui facilitent le deuxième : il crée un budget, un service, des agents dont le métier est désormais d'appliquer la mesure, et donc de l'étendre. C'est une dynamique d'organisation, parfaitement observable.</p>
+<p><strong>La pente de précédent.</strong> C'est la plus solide, parce que son mécanisme est explicite et écrit : le droit fonctionne par analogie et par précédent. Une exception admise aujourd'hui pour un cas sympathique devient demain la référence invoquée pour un cas qui ne l'est pas. Ici la pente n'est pas une métaphore : c'est la méthode même du raisonnement juridique.</p>
+
+<h4>Quand elle est valide : quatre conditions</h4>
+<p><strong>1. Le mécanisme est nommé.</strong> Pas « ça va déraper », mais : <em>qui</em> fera le pas suivant, et pourquoi lui sera-t-il plus facile qu'à toi aujourd'hui ? Si on ne peut pas répondre, il n'y a pas d'argument.</p>
+<p><strong>2. Le premier pas enlève une barrière, et pas seulement une ressemblance.</strong> Toute la différence est là. Autoriser l'euthanasie et autoriser le meurtre se ressemblent conceptuellement, mais la première ne supprime aucun obstacle à la seconde. En revanche, créer un pouvoir d'exception sans contrôle juridictionnel supprime vraiment l'obstacle qui empêchait de l'employer ailleurs. La ressemblance ne glisse pas ; la suppression d'un verrou, oui.</p>
+<p><strong>3. Il n'existe pas de point d'arrêt principiel.</strong> Si la justification du premier pas justifie aussi le deuxième, alors le premier pas <em>argumente</em> en faveur du deuxième, et il faudra inventer une raison nouvelle pour s'arrêter. C'est le vrai test : non pas « jusqu'où peut-on aller ? », mais « la raison invoquée ici s'arrête-t-elle d'elle-même ? »</p>
+<p><strong>4. Le taux de base est connu.</strong> Est-ce déjà arrivé ailleurs, dans des institutions comparables ? C'est vérifiable, et ça remplace la prophétie par de l'histoire comparée.</p>
+
+<h4>Un cas où elle s'est réalisée, un cas où non</h4>
+<p>Au Royaume-Uni, la loi antiterroriste RIPA de 2000 accordait des pouvoirs de surveillance élargis contre le terrorisme et le crime organisé. Quelques années plus tard, on découvrait que des conseils municipaux s'en servaient pour surveiller des habitants soupçonnés de mentir sur leur adresse scolaire ou de mal trier leurs déchets. Le mécanisme est limpide, et il satisfait les quatre conditions : la barrière enlevée était l'autorisation judiciaire, les agents nouvellement dotés du pouvoir avaient leurs propres problèmes à résoudre, et rien dans la justification ne disait « pour le terrorisme seulement » de façon contraignante.</p>
+<p>À l'inverse : le droit de la diffamation existe dans toutes les démocraties, il limite réellement ce qu'on peut publier sur quelqu'un, et il n'a glissé nulle part vers la censure politique en deux siècles. Pourquoi ? Parce qu'il remplit mal les conditions 2 et 3 : la charge de la preuve, l'initiative laissée à la personne visée et non à l'État, et l'exigence d'un fait précis constituent des points d'arrêt qui tiennent par eux-mêmes.</p>
+<p>La comparaison donne le principe général : <em>ce qui glisse, ce ne sont pas les interdictions, ce sont les pouvoirs discrétionnaires.</em> Une interdiction étroite décidée par une règle et contestable devant un juge ne crée pas de pente. Une autorisation large confiée à la bonne appréciation de quelqu'un en crée toujours une.</p>
+
+<h4>Et l'argument inverse, qui est aussi mal fait</h4>
+<p>Répondre « c'est un sophisme de la pente glissante » est devenu une manière d'esquiver sans rien démontrer. Si tu es celui qui propose la mesure, la charge est symétrique : nomme le point d'arrêt, dis qui le garde, et dis comment on revient en arrière si tu t'es trompé. Une mesure dont personne ne sait énoncer la condition de levée est une mesure permanente qui ne l'a pas dit.</p>
+`,
+question: "Prends une mesure récente que tu approuves, dans n'importe quel domaine. Peux-tu énoncer le point d'arrêt — la raison qui empêche d'aller un pas plus loin — sans employer les mots « bon sens » ni « personne ne voudrait » ?",
+plus: "Eugene Volokh, « The Mechanisms of the Slippery Slope », <em>Harvard Law Review</em> (2003) : le seul texte qui prend l'argument au sérieux et en liste les mécanismes · pour la pente conceptuelle, n'importe quelle présentation du paradoxe du tas (sorite) · à lire avec « La censure : symptôme ou cause de la tyrannie ? »"
+}
+,
+
+{
+id: "parler",
+titre: "Qui parle quand tu te parles ?",
+sous: "Si la pensée était du langage, certaines personnes ne penseraient pas",
+min: 11,
+corps: `
+<p>Je te propose ce texte comme prolongement direct de la note de Mehdi sur l'allemand. Si l'on veut savoir si une langue peut améliorer la pensée, il faut d'abord savoir à quel point la pensée est faite de langue. Et la réponse expérimentale est beaucoup plus étrange que les deux camps habituels.</p>
+
+<h4>Le fait qui tranche : il existe des gens sans voix intérieure</h4>
+<p>On a longtemps supposé que tout le monde avait un monologue intérieur, parce que tout le monde se décrivait ainsi. En 2024, Johanne Nedergård et Gary Lupyan ont publié les travaux les plus nets sur ce qu'ils ont appelé l'<em>anendophasie</em> : certaines personnes rapportent n'avoir aucune parole intérieure, ou presque. Elles ne sont pas moins intelligentes, elles raisonnent, décident, écrivent. Elles sont en revanche mesurablement moins bonnes à certaines tâches précises — retenir une liste de mots dans l'ordre, repérer que deux mots riment — c'est-à-dire exactement les tâches qui exigent de garder une <em>forme sonore</em> en mémoire.</p>
+<p>C'est aussi net qu'on peut l'espérer. Si penser était parler intérieurement, ces personnes ne penseraient pas. Elles pensent. Donc la pensée n'est pas de la parole intérieure. Mais la parole intérieure sert à quelque chose de spécifique, et on peut dire quoi.</p>
+<p>Ajoute un second fait, de méthode : Russell Hurlburt a passé des décennies à faire sonner un bip au hasard dans la journée de ses sujets, en leur demandant de noter immédiatement ce qui était présent à leur conscience juste avant. Résultat : les gens surestiment énormément la part verbale de leur vie mentale. Interrogés en général, ils disent « je pense en phrases, tout le temps ». Pris sur le fait, les échantillons montrent beaucoup d'images, de sensations, et de ce qu'il appelle une pensée non symbolisée — un contenu parfaitement déterminé, sans mots ni images. Notre introspection sur notre introspection est mauvaise.</p>
+
+<h4>La preuve ordinaire que tu as déjà faite dix fois</h4>
+<p>Le mot sur le bout de la langue. Tu cherches un nom, tu ne l'as pas, et pourtant tu sais de qui il s'agit, tu sais parfois par quelle lettre il commence, combien de syllabes il a, et tu rejettes avec certitude les propositions fausses qu'on te fait. Ce dernier point est décisif : rejeter « Marchand » parce que ce n'est pas le bon nom exige de posséder déjà le contenu auquel on compare. Donc la pensée était là, complète et identifiable, sans son mot. Un mot peut manquer à une pensée qui ne manque de rien.</p>
+
+<h4>À quoi sert alors la voix intérieure : non pas à penser, mais à se tenir</h4>
+<p>La réponse la plus solide vient de Lev Vygotsky, dans les années 1930, et elle est d'une élégance remarquable. Observe un enfant de quatre ans devant un problème difficile : il parle à voix haute, pour lui-même, en se donnant des instructions. Vers sept ans ce commentaire ne disparaît pas — il devient inaudible. La parole intérieure est de la parole sociale <em>intériorisée</em> : d'abord on te parle, puis tu te parles à voix haute, puis tu te parles en silence.</p>
+<p>Ce qui donne sa fonction : la voix intérieure n'est pas l'organe de la pensée, c'est l'organe du <em>contrôle de soi</em>. Elle sert à se donner des consignes, à répéter, à se retenir, à planifier une séquence. C'est la voix qui dit « attends », « ne réponds pas tout de suite », « reprends depuis le début ». Pas celle qui pense : celle qui te commande.</p>
+<p>Et cela explique une observation troublante : la voix intérieure s'intensifie quand on est seul, en difficulté, ou en train de se juger. Ce n'est pas un hasard — c'est dans ces moments qu'on a besoin d'un surveillant.</p>
+
+<h4>Le cas clinique qui confirme le modèle</h4>
+<p>Si la parole intérieure est de la parole produite par soi, il faut un mécanisme qui l'étiquette comme sienne. Chris Frith a proposé que les hallucinations auditives verbales viennent d'une défaillance de cet étiquetage : une parole intérieure correctement produite, mais attribuée à un autre. Plusieurs résultats vont dans ce sens, notamment l'activation de régions motrices de la parole pendant les hallucinations.</p>
+<p>Prends la mesure de ce que cela implique pour nous tous : l'impression que cette voix est <em>la tienne</em> n'est pas une donnée immédiate, c'est le produit d'un travail cérébral qui peut échouer. Ton sentiment de parler intérieurement est une <em>attribution</em>, pas une évidence.</p>
+
+<h4>Retour à l'allemand</h4>
+<p>Ce détour résout la question de Mehdi par un autre chemin. Les locuteurs sourds signants ont une parole intérieure <em>signée</em> — même structure, autre matière. Les personnes sans voix intérieure pensent. Le mot manquant n'empêche pas la pensée présente. Donc la langue n'est pas le milieu de la pensée : c'est un outil que la pensée emploie pour certaines opérations — retenir une séquence, se contraindre, transmettre — et qui change d'efficacité selon ce que la langue rend facile à dire.</p>
+<p>Ce qui, au passage, redonne du poids à la vraie thèse de l'autre texte : une langue qui rend une distinction courte ne te permet pas de la penser, mais elle te permet de <em>te la dire</em> — donc de t'en servir pour te gouverner. Un peuple qui dispose d'un mot court pour « amélioration qui aggrave » peut se le reprocher à lui-même plus vite.</p>
+
+<h4>La dernière question, qui est la plus dérangeante</h4>
+<p>Si Vygotsky a raison, cette voix a été celle de quelqu'un d'autre avant d'être la tienne. Le ton sur lequel tu te parles quand tu rates quelque chose, le vocabulaire exact que tu emploies pour te juger, le moment où tu t'interromps : tout cela a été appris de personnes précises, et il reste à savoir lesquelles.</p>
+`,
+question: "Écoute la phrase que tu te dis quand tu échoues à quelque chose. Est-ce que tu reconnais une voix ? Est-ce que tu l'aurais choisie ?",
+plus: "Lev Vygotsky, <em>Pensée et langage</em> (1934), la partie sur le langage égocentrique de l'enfant · Charles Fernyhough, <em>The Voices Within</em> (2016), la meilleure synthèse grand public · Russell Hurlburt, <em>Investigating Pristine Inner Experience</em> (2011), pour la méthode du bip · Nedergård & Lupyan sur l'anendophasie (2024) · à lire avec « Est-ce que l'allemand pense mieux ? »"
+},
+
+{
+id: "tolerance",
+titre: "Le paradoxe de la tolérance, et ce que Popper a vraiment écrit",
+sous: "La citation la plus mal employée du débat public",
+min: 10,
+corps: `
+<p>Troisième texte que je te propose, et il complète la série sur la parole, parce qu'il en est l'objection standard : une société tolérante doit-elle tolérer ceux qui veulent la détruire ? La citation de Popper est brandie des deux côtés depuis vingt ans. Presque toujours à l'envers.</p>
+
+<h4>Ce que dit la note 4 du chapitre 7</h4>
+<p>Le passage n'est pas un développement : c'est une note de bas de page de <em>La Société ouverte et ses ennemis</em> (1945). Popper y énonce le paradoxe — une tolérance illimitée mène à la disparition de la tolérance — puis, et c'est la partie jamais citée, il ajoute immédiatement deux restrictions.</p>
+<p>La première : il ne soutient <em>pas</em> qu'il faille toujours réprimer les mouvements intolérants ; il soutient qu'il faut se réserver le <em>droit</em> de les réprimer. Ce n'est pas la même chose — l'un est une politique, l'autre une réserve de souveraineté.</p>
+<p>La seconde, plus importante encore : la répression ne devient légitime qu'à partir du moment où ces mouvements refusent la discussion rationnelle, interdisent à leurs partisans d'écouter les arguments et répondent par les poings et le revolver. Autrement dit, le critère de Popper n'est pas le contenu de la doctrine intolérante, c'est son <em>abandon de la parole au profit de la force</em>.</p>
+<p>Tu reconnais le critère : c'est exactement celui du texte sur les limites — on n'interdit pas une thèse, on traite un acte. Popper ne dit pas « on peut interdire les idées dangereuses ». Il dit : quand un mouvement a cessé d'argumenter pour frapper, il est sorti du régime où la tolérance a un sens. Employer sa note pour justifier l'interdiction d'une opinion qui argumente encore, c'est l'employer contre lui.</p>
+
+<h4>Pourquoi le paradoxe est réel malgré tout</h4>
+<p>On ne s'en débarrasse pas pour autant, et il faut voir où il mord vraiment. Il mord sur un point technique : un système de règles qui peut se modifier lui-même peut voter sa propre abolition. Weimar en est le cas d'école, et l'erreur habituelle est de croire qu'elle est tombée faute de censure — elle est tombée par ses propres procédures, l'article 48 puis la loi d'habilitation de 1933, votée par le Parlement.</p>
+<p>Donc le problème n'est pas la tolérance des opinions. C'est l'<em>absence de verrou</em> : rien, dans la constitution de Weimar, ne mettait hors d'atteinte des majorités ordinaires les conditions mêmes de la démocratie.</p>
+
+<h4>La réponse institutionnelle allemande, qui est la plus intéressante</h4>
+<p>L'Allemagne de 1949 a tiré exactement cette leçon, et sa solution est plus fine que « interdire les mauvaises idées ». La Loi fondamentale comporte une clause d'éternité, l'article 79 alinéa 3, qui rend certains principes — la dignité humaine, la structure fédérale, le caractère démocratique — non amendables. Non pas difficiles à amender : impossibles, y compris à l'unanimité. C'est un dispositif d'<em>entrenchement</em> : le système se retire à lui-même le pouvoir de se supprimer.</p>
+<p>S'y ajoute la « démocratie combative », qui permet d'interdire un parti — utilisée deux fois dans les années 1950, contre le parti néonazi SRP puis contre le parti communiste. Et surtout : <em>pas</em> utilisée en 2017 contre le NPD, que la Cour constitutionnelle a refusé d'interdire, en jugeant qu'il poursuivait certes des buts anticonstitutionnels mais n'avait aucune capacité réelle de les atteindre.</p>
+<p>Cette décision est précieuse, parce qu'elle montre le critère à l'œuvre : ce n'est pas la doctrine qui est jugée, c'est la <em>capacité d'agir</em>. On retrouve, une troisième fois, le même principe — la proximité à l'acte, pas la laideur du contenu.</p>
+
+<h4>Marcuse, pour voir la bifurcation</h4>
+<p>Prémisses voisines, conclusion inverse : Herbert Marcuse, dans « Tolérance répressive » (1965), soutient que dans une société inégale, la tolérance égale des discours profite mécaniquement au discours dominant, et qu'il faut donc une tolérance asymétrique, favorable aux mouvements d'émancipation et hostile à ceux de conservation. C'est honnête, c'est cohérent, et cela montre d'un coup ce qui se joue : il faut désigner qui décide de quel côté penche l'asymétrie. Marcuse ne dit pas qui, et c'est précisément le trou. L'objection de Kisin — le pouvoir de définir atterrit chez le plus fort — vise exactement ce trou, et elle est juste.</p>
+
+<h4>Ce que je retiendrais</h4>
+<p>Le paradoxe est réel mais il est mal nommé : ce n'est pas un paradoxe de la tolérance, c'est un problème de conception institutionnelle. La bonne protection d'une société ouverte n'est pas de censurer ses adversaires d'opinion — elle est de mettre ses propres fondations hors de portée du vote, et de ne frapper les mouvements que sur ce qu'ils font et peuvent faire. La première mesure est permanente, symétrique, et ne demande à personne de juger des idées. La seconde demande des juges, mais sur des actes.</p>
+`,
+question: "Si tu devais rendre trois règles de ton pays impossibles à modifier, même à l'unanimité, lesquelles ? Et qu'est-ce que ton choix suppose que les générations suivantes ne sauront pas mieux que toi ?",
+plus: "Karl Popper, <em>La Société ouverte et ses ennemis</em> (1945), tome I, chapitre 7, note 4 — deux paragraphes, à lire en entier avant de citer · Herbert Marcuse, « Repressive Tolerance » (1965) · la décision du 17 janvier 2017 de la Cour constitutionnelle allemande sur le NPD, pour le critère de capacité · à lire avec les trois textes sur la liberté d'expression."
+}
 ];
 
 /* ═══ 🌐 SUR AEON (aeon.co) — liens vers le site, rien n'est copié.
@@ -457,4 +815,35 @@ window.AEON = [
 { lec:"proposer", auteur:"Joe Boswell", min:6, url:"https://aeon.co/ideas/we-must-recognise-that-single-events-have-multiple-causes",
   t:"We must recognise that single events have multiple causes",
   fr:"Chercher LA cause d'une rupture ou d'une crise est souvent arbitraire. Proche de « qui propose ? »." }
+,
+{ lec:"allemand", auteur:"James McElvenny", min:17, url:"https://aeon.co/essays/does-language-mirror-the-mind-an-intellectual-history",
+  t:"Does language mirror the mind? An intellectual history",
+  fr:"Exactement la question de Mehdi, prise par son histoire : de Herder et Humboldt (« la langue est l'organe formateur de la pensée ») au rejet par Chomsky, puis au retour d'une relativité mesurable mais minuscule." },
+{ lec:"limites", auteur:"Eric Heinze", min:4, url:"https://aeon.co/ideas/free-speech-debates-are-more-than-radicals-vs-liberals",
+  t:"Free speech debates are more than 'radicals' vs 'liberals'",
+  fr:"Court, et utile contre le réflexe de ranger le débat en deux camps : des radicaux défendent la parole sans entrave comme arme contre le pouvoir établi." },
+{ lec:"psychique", auteur:"Clifton Mark", min:14, url:"https://aeon.co/essays/what-duelling-can-teach-us-about-taking-offence",
+  t:"What duelling can teach us about taking offence",
+  fr:"Thèse inattendue : dans la culture du duel, s'offenser était une revendication d'égalité de rang, pas un aveu de blessure. Déplace tout le débat sur l'offense." },
+{ lec:"psychique", auteur:"Guy Longworth", min:15, url:"https://aeon.co/essays/how-pornography-works-to-undermine-womens-freedom-of-speech",
+  t:"How pornography works to undermine women's freedom of speech",
+  fr:"La meilleure version de l'argument « la parole de certains fait taire les autres », en termes d'Austin : ce qui est détruit n'est pas le droit de parler mais la capacité d'accomplir un acte en parlant. À lire même si le sujet rebute." },
+{ lec:"symptome", auteur:"James Palmer", min:13, url:"https://aeon.co/essays/will-information-open-up-china-or-close-the-ranks-for-good",
+  t:"Will information open up China, or close the ranks for good?",
+  fr:"Le cas concret du dilemme du texte : la même infrastructure d'information peut exposer la corruption ou perfectionner le contrôle. Rien n'est décidé par la technique." },
+{ lec:"tolerance", auteur:"Daisy Dixon", min:14, url:"https://aeon.co/essays/a-philosophical-guide-on-how-to-manage-dangerous-art",
+  t:"A philosophical guide on how to manage dangerous art",
+  fr:"Que faire d'une œuvre qui nuit sans la censurer : recontextualiser, étiqueter, répondre par une autre œuvre. La « contre-parole » prise au sérieux comme technique, pas comme slogan." },
+{ lec:"gratuit", auteur:"Carissa Véliz", min:15, url:"https://aeon.co/essays/privacy-matters-because-it-empowers-us-all",
+  t:"Privacy matters because it empowers us all",
+  fr:"Développe exactement la correction n° 3 : la vie privée n'est pas un bien individuel qu'on troque, c'est une condition du pouvoir collectif — donc on ne peut pas y renoncer pour soi seul." },
+{ lec:"psyche", auteur:"Nicolas Langlitz", min:4, url:"https://aeon.co/ideas/psychedelics-can-t-be-tested-using-conventional-clinical-trials",
+  t:"Psychedelics can't be tested using conventional clinical trials",
+  fr:"Mille mots sur le cœur du texte : set et setting ne sont pas des biais à neutraliser, et l'essai contrôlé fait croire que la molécule seule décidait." },
+{ lec:"psyche", auteur:"Jules Evans", min:13, url:"https://aeon.co/essays/is-psychedelics-research-closer-to-theology-than-to-science",
+  t:"Is psychedelics research closer to theology than to science?",
+  fr:"La « théorie mystique » qui sous-tend la recherche actuelle, et pourquoi l'expérience dite universelle doit beaucoup aux attentes des chercheurs. L'envers du livre de Pollan." },
+{ lec:"parler", auteur:"Phil Jaekl", min:12, url:"https://aeon.co/essays/our-inner-narrator-gives-us-continuity-and-a-sense-of-self",
+  t:"Our inner narrator gives us continuity and a sense of self",
+  fr:"Reprend Vygotsky et les travaux de Fernyhough, dont les degrés de parole intérieure : de la phrase complète jusqu'à une forme « condensée » où il ne reste presque rien de verbal." }
 ];
