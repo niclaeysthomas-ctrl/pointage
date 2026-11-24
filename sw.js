@@ -1,5 +1,5 @@
 // LE POINTAGE — service worker : network-first, repli cache (100 % hors-ligne)
-const CACHE = "pointage-v89-mandarin-nombres";
+const CACHE = "pointage-v90-semaine-echeances";
 const ASSETS = ["./", "./index.html", "./coffre.html", "./cours.js", "./mots.js", "./regles.js", "./failles.js", "./lectures.js", "./lectures-closing.js", "./lectures-ielts.js", "./biblio.js", "./biblio-informatique.js", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./mandarin/", "./pupitre/", "./atelier/bibliotheque/commun.js", "./atelier/bibliotheque/monter.js", "./atelier/pieces/t2-06-cretes-couleur.js", "./atelier/pieces/t2-08-enluminure.js", "./atelier/bibliotheque/emaki.js", "./atelier/pieces/t4-18-rouleau.js", "./atelier/pieces/t4-16-rosace.js"];
 
 self.addEventListener("install", e => {
@@ -7,7 +7,10 @@ self.addEventListener("install", e => {
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    // Le Cache Storage est partagé par toute l'origine : sans le préfixe, cette
+    // ligne effaçait aussi les caches des autres apps (closing, shred, 990…) et
+    // les sortait du mode hors-ligne à chaque mise en ligne du Pointage.
+    .then(ks => Promise.all(ks.filter(k => k !== CACHE && k.startsWith("pointage-")).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", e => {

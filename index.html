@@ -471,6 +471,43 @@
   .bdelta{font-weight:800}
   .bdelta.up{color:var(--good)} .bdelta.down{color:var(--muted)}
 
+  /* ---- LES COULEURS DES DOMAINES : la couleur dit DE QUOI il s'agit, pas où
+     en est la tâche. Un jour chargé en cours ne ressemble donc pas à un jour
+     chargé en candidatures, et ça se voit sans rien lire. ---- */
+  .sem{--d-cours:#378add; --d-rendu:#e24b4a; --d-carriere:#7f77dd; --d-creation:#1d9e75;
+    --d-langues:#ba7517; --d-corps:#d4537e; --d-lecture:#5f5e5a; --d-autres:#888780}
+
+  /* ---- LA SEMAINE : sept colonnes, le seul endroit où cours et échéances
+     vivent sur le même axe. Ce n'est pas une grille horaire : on veut savoir
+     quel jour est pris, pas à quelle minute. ---- */
+  .sem{background:var(--card);border-radius:20px;padding:13px 14px 11px;margin-bottom:12px;
+    box-shadow:var(--shadow);border:1.5px solid transparent}
+  .semh{display:flex;align-items:center;gap:8px;margin-bottom:9px;font-family:var(--disp);
+    font-size:12.5px;font-weight:800;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+  .semh b{margin-left:auto;font-size:11px;font-weight:800;text-transform:none;letter-spacing:0;
+    color:var(--muted)}
+  .semh button{margin-left:auto;border:none;background:none;font:inherit;font-size:11px;font-weight:800;
+    color:var(--accent);text-transform:none;letter-spacing:0;cursor:pointer;padding:0}
+  .semg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+  .semd{background:var(--card2);border-radius:11px;padding:6px 4px 7px;min-height:86px;cursor:pointer;
+    border:1.5px solid transparent;display:flex;flex-direction:column;gap:3px}
+  .semd.auj{border-color:var(--accent);background:var(--card)}
+  .semd.we{opacity:.62}
+  .semd.vide{opacity:.5}
+  .semdj{font-size:10.5px;font-weight:800;color:var(--muted);text-align:center;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums}
+  .semd.auj .semdj{color:var(--accent)}
+  .sempx{font-size:9.5px;font-weight:800;line-height:1.3;border-radius:5px;padding:3px 4px;
+    color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center}
+  .sempx small{display:none;font-size:9px;font-weight:700;opacity:.85;
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  /* l'heure n'apparaît que si la colonne est assez large pour la porter */
+  @media (min-width:560px){ .sempx{text-align:left} .sempx small{display:block} }
+  .semlibre{font-size:9.5px;font-weight:800;color:var(--good);text-align:center;margin-top:auto;
+    opacity:.9}
+  .semlg{margin-top:8px;font-size:10.5px;font-weight:700;color:var(--faint);line-height:1.5}
+  .semlg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin:0 3px 0 0;vertical-align:0}
+
   /* ---- LE BANDEAU DES RENDEZ-VOUS : l'agenda daté, en haut, impossible à rater ---- */
   .rdvbande{border-radius:20px;padding:13px 16px 10px;margin-bottom:12px;box-shadow:var(--shadow);
     border:1.5px solid color-mix(in srgb,var(--accent) 30%,transparent);
@@ -485,6 +522,10 @@
   .rdvq{flex:none;width:102px;font-size:12px;font-weight:800;color:var(--muted);
     font-variant-numeric:tabular-nums}
   .rdvq::first-letter{text-transform:uppercase}
+  .rdvj{flex:none;font-size:11px;font-weight:800;padding:3px 7px;border-radius:99px;
+    background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad);
+    font-variant-numeric:tabular-nums}
+  .rdvj.loin{background:var(--card2);color:var(--muted)}
   .rdvrow.auj .rdvq{color:var(--accent)}
   .rdvt{flex:1;min-width:0;font-size:14.5px;font-weight:700;line-height:1.35;word-break:break-word}
   .rdvt i{display:block;font-style:normal;font-size:11.5px;font-weight:800;color:var(--accent);margin-top:2px}
@@ -2019,6 +2060,7 @@ function render(){
   if(T==="maintenant") corps=`<div class="cols une"><div class="col-l">
         ${isStandalone()?modeHtml():""}
         ${rdvBandeHtml()}
+        ${semHtml()}
         ${dayBarHtml()}
         ${appsDispoHtml()}
         ${lecBilanHtml()}
@@ -2070,7 +2112,7 @@ function render(){
     ${corps}
     ${tabbarHtml()}
   `;
-  agBind(); cahBind(); mondePoser(); livrePoser(); menusPoser(); rouleauVerifier(); if(typeof bibRosPoser==="function") bibRosPoser();
+  agBind(); semBind(); cahBind(); mondePoser(); livrePoser(); menusPoser(); rouleauVerifier(); if(typeof bibRosPoser==="function") bibRosPoser();
   if(keep){
     const el=document.getElementById(keep.id);
     if(el){ el.value=keep.v; el.focus(); try{ el.setSelectionRange(keep.s,keep.s); }catch(e){} if(keep.id==="agIn") agPreview(); }
@@ -2966,6 +3008,27 @@ function openBrief(){
    Le pari : tant que noter coûte plus cher qu'une ligne dans Notes,
    l'agenda perd. Donc un seul champ, jamais de formulaire pour capturer.
    ═══════════════════════════════════════════════════════════════════ */
+/* ─── LE DOMAINE D'UNE TÂCHE ─────────────────────────────────────────────
+   Thomas a déjà des domaines (S.doms) mais ils ne servaient qu'à ranger ses
+   apps. Une tâche n'en portait aucun, donc l'agenda était monochrome et un
+   rendu de cours avait la même tête qu'un appel à un ami. On ne lui demande
+   pas de choisir à la saisie — on le devine au texte, et il peut corriger
+   dans la fiche. Première règle qui matche, dans cet ordre. */
+const AG_DOMS=[
+  ["rendu",    /\b(rendre|rendu|remise|remettre|deposer|déposer|blackboard|note d'analyse|dissert|examen|partiel|binome|binôme|dead-?line|echeance|échéance)\b/i],
+  ["cours",    /\b(bx1[a-e]|cours|td\b|tp\b|amphi|expose|exposé|presentation|présentation|soutenance|groupe|case|cas\b|slides?)\b/i],
+  ["carriere", /\b(postuler|candidat|cv\b|lettre|entretien|stage|jobteaser|recruteur|linkedin|relance|mail\s|m&a|offre)\b/i],
+  ["creation", /\b(guitare|piano|batterie|impro|gamme|accord|solfege|solfège|morceau|chanson|repete|répète|musique)\b/i],
+  ["langues",  /\b(anglais|espagnol|arabe|mandarin|chinois|ielts|vocabulaire|conjugaison|langue)\b/i],
+  ["corps",    /\b(boxe|sport|courir|course|velo|vélo|muscu|salle|etirement|étirement|natation|echecs|échecs)\b/i],
+  ["lecture",  /\b(lire|lecture|livre|chapitre|article|philo|philosophie)\b/i]
+];
+function agDom(it){
+  if(it && it.dom) return it.dom;                  // un choix explicite gagne
+  const txt=String((it&&it.txt)||"");
+  for(const [id,re] of AG_DOMS) if(re.test(txt)) return id;
+  return "autres";
+}
 function agAll(){ if(!Array.isArray(S.agenda)) S.agenda=[]; return S.agenda; }
 function agTombs(){ if(!S.tomb) S.tomb={}; return S.tomb; }
 function agGet(id){ return agAll().find(x=>x.id===id); }
@@ -2998,9 +3061,15 @@ function agMake(day,mo,y){
   if(!y && iso<dayShift(today(),-45)) return (Y+1)+"-"+pad2(mo)+"-"+pad2(day);
   return iso;
 }
+/* Les mots qui disent « c'est une date limite », pas « c'est le jour où je le
+   fais ». AG_LEAD : de combien de jours on remonte pour commencer. Deux jours,
+   parce qu'un rendu de note se prépare la veille et l'avant-veille, pas le
+   matin même. */
+const AG_DUE=/\b(rendre|rendu|remise|remettre|deposer|rendus|avant le|avant\s+\d|dead-?line|echeance|limite|binome|cloture|clôture|expire)\b/;
+const AG_LEAD=2;
 function agParse(raw){
   const src=String(raw||"").trim(), f=agFlat(src);
-  const cuts=[]; let d=null,t=null,t2=null,star=0;
+  const cuts=[]; let d=null,dl=null,t=null,t2=null,star=0; const ds=[];
   const free=(i,j)=>!cuts.some(c=>i<c[1]&&j>c[0]);
   function scan(re,fn){
     re.lastIndex=0; let m;
@@ -3026,38 +3095,49 @@ function agParse(raw){
     t=pad2(h)+":"+pad2(n); return true;
   });
   scan(new RegExp("\\b(\\d{1,2})\\s*(?:er)?\\s*("+AG_MRE+")\\.?\\b","g"), m=>{
-    if(d) return false;
-    const r=agMake(+m[1],AG_MOIS[m[2]]); if(!r) return false; d=r; return true;
+    if(ds.length>=2) return false;
+    const r=agMake(+m[1],AG_MOIS[m[2]]); if(!r) return false; ds.push(r); return true;
   });
   scan(/\b(\d{1,2})[/.](\d{1,2})(?:[/.](\d{2,4}))?\b/g, m=>{
-    if(d) return false;
+    if(ds.length>=2) return false;
     const y=m[3]?(+m[3]<100?2000+ +m[3]:+m[3]):null;
-    const r=agMake(+m[1],+m[2],y); if(!r) return false; d=r; return true;
+    const r=agMake(+m[1],+m[2],y); if(!r) return false; ds.push(r); return true;
   });
   scan(/\b(aujourd'hui|auj|ce soir|ce matin|cet aprem|apres-demain|apres demain|demain)\b/g, m=>{
-    if(d) return false;
+    if(ds.length>=2) return false;
     const w=m[1];
-    d = /apres/.test(w) ? dayShift(today(),2) : /demain/.test(w) ? dayShift(today(),1) : today();
+    ds.push(/apres/.test(w) ? dayShift(today(),2) : /demain/.test(w) ? dayShift(today(),1) : today());
     return true;
   });
   scan(new RegExp("\\b("+AG_JRE+")\\.?(\\s+prochain)?\\b","g"), m=>{
-    if(d) return false;
+    if(ds.length>=2) return false;
     const want=AG_JOURS[m[1]], cur=new Date(today()+"T12:00:00").getDay();
     let add=(want-cur+7)%7;
     if(m[2]&&add===0) add=7;            // « lundi prochain », un lundi : la semaine d'après
-    d=dayShift(today(),add); return true;
+    ds.push(dayShift(today(),add)); return true;
   });
   let out="", last=0;
   cuts.sort((a,b)=>a[0]-b[0]).forEach(c=>{ if(c[0]>=last) out+=src.slice(last,c[0]); last=Math.max(last,c[1]); });
   out+=src.slice(last);
   out=out.replace(/\s{2,}/g," ").replace(/^[\s,;:·\-–—]+|[\s,;:·\-–—]+$/g,"").trim();
-  return {txt:out||src, d, t, t2, star};
+  /* UNE date : c'est le jour où ça se passe — sauf si la phrase parle d'un
+     rendu, et alors c'est une échéance, et on se met au travail avant.
+     DEUX dates : la première est le jour où je commence, la seconde l'échéance.
+     C'est ce qui manquait : « rendre la note le 3 déc » ne disait pas quand
+     s'y mettre, donc ne remontait que le 3 décembre, trop tard. */
+  ds.sort();
+  if(ds.length>=2){ d=ds[0]; dl=ds[ds.length-1]; }
+  else if(ds.length===1){
+    if(AG_DUE.test(f)){ dl=ds[0]; const av=dayShift(dl,-AG_LEAD); d=av<today()?today():av; }
+    else d=ds[0];
+  }
+  return {txt:out||src, d, dl, t, t2, star};
 }
 
 /* ---- le modèle ---- */
 function agAdd(raw){
   const p=agParse(raw); if(!p.txt) return null;
-  const it={id:agId(), txt:p.txt, d:p.d, t:p.t, t2:p.t2, note:"", star:p.star, done:null,
+  const it={id:agId(), txt:p.txt, d:p.d, dl:p.dl, t:p.t, t2:p.t2, note:"", star:p.star, done:null,
             c:Date.now(), mod:Date.now()};
   agAll().push(it); save(); return it;
 }
@@ -3077,23 +3157,47 @@ function agStar(id){ const it=agGet(id); if(!it) return; it.star=it.star?0:1; ag
 function agUrgent(id){ const it=agGet(id); if(!it) return; it.d=today(); it.star=1; agTouch(it); save(); }
 function agLater(id){ const it=agGet(id); if(!it) return; it.d=null; it.t=null; it.t2=null; agTouch(it); save(); }
 function agPushToday(id){ const it=agGet(id); if(!it) return; it.d=today(); agTouch(it); save(); }
+/* L'échéance prime sur tout pour trier et pour alerter : « dans 2 jours »
+   n'a de sens que par rapport à la date de rendu, pas à celle où on comptait
+   s'y mettre. agJ renvoie le nombre de jours restants, ou null. */
+function agEch(it){ return (it&&it.dl)||null; }
+function agJ(it){
+  const e=agEch(it); if(!e) return null;
+  return Math.round((Date.parse(e+"T12:00:00")-Date.parse(today()+"T12:00:00"))/864e5);
+}
+function agJLabel(it){
+  const j=agJ(it); if(j===null) return "";
+  if(j<0) return "en retard de "+(-j)+" j";
+  if(j===0) return "aujourd'hui";
+  return "J-"+j;
+}
+/* agJour : le jour où la tâche se travaille. agRef : le jour qui fait foi
+   pour dire « en retard ». Les deux diffèrent dès qu'il y a une échéance —
+   une note à rendre le 3 décembre et commencée le 1er n'est pas en retard
+   le 2. Confondre les deux faisait passer en rouge des tâches à l'heure. */
+function agJour(x){ return (x&&(x.d||x.dl))||null; }
+function agRef(x){ return (x&&(x.dl||x.d))||null; }
 function agSort(l){ return l.slice().sort((a,b)=>
-  (b.star||0)-(a.star||0) || (a.d||"9999").localeCompare(b.d||"9999") ||
+  (b.star||0)-(a.star||0) || (agJour(a)||"9999").localeCompare(agJour(b)||"9999") ||
   (a.t||"99:99").localeCompare(b.t||"99:99") || (a.c||0)-(b.c||0)); }
 /* ─── LE BANDEAU DES RENDEZ-VOUS ───────────────────────────────────────────
    L'agenda daté remonte en haut de « Maintenant ». On ne montre que ce qui a
    une date dans les 7 jours : le reste reste dans la carte Agenda, sinon le
    bandeau devient une deuxième liste et ne sert plus à rien. */
 function rdvProchains(){
-  const t=today(), lim=dayShift(t,7);
-  const dans7j=agAll().filter(x=>!x.done&&x.d&&x.d>=t&&x.d<=lim)
-    .sort((a,b)=>(a.d+(a.t||"99:99")).localeCompare(b.d+(b.t||"99:99")));
-  /* un rendez-vous a une heure : c'est ce qui ne se rattrape pas. Il passe
-     devant, sinon trois tâches du jour suffisent à faire disparaître
-     l'entretien de jeudi — exactement ce que le bandeau doit empêcher. */
-  const rdv=dans7j.filter(x=>x.t).slice(0,3);
-  const todo=dans7j.filter(x=>!x.t&&x.d===t).slice(0,2);
-  return rdv.concat(todo);
+  /* Trois jours, pas sept : au-delà le bandeau devient une liste et on ne le
+     lit plus. Et surtout : TOUT ce qui est daté remonte, avec ou sans heure.
+     L'ancienne version ne gardait que ce qui avait une heure, plus les
+     tâches du jour même — donc un rendu daté à J+2 sans heure n'apparaissait
+     nulle part avant le matin du jour J. C'est comme ça qu'un travail de
+     groupe se découvre la veille au soir. */
+  const t=today(), lim=dayShift(t,3);
+  const dans=agAll().filter(x=>{
+    if(x.done) return false;
+    return (x.d&&x.d>=t&&x.d<=lim) || (x.dl&&x.dl>=t&&x.dl<=lim);
+  });
+  const cle=x=>(x.d||x.dl||"9999")+(x.t||"99:99");
+  return dans.sort((a,b)=>cle(a).localeCompare(cle(b))||(b.star||0)-(a.star||0)).slice(0,5);
 }
 /* « dans 25 min » n'a de sens que le jour même : au-delà, la date suffit. */
 function rdvCompte(it){
@@ -3109,23 +3213,104 @@ function rdvBandeHtml(){
   const t=today(), B=agBuckets(), L=rdvProchains();
   if(!L.length&&!B.late.length) return "";
   const rows=L.map(it=>{
-    const cd=rdvCompte(it);
-    return `<div class="rdvrow ${it.d===t?"auj":""}" onclick="agSheet()">
-      <div class="rdvq">${it.t?esc(agDL(it.d))+" · "+esc(it.t):"à faire"}</div>
-      <div class="rdvt">${esc(it.txt)}${cd?`<i>${cd}</i>`:""}</div></div>`;
+    const cd=rdvCompte(it), j=agJ(it);
+    const quand = it.t ? esc(agDL(it.d))+" · "+esc(it.t)
+                : it.d ? esc(agDL(it.d))
+                : "à rendre";
+    return `<div class="rdvrow ${it.d===t?"auj":""}" onclick="agEdit('${it.id}')">
+      <div class="rdvq">${quand}</div>
+      <div class="rdvt">${esc(it.txt)}${cd?`<i>${cd}</i>`:(it.dl&&it.dl!==it.d?`<i>à rendre ${esc(agDL(it.dl))}</i>`:"")}</div>
+      ${j!==null?`<div class="rdvj ${j>2?"loin":""}">${esc(agJLabel(it))}</div>`:""}</div>`;
   }).join("");
   return `<div class="rdvbande${B.late.length?" urge":""}">
-    <div class="rdvhead"><span>🗓 Les rendez-vous</span>${B.late.length?`<b>${B.late.length} en retard</b>`:""}</div>
-    ${rows||`<div class="rdvrow" onclick="agSheet()"><div class="rdvt">Rien de daté dans les 7 jours</div></div>`}
+    <div class="rdvhead"><span>🗓 Ce qui arrive</span>${B.late.length?`<b>${B.late.length} en retard</b>`:""}</div>
+    ${rows||`<div class="rdvrow" onclick="agSheet()"><div class="rdvt">Rien de daté dans les 3 jours</div></div>`}
     <button class="rdvall" onclick="agSheet()">Tout l'agenda ›</button></div>`;
+}
+/* ═══════════════════════════════════════════════════════════════════
+   LA SEMAINE — sept colonnes, du lundi au dimanche.
+   Le seul endroit de l'app où les cours (cours.js, qu'on ne coche pas) et
+   les tâches datées vivent sur le même axe. C'est ce qui manquait pour
+   répondre à la seule question qui compte quand on planifie : « quel jour
+   suis-je déjà pris ? ». Pas une grille horaire : on veut la charge du
+   jour, pas la minute. Les couleurs disent le domaine, jamais l'état.
+   ═══════════════════════════════════════════════════════════════════ */
+let SEM_OFF=0;                                    // 0 = cette semaine, 1 = la suivante
+function semShift(n){ SEM_OFF+=n; render(); }
+function semLundi(){
+  const t=new Date(today()+"T12:00:00");
+  t.setDate(t.getDate()-((t.getDay()+6)%7)+SEM_OFF*7);
+  return t.toISOString().slice(0,10);
+}
+/* Les minutes de cours d'un jour : sert à dire « 6 h 30 de cours » plutôt
+   que de faire compter trois blocs à l'oeil. */
+function semMinCours(d){
+  return coursDu(d).reduce((m,c)=>{
+    if(c.off||!c.t||!c.t2) return m;
+    const [h1,n1]=c.t.split(":").map(Number), [h2,n2]=c.t2.split(":").map(Number);
+    return m+Math.max(0,(h2*60+n2)-(h1*60+n1));
+  },0);
+}
+function semHtml(){
+  const t=today(), lun=semLundi();
+  const jours=[];
+  for(let i=0;i<7;i++) jours.push(dayShift(lun,i));
+  const noms=["lun","mar","mer","jeu","ven","sam","dim"];
+  const cells=jours.map((d,i)=>{
+    const crs=coursDu(d).filter(c=>!c.off);
+    const taches=agAll().filter(x=>!x.done&&(agJour(x)===d||x.dl===d));
+    const px=[];
+    crs.slice(0,3).forEach(c=>{
+      const code=String(c.code||"").split(" ")[0];
+      px.push(`<div class="sempx" style="background:var(--d-cours)" title="${esc((c.t||"")+" "+code+" "+(c.nom||""))}">${esc(code)}
+        <small>${esc(c.t||"")}</small></div>`);
+    });
+    taches.slice(0,3).forEach(x=>{
+      const due=x.dl===d, dom=due?"rendu":agDom(x);
+      px.push(`<div class="sempx" style="background:var(--d-${dom})" title="${esc(x.txt)}${due?" · à rendre":""}">${due?"⚑ ":""}${esc(x.txt)}
+        ${due?`<small>à rendre</small>`:(x.t?`<small>${esc(x.t)}</small>`:"")}</div>`);
+    });
+    const reste=(crs.length-3)+(taches.length-3);
+    if(reste>0) px.push(`<div class="sempx" style="background:var(--d-autres)">+${reste}</div>`);
+    const mc=semMinCours(d);
+    const libre = !px.length ? `<div class="semlibre">libre</div>`
+      : (mc? `<div class="semlibre" style="color:var(--muted)">${fmtMin(mc)} de cours</div>` : "");
+    return `<div class="semd ${d===t?"auj":""} ${i>4?"we":""} ${px.length?"":"vide"}" data-d="${d}">
+      <div class="semdj">${noms[i]} ${+d.slice(8)}${d===t?"":""}</div>
+      ${px.join("")}
+      ${libre}</div>`;
+  }).join("");
+  const m0=new Date(lun+"T12:00:00"), m1=new Date(dayShift(lun,6)+"T12:00:00");
+  const titre = SEM_OFF===0 ? "Cette semaine"
+    : SEM_OFF===1 ? "La semaine prochaine"
+    : m0.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})+" → "+m1.toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+  return `<div class="sem">
+    <div class="semh"><span>${esc(titre)}</span>
+      <button onclick="semShift(-1)" aria-label="Semaine précédente">‹</button>
+      ${SEM_OFF?`<button onclick="SEM_OFF=0;render()">aujourd'hui</button>`:""}
+      <button onclick="semShift(1)" aria-label="Semaine suivante">›</button></div>
+    <div class="semg" id="semG">${cells}</div>
+    <div class="semlg"><i style="background:var(--d-cours)"></i>cours
+      <i style="background:var(--d-rendu)"></i>à rendre
+      <i style="background:var(--d-carriere)"></i>stage
+      <i style="background:var(--d-creation)"></i>musique
+      <i style="background:var(--d-langues)"></i>langues
+      <br>Touche un jour pour l'ouvrir.</div>
+  </div>`;
+}
+function semBind(){
+  const g=document.getElementById("semG");
+  if(g) g.addEventListener("click",ev=>{
+    const el=ev.target.closest("[data-d]"); if(el) calDay(el.dataset.d);
+  });
 }
 function agBuckets(){
   const t=today(), open=agAll().filter(x=>!x.done);
   return {
-    late : agSort(open.filter(x=>x.d&&x.d<t)),
-    now  : agSort(open.filter(x=>x.d===t)),
-    soon : agSort(open.filter(x=>x.d&&x.d>t)),
-    inbox: agSort(open.filter(x=>!x.d)),
+    late : agSort(open.filter(x=>agRef(x)&&agRef(x)<t)),
+    now  : agSort(open.filter(x=>agJour(x)&&agJour(x)<=t&&agRef(x)>=t)),
+    soon : agSort(open.filter(x=>agJour(x)&&agJour(x)>t)),
+    inbox: agSort(open.filter(x=>!agJour(x))),
     done : agAll().filter(x=>x.done).sort((a,b)=>(b.mod||0)-(a.mod||0))
   };
 }
@@ -3142,11 +3327,12 @@ function agDL(d,long){
 
 /* ---- une ligne ---- */
 function agRowHtml(it,withDate){
-  const t=today(), late=!it.done&&it.d&&it.d<t;
+  const t=today(), ref=agRef(it), jour=agJour(it), late=!it.done&&ref&&ref<t;
   const bits=[];
   if(it.t) bits.push(`<span class="agt">${it.t}${it.t2?" → "+it.t2:""}</span>`);
-  if(withDate&&it.d&&it.d!==t) bits.push(`<span class="agd ${late?"late":""}">${agDL(it.d)}</span>`);
-  if(late&&!withDate) bits.push(`<span class="agd late">${agDL(it.d)}</span>`);
+  if(withDate&&jour&&jour!==t) bits.push(`<span class="agd ${late?"late":""}">${agDL(jour)}</span>`);
+  if(late&&!withDate) bits.push(`<span class="agd late">${agDL(ref)}</span>`);
+  if(it.dl&&!it.done) bits.push(`<span class="agd ${agJ(it)<=1?"late":""}">à rendre ${agDL(it.dl)} · ${agJLabel(it)}</span>`);
   if(it.note) bits.push(`<span>📝</span>`);
   return `<div class="agrow ${it.done?"ok":""}" data-id="${it.id}">
     <div class="agchk ${it.done?"on":""}" data-act="chk" role="checkbox" aria-checked="${!!it.done}"></div>
@@ -3164,8 +3350,13 @@ function agCardHtml(){
   /* Le gros de ce qu'il note n'a pas de date. Si la carte ne montrait que le
      daté, la pile en attente deviendrait invisible — donc on complète avec
      elle (les étoilées d'abord, agSort s'en charge). */
+  /* On complète d'abord avec ce qui ARRIVE, ensuite seulement avec la pile
+     sans date. L'ancienne version ne piochait que dans B.inbox : une échéance
+     à J+2 n'était donc jamais sur l'accueil, et c'est exactement le trou par
+     lequel un rendu passe inaperçu. */
   let shown=[...B.late.slice(0,3), ...B.now];
-  if(shown.length<4) shown=shown.concat(B.inbox.slice(0,4-shown.length));
+  if(shown.length<5) shown=shown.concat(B.soon.slice(0,5-shown.length));
+  if(shown.length<5) shown=shown.concat(B.inbox.slice(0,5-shown.length));
   if(shown.length>5) shown=shown.slice(0,5);
   let body;
   if(shown.length){ body=shown.map(it=>agRowHtml(it,false)).join(""); }
@@ -3202,8 +3393,9 @@ function agPreview(sfx){
   const v=el.value.trim();
   if(!v){ h.innerHTML=""; return; }
   const p=agParse(v);
-  if(!p.d&&!p.t){ h.innerHTML="sans date — ça ira dans la liste d'attente"; return; }
-  h.innerHTML="→ <b>"+esc(p.txt)+"</b> · "+(p.d?agDL(p.d):"sans date")+(p.t?" à "+p.t+(p.t2?"–"+p.t2:""):"");
+  if(!p.d&&!p.t&&!p.dl){ h.innerHTML="sans date — ça ira dans la liste d'attente"; return; }
+  h.innerHTML="→ <b>"+esc(p.txt)+"</b> · "+(p.d?agDL(p.d):"sans date")+(p.t?" à "+p.t+(p.t2?"–"+p.t2:""):"")
+    +(p.dl&&p.dl!==p.d?" · <b>à rendre "+agDL(p.dl)+"</b>":"");
 }
 function agSubmit(e,sfx){
   e.preventDefault(); sfx=sfx||"";
@@ -3211,6 +3403,11 @@ function agSubmit(e,sfx){
   const v=el.value.trim(); if(!v) return;
   const it=agAdd(v); el.value=""; agPreview(sfx);
   if(sfx){ agSheet(); setTimeout(()=>{ const e2=document.getElementById("agIn2"); if(e2) e2.focus(); },0); }
+  else if(it&&(it.d||it.dl)){
+    /* une tâche datée touche le bandeau et la semaine, pas seulement la carte :
+       il faut un rendu complet. render() restaure la saisie et le curseur. */
+    render(); const e2=document.getElementById("agIn"); if(e2) e2.focus();
+  }
   else { agRepaint(); const e2=document.getElementById("agIn"); if(e2) e2.focus(); }
   if(it&&it.d) toast("🗓 "+agDL(it.d)+(it.t?" à "+it.t:""));
 }
@@ -3224,7 +3421,7 @@ function agRowAct(ev,repaint){
   const act=(ev.target.closest("[data-act]")||{}).dataset;
   const id=row.dataset.id;
   if(!act) return;
-  if(act.act==="chk"){ agDone(id); repaint(); }
+  if(act.act==="chk"){ const it=agGet(id), date=!!agJour(it); agDone(id); repaint(); if(date&&repaint===agRepaint) render(); }
   else if(act.act==="push"){ agPushToday(id); repaint(); toast("Reporté à aujourd'hui"); }
   else if(act.act==="urg"){ agUrgent(id); repaint(); toast("🔥 Urgent : en tête, pour aujourd'hui"); }
   else if(act.act==="later"){ agLater(id); repaint(); toast("Rangé dans « Sans date »"); }
@@ -3347,8 +3544,12 @@ function calData(ym){
     st.days.forEach(d=>{ if(d.slice(0,7)===ym&&catOf(a)) get(d).cats[catOf(a)]=1; });
     Object.keys(st.min||{}).forEach(d=>{ if(d.slice(0,7)===ym) get(d).min+=Math.round(st.min[d]||0); });
   });
-  agAll().forEach(it=>{ if(!it.d||it.d.slice(0,7)!==ym) return;
-    const g=get(it.d); g.ag++; if(!it.done){ g.open++; if(it.star) g.star++; } });
+  agAll().forEach(it=>{ const jr=agJour(it);
+    if(!jr||jr.slice(0,7)!==ym) return;
+    const g=get(jr); g.ag++; if(!it.done){ g.open++; if(it.star) g.star++; } });
+  /* une échéance marque aussi SON jour, même si le travail commence avant */
+  agAll().forEach(it=>{ if(!it.dl||it.done||it.dl===it.d||it.dl.slice(0,7)!==ym) return;
+    const g=get(it.dl); g.ag++; g.open++; g.star++; });
   coursTous().forEach(c=>{ if(c.d&&c.d.slice(0,7)===ym) get(c.d).cours=(get(c.d).cours||0)+1; });
   Object.keys(jAll()).forEach(d=>{ if(d.slice(0,7)===ym&&jHas(d)) get(d).j=1; });
   return map;
@@ -3371,7 +3572,7 @@ function agSegBind(){
    qu'on lui pose vraiment : qu'est-ce qui arrive, et qu'est-ce que j'ai
    laissé passer. Ces deux fonctions servent le bandeau sous la grille. */
 function calEnRetard(){ const t=today();
-  return agSort(agAll().filter(x=>x.d&&x.d<t&&!x.done)); }
+  return agSort(agAll().filter(x=>agRef(x)&&agRef(x)<t&&!x.done)); }
 function calQuand(d){ const t=today();
   if(d===t) return "aujourd'hui";
   if(d===dayShift(t,1)) return "demain";
@@ -3379,8 +3580,9 @@ function calQuand(d){ const t=today();
   return n<0?`il y a ${-n} j`:`dans ${n} j`; }
 /* Cours et tâches mélangés, parce que la journée ne les sépare pas. */
 function calProchain(n){ const t=today(), out=[];
-  agAll().forEach(x=>{ if(x.d&&x.d>=t&&!x.done)
-    out.push({d:x.d,t:x.t||"",star:x.star,txt:x.txt,kind:"ag",id:x.id}); });
+  agAll().forEach(x=>{ const jr=agJour(x);
+    if(jr&&jr>=t&&!x.done)
+      out.push({d:jr,t:x.t||"",star:x.star,txt:x.txt+(x.dl&&x.dl!==jr?" · à rendre "+agDL(x.dl):""),kind:"ag",id:x.id}); });
   coursTous().forEach(c=>{ if(c.d>=t)
     out.push({d:c.d,t:c.t||"",txt:(c.code==="EXAMENS"?"":c.code+" — ")+(c.nom||coursNom(c)),kind:"cours"}); });
   out.sort((a,b)=>a.d.localeCompare(b.d)||a.t.localeCompare(b.t)||(b.star||0)-(a.star||0));
@@ -3469,7 +3671,7 @@ function calSheet(){
   if(lt) lt.addEventListener("click",()=>calDay(lt.dataset.d));
 }
 function calDay(d){
-  const items=agSort(agAll().filter(x=>x.d===d));
+  const items=agSort(agAll().filter(x=>agJour(x)===d||x.dl===d));
   const pointe=S.apps.filter(a=>stOf(a.id).days.includes(d));
   const min=S.apps.reduce((s,a)=>s+Math.round(stOf(a.id).min[d]||0),0);
   const e=jGet(d), AC=catsActives();
@@ -3541,9 +3743,11 @@ function agEdit(id){
       <span data-d="7">+1 semaine</span><span data-d="x">Sans date</span>
     </div>
     <div class="fld2">
-      <div class="fld"><label>Jour</label><input type="date" id="eD" value="${it.d||""}"></div>
+      <div class="fld"><label>Je m'y mets le</label><input type="date" id="eD" value="${it.d||""}"></div>
       <div class="fld"><label>Heure</label><input type="time" id="eH" value="${it.t||""}"></div>
     </div>
+    <div class="fld"><label>À rendre le ${it.dl?"· "+esc(agJLabel(it)):"(facultatif)"}</label>
+      <input type="date" id="eL" value="${it.dl||""}"></div>
     <div class="fld"><label>Détails, préparation…</label><textarea id="eN" placeholder="Ce qu'il y a à préparer, les points à aborder…">${esc(it.note||"")}</textarea></div>
     <button class="btn" onclick="agSave('${it.id}')">Enregistrer</button>
     <button class="btn ghost" onclick="agStar('${it.id}')">${it.star?"★ Retirer l'étoile":"☆ Mettre en avant"}</button>
@@ -3584,8 +3788,13 @@ function agSave(id){
   if(!txt) return toast("Il faut un texte.");
   it.txt=txt;
   it.d=document.getElementById("eD").value||null;
+  it.dl=document.getElementById("eL").value||null;
   it.t=document.getElementById("eH").value||null;
   if(!it.t) it.t2=null;
+  /* une échéance sans jour de travail se travaille le jour même : sinon la
+     tâche n'a aucune date de départ et retombe dans la pile sans date. */
+  if(it.dl&&!it.d){ const av=dayShift(it.dl,-AG_LEAD); it.d=av<today()?today():av; }
+  if(it.d&&it.dl&&it.d>it.dl) it.d=it.dl;
   it.note=document.getElementById("eN").value;
   agTouch(it); save(); closeOv(); render(); toast("Enregistré");
 }
@@ -6001,7 +6210,16 @@ function lireSes(kind,ref,min,extra){ if(min<1) return; const L=lir();
 /* ═══ LES COURS ═══ Lus depuis cours.js, jamais stockés dans l'état :
    ils ne se cochent pas, ils se consultent. Mettre le planning à jour =
    changer cours.js, rien d'autre. */
-function coursTous(){ return Array.isArray(window.COURS)?window.COURS:[]; }
+/* Les examens ont été ajoutés après coup dans cours.js : la liste n'est plus
+   dans l'ordre. On la trie une fois, sinon une journée affiche son examen de
+   10h après son cours de 13h30. */
+let COURS_TRI=null;
+function coursTous(){
+  if(!Array.isArray(window.COURS)) return [];
+  if(!COURS_TRI || COURS_TRI.length!==window.COURS.length)
+    COURS_TRI=window.COURS.slice().sort((a,b)=>String(a.d).localeCompare(String(b.d))||String(a.t||"").localeCompare(String(b.t||"")));
+  return COURS_TRI;
+}
 function coursDu(d){ return coursTous().filter(c=>c.d===d); }
 function coursNom(c){ const n=(window.COURS_NOMS||{})[c.code]; return n||c.code; }
 function coursLigne(c){
