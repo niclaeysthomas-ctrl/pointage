@@ -5009,7 +5009,7 @@ function coffreHtml(){
 }
 
 /* ---- les bannis : la liste, les domaines à coller, la dernière vérification ---- */
-function banHtml(){
+function bloqHtml(){
   let h=`<p>Ces sites n'ont pas de porte et pas de ticket : ils sont bloqués, point. Le Pointage ne peut rien bloquer seul — il garde les domaines exacts et t'oblige à revérifier, parce qu'un blocage saute en silence : mise à jour iOS, code Temps d'écran réinitialisé, app réinstallée, nouvel appareil.</p>`;
   BANNIS.forEach(b=>{
     const j=banJours(b.id), ok=banOk(b.id);
@@ -5084,7 +5084,7 @@ function openCadre(keep){
       <div class="kstp"><div class="kl">Priorités avant le 1er ticket${pend("prio")}</div><button class="t" onclick="cfSet('prio',${cf.prio?0:1});openCadre(true)">${cf.prio?"Exigées":"Non exigées"}</button></div>
       <div class="kstp"><div class="kl">Raccourci « ${SC_NAME} » installé<small>Oui : la porte ouvre l'app via le raccourci. Non : la version web.</small></div><button class="t" onclick="cfSet('sc',${cf.sc?0:1});openCadre(true)">${cf.sc?"Oui":"Non"}</button></div>
       <p class="kp" style="margin-top:10px">Plafond : ${cf.cap} × ${cf.tmin} min = <b>${cf.cap*cf.tmin} min par jour</b>. Mets la limite Temps d'écran d'Instagram sur la même valeur.</p></div>
-    <div class="ksec"><h4>🚫 Blocage total</h4>${banHtml()}</div>
+    <div class="ksec"><h4>🚫 Blocage total</h4>${bloqHtml()}</div>
     <div class="ksec"><h4>🔐 Coffre à code Temps d'écran</h4>${coffreHtml()}</div>
     <div class="ksec"><h4>📱 Installer sur l'iPhone</h4>${guideHtml()}</div>
     <div class="ksec"><h4>📱 Le téléphone, un outil</h4><p>Écran d'accueil minimal, notifications, Concentration, rituels qui s'ouvrent seuls, niveaux de gris.</p><button class="btn ghost" onclick="openTel()">Voir les réglages</button></div>
